@@ -13,8 +13,14 @@ import {
 import { authenticate, changeOwnPassword, createPasswordResetToken, resetPasswordWithToken } from "../services/auth.service";
 import { requireAuth } from "../middleware/auth";
 import { createSession, destroySession } from "../lib/session";
+import { csrfTokenHandler } from "../middleware/csrf";
 
 export const authRouter = Router();
+
+// Público: entrega el token CSRF vigente como JSON (protegido por CORS),
+// porque el frontend vive en otro origen y no puede leer la cookie via JS.
+// El frontend lo llama una vez al cargar y lo guarda en memoria.
+authRouter.get("/csrf", csrfTokenHandler);
 
 authRouter.post(
   "/login",

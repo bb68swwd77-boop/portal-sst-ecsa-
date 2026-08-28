@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api, ApiError } from "../api/client";
+import { api, ApiError, ensureCsrfToken } from "../api/client";
 import type { CurrentUser } from "../types";
 
 interface AuthContextValue {
@@ -51,6 +51,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // El token CSRF se obtiene en paralelo, antes de que el usuario pueda
+    // enviar cualquier formulario (login incluido).
+    ensureCsrfToken();
     refresh();
   }, [refresh]);
 

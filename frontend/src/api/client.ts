@@ -6,14 +6,36 @@ export class ApiError extends Error {
   }
 }
 
-function readCookie(name: string): string | undefined {
-  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : undefined;
-}
-
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+// El backend vive en un origen distinto al frontend (subdominios separados en
+// producción), así que el JS del frontend no puede leer la cookie CSRF del
+// backend vía document.cookie (pertenece a otro origen). En su lugar, el
+// token se obtiene una vez de GET /auth/csrf (protegido por CORS) y se
+// guarda en memoria para reenviarlo como header en cada mutación.
+let csrfToken: string | null = null;
+let csrfFetchPromise: Promise<string | null> | null = null;
+
+async function fetchCsrfToken(): Promise<string | null> {
+  try {
+    const res = await fetch(`${API_URL}/auth/csrf`, { credentials: "include" });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { csrfToken?: string };
+    csrfToken = data.csrfToken ?? null;
+    return csrfToken;
+  } catch {
+    return null;
+  }
+}
+
+// Llamar una vez al iniciar la app (ver AuthContext). Repetible sin costo.
+export function ensureCsrfToken(): Promise<string | null> {
+  if (csrfToken) return Promise.resolve(csrfToken);
+  if (!csrfFetchPromise) csrfFetchPromise = fetchCsrfToken().finally(() => (csrfFetchPromise = null));
+  return csrfFetchPromise;
+}
+
+async function request<T>(path: string, options: RequestInit = {}, isRetry = false): Promise<T> {
   const method = (options.method || "GET").toUpperCase();
   const headers: Record<string, string> = {
     ...(options.body ? { "Content-Type": "application/json" } : {}),
@@ -21,8 +43,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   };
 
   if (!SAFE_METHODS.has(method)) {
-    const csrfToken = readCookie("csrf_token");
-    if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+    const token = csrfToken ?? (await ensureCsrfToken());
+    if (token) headers["X-CSRF-Token"] = token;
   }
 
   const res = await fetch(`${API_URL}${path}`, {
@@ -31,6 +53,16 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers,
     credentials: "include",
   });
+
+  // El token pudo invalidarse (cookie expirada/rotada en el servidor);
+  // en un 403 CSRF se refresca una sola vez y se reintenta la petición.
+  if (res.status === 403 && !isRetry && !SAFE_METHODS.has(method)) {
+    csrfToken = null;
+    const retryToken = await ensureCsrfToken();
+    if (retryToken) {
+      return request<T>(path, options, true);
+    }
+  }
 
   const isJson = res.headers.get("content-type")?.includes("application/json");
   const data = isJson ? await res.json().catch(() => ({})) : undefined;
