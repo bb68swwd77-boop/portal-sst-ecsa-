@@ -62,7 +62,9 @@ authRouter.get(
   "/me",
   requireAuth,
   asyncHandler(async (req, res) => {
-    res.json({ user: req.currentUser });
+    // Set no serializa a JSON como array (res.json({...Set}) produce "{}"),
+    // así que se convierte explícitamente antes de responder.
+    res.json({ user: { ...req.currentUser, permissions: [...req.currentUser!.permissions] } });
   })
 );
 
