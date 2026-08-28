@@ -14,7 +14,10 @@ services:
     runtime: node
     plan: free
     rootDir: backend
-    buildCommand: npm install && npm run build
+    # --include=dev es necesario: con NODE_ENV=production definido más abajo,
+    # `npm install` por defecto omite devDependencies (typescript, @types/*,
+    # prisma CLI), que sí se necesitan para compilar en este paso de build.
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm run release && npm start
     healthCheckPath: /api/health
     envVars:
@@ -39,7 +42,7 @@ services:
     name: ecsa-sst-frontend
     runtime: static
     rootDir: frontend
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
