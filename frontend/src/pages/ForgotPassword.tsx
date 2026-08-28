@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
+import { AuthLayout } from "../components/AuthLayout";
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -28,7 +29,7 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <div className="auth-shell">
+    <AuthLayout>
       <div className="auth-card">
         <div className="auth-logo">
           <div className="mark">ECSA · Proyecto Mirador</div>
@@ -59,6 +60,6 @@ export function ForgotPasswordPage() {
           </Link>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

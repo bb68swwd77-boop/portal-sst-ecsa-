@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import logoEcsa from "../assets/logo-ecsa.png";
 
 const USER_LINKS = [
   { to: "/", label: "Mi capacitación", end: true },
@@ -34,7 +35,7 @@ export function Layout() {
       <div className={`sidebar-scrim ${drawerOpen ? "open" : ""}`} onClick={() => setDrawerOpen(false)} />
       <aside className={`sidebar ${drawerOpen ? "open" : ""}`}>
         <div className="sidebar-brand">
-          <h1>ECSA · Proyecto Mirador</h1>
+          <img src={logoEcsa} alt="ECSA" className="sidebar-logo" />
           <p>Capacitación SST — Contratistas</p>
         </div>
         <nav className="sidebar-nav">
@@ -72,7 +73,8 @@ export function Layout() {
           <button className="btn btn-secondary btn-sm" onClick={() => setDrawerOpen((v) => !v)} aria-label="Abrir menú">
             ☰
           </button>
-          <strong>ECSA · Capacitación SST</strong>
+          <img src={logoEcsa} alt="ECSA" className="topbar-logo" />
+          <strong>Capacitación SST</strong>
         </div>
         <div className="main-content">
           <Outlet />

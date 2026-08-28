@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
+import { AuthLayout } from "../components/AuthLayout";
 
 interface VerifyResult {
   valid: boolean;
@@ -38,7 +39,7 @@ export function VerifyCertificatePage() {
   }
 
   return (
-    <div className="auth-shell">
+    <AuthLayout>
       <div className="auth-card" style={{ maxWidth: 480 }}>
         <div className="auth-logo">
           <div className="mark">ECSA · Proyecto Mirador</div>
@@ -89,6 +90,6 @@ export function VerifyCertificatePage() {
           </Link>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

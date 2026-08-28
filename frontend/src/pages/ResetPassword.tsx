@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api, ApiError } from "../api/client";
+import { AuthLayout } from "../components/AuthLayout";
 
 export function ResetPasswordPage() {
   const [params] = useSearchParams();
@@ -30,7 +31,7 @@ export function ResetPasswordPage() {
   }
 
   return (
-    <div className="auth-shell">
+    <AuthLayout>
       <div className="auth-card">
         <div className="auth-logo">
           <div className="mark">ECSA · Proyecto Mirador</div>
@@ -71,6 +72,6 @@ export function ResetPasswordPage() {
           </Link>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../api/client";
+import { AuthLayout } from "../components/AuthLayout";
 
 export function LoginPage() {
   const { login, user } = useAuth();
@@ -30,7 +31,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="auth-shell">
+    <AuthLayout>
       <div className="auth-card">
         <div className="auth-logo">
           <div className="mark">ECSA · Proyecto Mirador</div>
@@ -80,6 +81,6 @@ export function LoginPage() {
           Acceso DEMO: admin@example.com / usuario1@example.com — contraseña Demo#2026Sst
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

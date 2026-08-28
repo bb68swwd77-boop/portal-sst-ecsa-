@@ -6,6 +6,7 @@
   --color-copper-hover: #d68f5f;
   --color-cyan: #4dc1c1;
   --color-cyan-hover: #6fd4d4;
+  --color-brand-green: #2fa055;
   --color-text-primary: #eef2f7;
   --color-text-secondary: #9fb0c3;
   --color-text-muted: #6b7d94;
@@ -85,18 +86,24 @@ textarea {
   transition: transform 0.2s ease;
 }
 
-.sidebar-brand h1 {
-  font-size: 15px;
-  color: var(--color-cyan);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin: 0 0 4px;
+.sidebar-logo {
+  display: block;
+  height: 56px;
+  width: auto;
+  margin: 0 0 10px;
 }
 
 .sidebar-brand p {
   font-size: 12px;
   color: var(--color-text-muted);
   margin: 0 0 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.topbar-logo {
+  height: 28px;
+  width: auto;
 }
 
 .sidebar-nav {
@@ -487,11 +494,76 @@ h4 {
 
 .auth-shell {
   min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+  background: var(--color-bg);
+}
+
+.auth-hero {
+  position: relative;
+  overflow: hidden;
+  display: none;
+}
+
+.auth-hero img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.auth-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 22, 40, 0.15) 0%, rgba(10, 22, 40, 0.55) 55%, rgba(10, 22, 40, 0.92) 100%),
+    linear-gradient(90deg, rgba(10, 22, 40, 0.35) 0%, transparent 40%);
+}
+
+.auth-hero-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 40px;
+  z-index: 1;
+}
+
+.auth-hero-caption .mark {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-cyan);
+}
+
+.auth-hero-caption h2 {
+  font-size: 26px;
+  margin: 8px 0 6px;
+  max-width: 420px;
+}
+
+.auth-hero-caption p {
+  color: var(--color-text-secondary);
+  max-width: 380px;
+  margin: 0;
+}
+
+.auth-panel {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
   background: radial-gradient(circle at top, #101f38 0%, #0a1628 60%);
+}
+
+@media (min-width: 900px) {
+  .auth-shell {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+  .auth-hero {
+    display: block;
+  }
 }
 
 .auth-card {
