@@ -126,7 +126,11 @@ export function CourseViewPage() {
                 <section className="content" dangerouslySetInnerHTML={{ __html: activeLesson.bodyHtml }} />
               )}
 
-              {activeLesson.externalUrl && (
+              {activeLesson.contentType === "IMAGE" && activeLesson.externalUrl && (
+                <img src={activeLesson.externalUrl} alt={activeLesson.title} className="lesson-reference-image" />
+              )}
+
+              {activeLesson.contentType !== "IMAGE" && activeLesson.externalUrl && (
                 <p>
                   <a href={activeLesson.externalUrl} target="_blank" rel="noopener noreferrer">
                     Abrir recurso externo ↗

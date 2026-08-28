@@ -1,22 +1,22 @@
 :root {
-  --color-bg: #0a1628;
-  --color-bg-elevated: #101f38;
-  --color-bg-subtle: #16294a;
-  --color-copper: #c17a4d;
-  --color-copper-hover: #d68f5f;
-  --color-cyan: #4dc1c1;
-  --color-cyan-hover: #6fd4d4;
-  --color-brand-green: #2fa055;
-  --color-text-primary: #eef2f7;
-  --color-text-secondary: #9fb0c3;
-  --color-text-muted: #6b7d94;
-  --color-success: #4caf7d;
-  --color-success-bg: rgba(76, 175, 125, 0.12);
-  --color-warning: #e0a94d;
-  --color-warning-bg: rgba(224, 169, 77, 0.12);
-  --color-danger: #e05d5d;
-  --color-danger-bg: rgba(224, 93, 93, 0.12);
-  --color-border: #223652;
+  --color-bg: #f4f6f9;
+  --color-bg-elevated: #ffffff;
+  --color-bg-subtle: #eef1f6;
+  --color-copper: #b6653a;
+  --color-copper-hover: #a4562f;
+  --color-cyan: #1c8a8a;
+  --color-cyan-hover: #167272;
+  --color-brand-green: #2b8f4c;
+  --color-text-primary: #172234;
+  --color-text-secondary: #4c5b71;
+  --color-text-muted: #7c8ba0;
+  --color-success: #2b8f4c;
+  --color-success-bg: rgba(43, 143, 76, 0.1);
+  --color-warning: #b3730f;
+  --color-warning-bg: rgba(179, 115, 15, 0.1);
+  --color-danger: #c0392b;
+  --color-danger-bg: rgba(192, 57, 43, 0.08);
+  --color-border: #dde3ec;
   --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -511,6 +511,9 @@ h4 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* La foto trae el isotipo de ECSA en la esquina superior derecha: se
+     ancla el recorte a la derecha/arriba para que quede visible. */
+  object-position: 88% 12%;
 }
 
 .auth-hero::after {
@@ -528,23 +531,28 @@ h4 {
   bottom: 0;
   padding: 40px;
   z-index: 1;
+  /* Este panel se apoya sobre una foto con degradado oscuro (arriba), no
+     sobre el fondo de la app, así que su texto se mantiene claro sin
+     importar el tema activo. */
+  color: #eef2f7;
 }
 
 .auth-hero-caption .mark {
   font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-cyan);
+  color: #7fd6d6;
 }
 
 .auth-hero-caption h2 {
   font-size: 26px;
   margin: 8px 0 6px;
   max-width: 420px;
+  color: #eef2f7;
 }
 
 .auth-hero-caption p {
-  color: var(--color-text-secondary);
+  color: #c3cddb;
   max-width: 380px;
   margin: 0;
 }
@@ -554,7 +562,7 @@ h4 {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: radial-gradient(circle at top, #101f38 0%, #0a1628 60%);
+  background: radial-gradient(circle at top, #ffffff 0%, #eef1f6 65%);
 }
 
 @media (min-width: 900px) {
@@ -573,6 +581,7 @@ h4 {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 32px;
+  box-shadow: 0 12px 32px rgba(23, 34, 52, 0.08);
 }
 
 .auth-logo {
@@ -663,6 +672,21 @@ h4 {
 
 .norma strong {
   color: var(--color-cyan);
+}
+
+section.content {
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+section.content img,
+.lesson-reference-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  margin: 12px 0;
+  display: block;
 }
 
 /* ---------- Quiz ---------- */

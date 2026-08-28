@@ -352,12 +352,23 @@ function LessonFormModal({ moduleId, nextOrder, onClose, onSaved }: { moduleId: 
           </div>
         </div>
         <div className="field">
-          <label>Contenido (HTML permitido: p, b, i, ul, li, a…)</label>
+          <label>Contenido (HTML permitido: p, b, i, ul, li, a, img…)</label>
           <textarea rows={4} value={form.bodyHtml} onChange={(e) => setForm({ ...form, bodyHtml: e.target.value })} />
+          <div className="field-hint">
+            Puede incluir imágenes de referencia con{" "}
+            <code>&lt;img src="https://..." alt="descripción"&gt;</code> (ej. señalización, EPP, diagramas).
+          </div>
         </div>
         <div className="field">
-          <label>URL externa (video/documento, opcional)</label>
-          <input value={form.externalUrl} onChange={(e) => setForm({ ...form, externalUrl: e.target.value })} />
+          <label>{form.contentType === "IMAGE" ? "URL de la imagen de referencia" : "URL externa (video/documento, opcional)"}</label>
+          <input
+            value={form.externalUrl}
+            onChange={(e) => setForm({ ...form, externalUrl: e.target.value })}
+            placeholder={form.contentType === "IMAGE" ? "https://…/imagen.jpg" : undefined}
+          />
+          {form.contentType === "IMAGE" && (
+            <div className="field-hint">Se mostrará como imagen de referencia completa dentro de la lección.</div>
+          )}
         </div>
         <h4 className="mt-16">Referencia normativa (versionable)</h4>
         <div className="field">
