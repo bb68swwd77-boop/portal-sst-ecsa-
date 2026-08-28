@@ -1,0 +1,384 @@
+// Esquema de base de datos — Portal de Capacitación SST ECSA
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// RBAC
+// ---------------------------------------------------------------------------
+
+model Role {
+  id          String           @id @default(cuid())
+  key         String           @unique // "admin" | "user"
+  name        String
+  permissions RolePermission[]
+  users       User[]
+  createdAt   DateTime         @default(now())
+}
+
+model Permission {
+  id    String           @id @default(cuid())
+  key   String           @unique // ej: "courses:create"
+  roles RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+// ---------------------------------------------------------------------------
+// Usuarios y sesiones
+// ---------------------------------------------------------------------------
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String
+  firstName         String
+  lastName          String
+  documentId        String? // cédula / identificación
+  company            String?
+  area              String?
+  position          String?
+  roleId            String
+  role              Role      @relation(fields: [roleId], references: [id])
+  isActive          Boolean   @default(true)
+  isDemo            Boolean   @default(false)
+  failedLoginCount  Int       @default(0)
+  lockedUntil       DateTime?
+  lastLoginAt       DateTime?
+  mustChangePassword Boolean  @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  sessions          Session[]
+  assignments       CourseAssignment[]
+  attempts          EvaluationAttempt[]
+  certificates      Certificate[]
+  auditLogs         AuditLog[]
+  passwordResets    PasswordReset[]
+  uploadedFiles     FileAsset[]
+
+  @@index([roleId])
+  @@index([company])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent String?
+  ip        String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  @@index([userId])
+}
+
+model PasswordReset {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Cursos / módulos / lecciones
+// ---------------------------------------------------------------------------
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Course {
+  id           String       @id @default(cuid())
+  code         String       @unique
+  title        String
+  description  String
+  objective    String?
+  targetAudience String?
+  category     String?
+  level        String?
+  durationMin  Int          @default(0)
+  imageUrl     String?
+  status       CourseStatus @default(DRAFT)
+  passingScore Int          @default(80) // % mínimo para aprobar el curso completo
+  maxAttempts  Int          @default(3)
+  validFrom    DateTime?
+  validUntil   DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  modules      Module[]
+  assignments  CourseAssignment[]
+  certificates Certificate[]
+
+  @@index([status])
+}
+
+model Module {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title     String
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lessons    Lesson[]
+  evaluation Evaluation?
+
+  @@index([courseId])
+  @@unique([courseId, order])
+}
+
+enum LessonContentType {
+  RICH_TEXT
+  VIDEO
+  PDF
+  DOCUMENT
+  LINK
+  IMAGE
+}
+
+model Lesson {
+  id          String            @id @default(cuid())
+  moduleId    String
+  module      Module            @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title       String
+  order       Int
+  contentType LessonContentType @default(RICH_TEXT)
+  bodyHtml    String? // contenido de texto enriquecido saneado
+  fileId      String?
+  file        FileAsset?        @relation(fields: [fileId], references: [id])
+  externalUrl String?
+  // referencia normativa versionable — no hardcodeada en frontend
+  normReference String?
+  normCode      String?
+  normArticle   String?
+  normYear      Int?
+  normVersion   String?
+  normSource    String?
+  normReviewedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  progress    LessonProgress[]
+
+  @@index([moduleId])
+  @@unique([moduleId, order])
+}
+
+model LessonProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completedAt DateTime?
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+}
+
+model FileAsset {
+  id           String   @id @default(cuid())
+  filename     String
+  mimeType     String
+  sizeBytes    Int
+  storageKey   String   // ruta/clave en almacenamiento de objetos (no la BD)
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+
+  lessons      Lesson[]
+}
+
+// ---------------------------------------------------------------------------
+// Asignaciones
+// ---------------------------------------------------------------------------
+
+enum AssignmentTargetType {
+  USER
+  COMPANY
+  AREA
+  POSITION
+  ALL
+}
+
+model CourseAssignment {
+  id           String               @id @default(cuid())
+  courseId     String
+  course       Course               @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  targetType   AssignmentTargetType
+  userId       String?
+  user         User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetValue  String? // valor de company/area/position cuando aplique
+  mandatory    Boolean              @default(true)
+  assignedAt   DateTime             @default(now())
+  dueAt        DateTime?
+  createdBy    String
+
+  @@index([courseId])
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Evaluaciones
+// ---------------------------------------------------------------------------
+
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  MATCHING
+  SHORT_ANSWER
+}
+
+model Evaluation {
+  id                String   @id @default(cuid())
+  moduleId          String   @unique
+  module            Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title             String
+  description       String?
+  passingScore      Int      @default(80)
+  timeLimitMin       Int?
+  maxAttempts       Int      @default(3)
+  shuffleQuestions  Boolean  @default(true)
+  shuffleAnswers    Boolean  @default(true)
+  showCorrectAnswers Boolean @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  questions Question[]
+  attempts  EvaluationAttempt[]
+}
+
+model Question {
+  id           String       @id @default(cuid())
+  evaluationId String
+  evaluation   Evaluation   @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  type         QuestionType
+  text         String
+  order        Int
+  points       Int          @default(1)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  options      AnswerOption[]
+  attemptAnswers AttemptAnswer[]
+
+  @@index([evaluationId])
+}
+
+model AnswerOption {
+  id         String   @id @default(cuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text       String
+  isCorrect  Boolean  @default(false) // NUNCA se envía al frontend antes de calificar
+  order      Int
+  matchKey   String? // para preguntas tipo "relacionar" (par izquierda/derecha)
+
+  @@index([questionId])
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  EXPIRED
+}
+
+model EvaluationAttempt {
+  id           String        @id @default(cuid())
+  evaluationId String
+  evaluation   Evaluation    @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attemptNumber Int
+  status       AttemptStatus @default(IN_PROGRESS)
+  startedAt    DateTime      @default(now())
+  submittedAt  DateTime?
+  score        Int? // porcentaje 0-100
+  passed       Boolean?
+  questionOrder String?      // JSON con el orden aleatorio servido a este intento
+
+  answers      AttemptAnswer[]
+
+  @@index([userId])
+  @@index([evaluationId])
+  @@unique([evaluationId, userId, attemptNumber])
+}
+
+model AttemptAnswer {
+  id           String            @id @default(cuid())
+  attemptId    String
+  attempt      EvaluationAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId   String
+  question     Question          @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selectedOptionIds String? // JSON array de AnswerOption.id elegidos
+  shortAnswerText   String?
+  isCorrect    Boolean?
+  createdAt    DateTime          @default(now())
+
+  @@unique([attemptId, questionId])
+}
+
+// ---------------------------------------------------------------------------
+// Certificados
+// ---------------------------------------------------------------------------
+
+model Certificate {
+  id            String   @id @default(cuid())
+  code          String   @unique // código público verificable
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId      String
+  course        Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  score         Int
+  issuedAt      DateTime @default(now())
+  durationMin   Int
+  revokedAt     DateTime?
+
+  @@index([userId])
+  @@index([courseId])
+}
+
+// ---------------------------------------------------------------------------
+// Auditoría
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String // ej: "auth.login", "course.create", "evaluation.submit"
+  resource   String? // ej: "Course:abc123"
+  result     String // "success" | "failure"
+  ip         String?
+  userAgent  String?
+  metadata   String? // JSON adicional, sin datos sensibles
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}

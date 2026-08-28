@@ -1,0 +1,57 @@
+# Blueprint de despliegue en Render (render.com) — despliega backend, frontend y
+# base de datos con un solo "New Blueprint" apuntando a este repositorio.
+# Ver docs/DEPLOY.md para el paso a paso.
+
+databases:
+  - name: ecsa-sst-db
+    plan: free
+    databaseName: ecsa_sst
+    user: ecsa_sst
+
+services:
+  - type: web
+    name: ecsa-sst-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run release && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ecsa-sst-db
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: SESSION_TTL_HOURS
+        value: "8"
+      - key: DEMO_MODE
+        value: "true"
+      - key: CORS_ORIGIN
+        value: "https://ecsa-sst-frontend.onrender.com"
+
+  - type: web
+    name: ecsa-sst-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: "https://ecsa-sst-backend.onrender.com/api"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
