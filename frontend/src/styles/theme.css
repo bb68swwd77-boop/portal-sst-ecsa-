@@ -466,6 +466,26 @@ h4 {
   border-color: var(--color-cyan);
 }
 
+/* Filas de "opción de respuesta" (radio/checkbox + texto) dentro de un
+   .field: sin esto, el radio/checkbox hereda width:100% de la regla
+   genérica de arriba y se infla, aplastando el input de texto. */
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.option-row input.option-toggle {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.option-row input.option-text {
+  flex: 1;
+  width: auto;
+}
+
 .field-error {
   color: var(--color-danger);
   font-size: 12px;

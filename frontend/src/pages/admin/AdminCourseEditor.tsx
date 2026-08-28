@@ -426,9 +426,10 @@ function EvaluationFormModal({ moduleId, onClose, onSaved }: { moduleId: string;
             <input type="number" min={1} value={form.maxAttempts} onChange={(e) => setForm({ ...form, maxAttempts: Number(e.target.value) })} />
           </div>
         </div>
-        <label className="field" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <label className="field option-row" style={{ marginBottom: 16 }}>
           <input
             type="checkbox"
+            className="option-toggle"
             checked={form.showCorrectAnswers}
             onChange={(e) => setForm({ ...form, showCorrectAnswers: e.target.checked })}
           />
@@ -505,15 +506,16 @@ function QuestionFormModal({ evaluationId, onClose, onSaved }: { evaluationId: s
           <div className="field">
             <label>Opciones (marque la(s) correcta(s))</label>
             {options.map((o, idx) => (
-              <div key={idx} className="flex gap-8 mt-8">
+              <div key={idx} className="option-row mt-8">
                 <input
                   type={type === "MULTIPLE_CHOICE" ? "checkbox" : "radio"}
+                  className="option-toggle"
                   name="correct-option"
                   checked={o.isCorrect}
                   onChange={(e) => updateOption(idx, { isCorrect: e.target.checked })}
                 />
                 <input
-                  style={{ flex: 1 }}
+                  className="option-text"
                   placeholder={`Opción ${idx + 1}`}
                   value={o.text}
                   onChange={(e) => updateOption(idx, { text: e.target.value })}
