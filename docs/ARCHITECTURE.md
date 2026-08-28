@@ -83,6 +83,9 @@ POST   /api/admin/evaluations/:id/questions
 
 GET    /api/admin/reports/training?format=json|csv
 GET    /api/admin/audit
+
+POST   /api/admin/files/upload   (multipart, PDF, máx. 10MB)
+GET    /api/files/:id            (descarga — valida acceso al curso)
 ```
 
 Ningún endpoint `/api/admin/*` es alcanzable sin el permiso correspondiente

@@ -19,6 +19,8 @@ import { adminEvaluationsRouter } from "./routes/admin/evaluations.routes";
 import { adminReportsRouter } from "./routes/admin/reports.routes";
 import { adminAuditRouter } from "./routes/admin/audit.routes";
 import { adminDashboardRouter } from "./routes/admin/dashboard.routes";
+import { adminFilesRouter } from "./routes/admin/files.routes";
+import { filesRouter } from "./routes/files.routes";
 
 export function createApp() {
   const app = express();
@@ -71,7 +73,9 @@ export function createApp() {
   app.use("/api/evaluations", evaluationsRouter);
   app.use("/api/certificates", certificatesRouter);
   app.use("/api/me", meRouter);
+  app.use("/api/files", filesRouter);
   app.use("/api/admin/dashboard", adminDashboardRouter);
+  app.use("/api/admin/files", adminFilesRouter);
   app.use("/api/admin/users", adminUsersRouter);
   app.use("/api/admin/courses", adminCoursesRouter);
   app.use("/api/admin/evaluations", adminEvaluationsRouter);

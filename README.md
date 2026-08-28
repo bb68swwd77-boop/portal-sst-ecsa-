@@ -81,9 +81,19 @@ lecciones → evaluación → calificación → certificado, panel admin (usuari
 cursos/módulos/evaluaciones/preguntas, asignaciones, reportes exportables a
 CSV, auditoría).
 
+**Carga de archivos PDF**: los administradores pueden adjuntar un PDF a una
+lección (máx. 10 MB). Para el MVP el archivo se guarda como binario en la
+propia base de datos PostgreSQL (`FileAsset.data`), no en almacenamiento de
+objetos — decisión deliberada para evitar depender de una cuenta/API externa
+adicional (ver `docs/ARCHITECTURE.md`). La descarga (`GET /api/files/:id`)
+valida acceso al curso igual que el resto del contenido (no por confianza en
+el id de la URL). Si el volumen de documentos crece, migrar a
+almacenamiento de objetos (ej. Cloudflare R2) es sencillo: `FileAsset.storageKey`
+ya existe para ese propósito.
+
 Pendiente para siguientes iteraciones (documentado, no bloqueante para el
 MVP): envío real de correos (hoy el flujo de recuperación de contraseña
-expone el token solo en `DEMO_MODE`), exportación a Excel/PDF, carga de
-archivos a almacenamiento de objetos (hoy `FileAsset` modela metadatos pero
-no hay UI de carga), notificaciones por vencimiento, migraciones Prisma
-formales (el MVP usa `prisma db push`).
+expone el token solo en `DEMO_MODE`), exportación a Excel/PDF de reportes,
+migración de archivos a almacenamiento de objetos si el volumen crece,
+notificaciones por vencimiento, migraciones Prisma formales (el MVP usa
+`prisma db push`).

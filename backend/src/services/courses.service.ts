@@ -122,7 +122,10 @@ export async function getCourseDetailForUser(userId: string, courseId: string) {
       modules: {
         orderBy: { order: "asc" },
         include: {
-          lessons: { orderBy: { order: "asc" } },
+          lessons: {
+            orderBy: { order: "asc" },
+            include: { file: { select: { id: true, filename: true, mimeType: true, sizeBytes: true } } },
+          },
           evaluation: { select: { id: true, title: true, description: true, passingScore: true, timeLimitMin: true, maxAttempts: true } },
         },
       },
@@ -148,6 +151,7 @@ export async function getCourseDetailForUser(userId: string, courseId: string) {
       contentType: l.contentType,
       bodyHtml: l.bodyHtml,
       externalUrl: l.externalUrl,
+      file: l.file ? { id: l.file.id, filename: l.file.filename, mimeType: l.file.mimeType, sizeBytes: l.file.sizeBytes } : null,
       normReference: l.normReference,
       normCode: l.normCode,
       normArticle: l.normArticle,

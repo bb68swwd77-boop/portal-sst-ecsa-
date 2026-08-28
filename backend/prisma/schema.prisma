@@ -204,7 +204,8 @@ model FileAsset {
   filename     String
   mimeType     String
   sizeBytes    Int
-  storageKey   String   // ruta/clave en almacenamiento de objetos (no la BD)
+  storageKey   String? // reservado para migrar a almacenamiento de objetos (S3/R2) más adelante
+  data         Bytes? // contenido binario — MVP: se guarda en la BD (ver docs/ARCHITECTURE.md)
   uploadedById String
   uploadedBy   User     @relation(fields: [uploadedById], references: [id])
   createdAt    DateTime @default(now())

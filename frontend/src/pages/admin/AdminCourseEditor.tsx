@@ -1,6 +1,6 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, ApiError } from "../../api/client";
+import { api, ApiError, uploadFile } from "../../api/client";
 import { Modal } from "../../components/Modal";
 import { useToast } from "../../context/ToastContext";
 
@@ -309,16 +309,43 @@ function LessonFormModal({ moduleId, nextOrder, onClose, onSaved }: { moduleId: 
     contentType: "RICH_TEXT",
     bodyHtml: "",
     externalUrl: "",
+    fileId: "",
     normReference: "",
     normCode: "",
     normArticle: "",
   });
+  const [uploadedFilename, setUploadedFilename] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const needsFile = form.contentType === "PDF" || form.contentType === "DOCUMENT";
+  const needsUrl = form.contentType === "VIDEO" || form.contentType === "LINK";
+
+  async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError(null);
+    setUploading(true);
+    try {
+      const res = await uploadFile<{ file: { id: string; filename: string } }>("/admin/files/upload", file);
+      setForm((prev) => ({ ...prev, fileId: res.file.id }));
+      setUploadedFilename(res.file.filename);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "No fue posible subir el archivo.");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (needsFile && !form.fileId) {
+      setError("Debe subir un archivo PDF para este tipo de contenido.");
+      return;
+    }
     try {
-      await api.post(`/admin/courses/modules/${moduleId}/lessons`, form);
+      const { fileId, ...rest } = form;
+      await api.post(`/admin/courses/modules/${moduleId}/lessons`, { ...rest, fileId: fileId || undefined });
       onSaved();
       onClose();
     } catch (err) {
@@ -341,13 +368,12 @@ function LessonFormModal({ moduleId, nextOrder, onClose, onSaved }: { moduleId: 
           </div>
           <div className="field">
             <label>Tipo de contenido</label>
-            <select value={form.contentType} onChange={(e) => setForm({ ...form, contentType: e.target.value })}>
+            <select value={form.contentType} onChange={(e) => setForm({ ...form, contentType: e.target.value, fileId: "", externalUrl: "" })}>
               <option value="RICH_TEXT">Texto enriquecido</option>
-              <option value="VIDEO">Video</option>
-              <option value="PDF">PDF</option>
-              <option value="DOCUMENT">Documento</option>
+              <option value="VIDEO">Video (enlace)</option>
+              <option value="PDF">PDF (archivo adjunto)</option>
+              <option value="DOCUMENT">Documento (archivo adjunto)</option>
               <option value="LINK">Enlace externo</option>
-              <option value="IMAGE">Imagen</option>
             </select>
           </div>
         </div>
@@ -355,21 +381,28 @@ function LessonFormModal({ moduleId, nextOrder, onClose, onSaved }: { moduleId: 
           <label>Contenido (HTML permitido: p, b, i, ul, li, a, img…)</label>
           <textarea rows={4} value={form.bodyHtml} onChange={(e) => setForm({ ...form, bodyHtml: e.target.value })} />
           <div className="field-hint">
-            Puede incluir imágenes de referencia con{" "}
-            <code>&lt;img src="https://..." alt="descripción"&gt;</code> (ej. señalización, EPP, diagramas).
+            Puede incluir imágenes de referencia ya alojadas en internet con{" "}
+            <code>&lt;img src="https://..." alt="descripción"&gt;</code>.
           </div>
         </div>
-        <div className="field">
-          <label>{form.contentType === "IMAGE" ? "URL de la imagen de referencia" : "URL externa (video/documento, opcional)"}</label>
-          <input
-            value={form.externalUrl}
-            onChange={(e) => setForm({ ...form, externalUrl: e.target.value })}
-            placeholder={form.contentType === "IMAGE" ? "https://…/imagen.jpg" : undefined}
-          />
-          {form.contentType === "IMAGE" && (
-            <div className="field-hint">Se mostrará como imagen de referencia completa dentro de la lección.</div>
-          )}
-        </div>
+
+        {needsFile && (
+          <div className="field">
+            <label>Archivo PDF</label>
+            <input type="file" accept="application/pdf" onChange={handleFileChange} />
+            {uploading && <div className="field-hint">Subiendo…</div>}
+            {uploadedFilename && <div className="field-hint">✓ {uploadedFilename} cargado correctamente.</div>}
+            <div className="field-hint">Máximo 10 MB, solo PDF.</div>
+          </div>
+        )}
+
+        {needsUrl && (
+          <div className="field">
+            <label>URL externa</label>
+            <input value={form.externalUrl} onChange={(e) => setForm({ ...form, externalUrl: e.target.value })} placeholder="https://…" />
+          </div>
+        )}
+
         <h4 className="mt-16">Referencia normativa (versionable)</h4>
         <div className="field">
           <label>Norma</label>

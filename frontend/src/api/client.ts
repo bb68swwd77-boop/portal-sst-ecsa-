@@ -1,5 +1,11 @@
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
+// Para construir hrefs directos (ej. abrir un PDF en pestaña nueva) fuera del
+// wrapper fetch — el navegador ya envía la cookie de sesión al navegar.
+export function apiUrl(path: string) {
+  return `${API_URL}${path}`;
+}
+
 export class ApiError extends Error {
   constructor(public status: number, message: string, public fields?: Record<string, string[] | undefined>) {
     super(message);
@@ -79,6 +85,29 @@ export const api = {
   put: <T>(path: string, body?: unknown) => request<T>(path, { method: "PUT", body: body ? JSON.stringify(body) : undefined }),
   delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
 };
+
+// Subida multipart (FormData): no debe forzarse Content-Type: application/json
+// como en request() — el navegador debe fijar su propio boundary.
+export async function uploadFile<T>(path: string, file: File): Promise<T> {
+  const token = csrfToken ?? (await ensureCsrfToken());
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(`${API_URL}${path}`, {
+    method: "POST",
+    credentials: "include",
+    headers: token ? { "X-CSRF-Token": token } : undefined,
+    body: formData,
+  });
+
+  const isJson = res.headers.get("content-type")?.includes("application/json");
+  const data = isJson ? await res.json().catch(() => ({})) : undefined;
+
+  if (!res.ok) {
+    throw new ApiError(res.status, (data as any)?.error || "No fue posible subir el archivo.");
+  }
+  return data as T;
+}
 
 export async function downloadFile(path: string, filename: string) {
   const res = await fetch(`${API_URL}${path}`, { credentials: "include" });

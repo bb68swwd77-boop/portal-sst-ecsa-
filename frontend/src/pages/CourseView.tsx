@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, ApiError } from "../api/client";
+import { api, apiUrl, ApiError } from "../api/client";
 import { useToast } from "../context/ToastContext";
 import type { CourseDetail } from "../types";
 
@@ -126,11 +126,15 @@ export function CourseViewPage() {
                 <section className="content" dangerouslySetInnerHTML={{ __html: activeLesson.bodyHtml }} />
               )}
 
-              {activeLesson.contentType === "IMAGE" && activeLesson.externalUrl && (
-                <img src={activeLesson.externalUrl} alt={activeLesson.title} className="lesson-reference-image" />
+              {activeLesson.file && (
+                <p>
+                  <a href={apiUrl(`/files/${activeLesson.file.id}`)} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm">
+                    📄 Descargar {activeLesson.file.filename} ({Math.round(activeLesson.file.sizeBytes / 1024)} KB)
+                  </a>
+                </p>
               )}
 
-              {activeLesson.contentType !== "IMAGE" && activeLesson.externalUrl && (
+              {activeLesson.externalUrl && (
                 <p>
                   <a href={activeLesson.externalUrl} target="_blank" rel="noopener noreferrer">
                     Abrir recurso externo ↗

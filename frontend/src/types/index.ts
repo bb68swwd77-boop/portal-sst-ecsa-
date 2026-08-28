@@ -31,6 +31,13 @@ export interface DashboardStats {
   overallPercent: number;
 }
 
+export interface LessonFile {
+  id: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
 export interface LessonDetail {
   id: string;
   title: string;
@@ -38,6 +45,7 @@ export interface LessonDetail {
   contentType: string;
   bodyHtml: string | null;
   externalUrl: string | null;
+  file: LessonFile | null;
   normReference: string | null;
   normCode: string | null;
   normArticle: string | null;
