@@ -327,8 +327,6 @@ function LessonFormModal({ moduleId, nextOrder, onClose, onSaved }: { moduleId: 
     externalUrl: "",
     fileId: "",
     normReference: "",
-    normCode: "",
-    normArticle: "",
   });
   const [uploadedFilename, setUploadedFilename] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -419,20 +417,10 @@ function LessonFormModal({ moduleId, nextOrder, onClose, onSaved }: { moduleId: 
           </div>
         )}
 
-        <h4 className="mt-16">Referencia normativa (versionable)</h4>
+        <h4 className="mt-16">Referencia normativa</h4>
         <div className="field">
           <label>Norma</label>
           <input value={form.normReference} onChange={(e) => setForm({ ...form, normReference: e.target.value })} />
-        </div>
-        <div className="form-row">
-          <div className="field">
-            <label>Código</label>
-            <input value={form.normCode} onChange={(e) => setForm({ ...form, normCode: e.target.value })} />
-          </div>
-          <div className="field">
-            <label>Artículo</label>
-            <input value={form.normArticle} onChange={(e) => setForm({ ...form, normArticle: e.target.value })} />
-          </div>
         </div>
         <button className="btn btn-primary" type="submit">
           Crear lección
