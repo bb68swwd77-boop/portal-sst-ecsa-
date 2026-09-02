@@ -64,7 +64,7 @@ export function Layout() {
       <aside className={`sidebar ${drawerOpen ? "open" : ""} ${collapsed ? "collapsed" : ""}`}>
         <div className="sidebar-brand">
           <img src={logoEcsa} alt="ECSA" className="sidebar-logo" />
-          <p>Capacitación SST — Contratistas</p>
+          <p>Capacitaciones de Seguridad y Salud en el Trabajo ECSA</p>
         </div>
         <nav className="sidebar-nav">
           {links.map((l) => (
