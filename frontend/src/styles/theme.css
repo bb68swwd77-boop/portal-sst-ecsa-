@@ -156,6 +156,7 @@ textarea {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  transition: margin-left 0.2s ease;
 }
 
 .topbar {
@@ -204,6 +205,48 @@ textarea {
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
     z-index: 35;
+  }
+}
+
+/* Sidebar plegable (solo escritorio — en móvil el drawer ya cumple ese rol) */
+.sidebar-collapse-toggle {
+  display: none;
+  position: fixed;
+  top: 22px;
+  left: calc(var(--sidebar-width) - 14px);
+  z-index: 45;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+  transition: left 0.2s ease;
+}
+
+.sidebar-collapse-toggle:hover {
+  border-color: var(--color-cyan);
+  color: var(--color-cyan);
+}
+
+@media (min-width: 900px) {
+  .sidebar-collapse-toggle {
+    display: flex;
+  }
+  .sidebar-collapse-toggle.collapsed {
+    left: 14px;
+  }
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+  }
+  .main-area.sidebar-collapsed {
+    margin-left: 0;
   }
 }
 

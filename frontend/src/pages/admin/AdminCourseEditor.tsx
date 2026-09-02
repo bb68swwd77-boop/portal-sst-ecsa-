@@ -126,6 +126,22 @@ export function AdminCourseEditorPage() {
 
       <div className="card">
         <h3>Información general</h3>
+        <div className="form-row">
+          <div className="field">
+            <label>Título</label>
+            <input
+              defaultValue={course.title}
+              onBlur={(e) => e.target.value.trim() && e.target.value !== course.title && saveCourseField("title", e.target.value.trim())}
+            />
+          </div>
+          <div className="field">
+            <label>Código</label>
+            <input
+              defaultValue={course.code}
+              onBlur={(e) => e.target.value.trim() && e.target.value !== course.code && saveCourseField("code", e.target.value.trim())}
+            />
+          </div>
+        </div>
         <div className="field">
           <label>Descripción</label>
           <textarea

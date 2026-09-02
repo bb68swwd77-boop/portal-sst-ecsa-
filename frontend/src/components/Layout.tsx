@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import logoEcsa from "../assets/logo-ecsa.png";
@@ -17,10 +17,27 @@ const ADMIN_LINKS = [
   { to: "/admin/auditoria", label: "Auditoría" },
 ];
 
+const COLLAPSE_STORAGE_KEY = "ecsa-sidebar-collapsed";
+
 export function Layout() {
   const { user, logout, hasPermission } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(COLLAPSE_STORAGE_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
   const navigate = useNavigate();
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(COLLAPSE_STORAGE_KEY, collapsed ? "1" : "0");
+    } catch {
+      // localStorage puede no estar disponible (modo privado); no es crítico.
+    }
+  }, [collapsed]);
 
   const isAdmin = hasPermission("courses:view");
   const links = isAdmin ? ADMIN_LINKS : USER_LINKS;
@@ -33,7 +50,18 @@ export function Layout() {
   return (
     <div className="app-shell">
       <div className={`sidebar-scrim ${drawerOpen ? "open" : ""}`} onClick={() => setDrawerOpen(false)} />
-      <aside className={`sidebar ${drawerOpen ? "open" : ""}`}>
+
+      <button
+        type="button"
+        className={`sidebar-collapse-toggle ${collapsed ? "collapsed" : ""}`}
+        onClick={() => setCollapsed((v) => !v)}
+        aria-label={collapsed ? "Mostrar menú" : "Ocultar menú"}
+        title={collapsed ? "Mostrar menú" : "Ocultar menú"}
+      >
+        {collapsed ? "›" : "‹"}
+      </button>
+
+      <aside className={`sidebar ${drawerOpen ? "open" : ""} ${collapsed ? "collapsed" : ""}`}>
         <div className="sidebar-brand">
           <img src={logoEcsa} alt="ECSA" className="sidebar-logo" />
           <p>Capacitación SST — Contratistas</p>
@@ -68,7 +96,7 @@ export function Layout() {
         </div>
       </aside>
 
-      <div className="main-area">
+      <div className={`main-area ${collapsed ? "sidebar-collapsed" : ""}`}>
         <div className="topbar">
           <button className="btn btn-secondary btn-sm" onClick={() => setDrawerOpen((v) => !v)} aria-label="Abrir menú">
             ☰
