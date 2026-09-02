@@ -587,7 +587,7 @@ h4 {
 
 @media (min-width: 900px) {
   .auth-shell {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
   }
   .auth-hero {
     display: block;
