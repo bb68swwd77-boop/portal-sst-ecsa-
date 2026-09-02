@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { api, ApiError } from "../../api/client";
 import { Modal } from "../../components/Modal";
 import { useToast } from "../../context/ToastContext";
+import { useAuth } from "../../context/AuthContext";
 
 interface AdminUser {
   id: string;
@@ -38,7 +39,11 @@ export function AdminUsersPage() {
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [editForm, setEditForm] = useState(emptyForm);
+  const [editError, setEditError] = useState<string | null>(null);
   const { notify } = useToast();
+  const { user: currentUser } = useAuth();
   const pageSize = 20;
 
   async function load() {
@@ -82,6 +87,35 @@ export function AdminUsersPage() {
   async function resetPassword(id: string) {
     const res = await api.post<{ temporaryPassword: string }>(`/admin/users/${id}/reset-password`);
     notify(`Contraseña temporal generada: ${res.temporaryPassword}`, "info");
+  }
+
+  function openEdit(u: AdminUser) {
+    setEditingUser(u);
+    setEditError(null);
+    setEditForm({
+      email: u.email,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      documentId: u.documentId ?? "",
+      company: u.company ?? "",
+      area: u.area ?? "",
+      position: u.position ?? "",
+      roleKey: u.role,
+    });
+  }
+
+  async function handleEdit(e: FormEvent) {
+    e.preventDefault();
+    if (!editingUser) return;
+    setEditError(null);
+    try {
+      await api.put(`/admin/users/${editingUser.id}`, editForm);
+      notify("Usuario actualizado.", "success");
+      setEditingUser(null);
+      await load();
+    } catch (err) {
+      setEditError(err instanceof ApiError ? err.message : "No fue posible actualizar el usuario.");
+    }
   }
 
   return (
@@ -134,6 +168,9 @@ export function AdminUsersPage() {
                 </td>
                 <td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString("es-EC") : "Nunca"}</td>
                 <td className="flex gap-8">
+                  <button className="btn-link" onClick={() => openEdit(u)}>
+                    Editar
+                  </button>
                   <button className="btn-link" onClick={() => toggleActive(u.id)}>
                     {u.isActive ? "Desactivar" : "Activar"}
                   </button>
@@ -225,6 +262,65 @@ export function AdminUsersPage() {
               </button>
             </form>
           )}
+        </Modal>
+      )}
+
+      {editingUser && (
+        <Modal title={`Editar usuario — ${editingUser.firstName} ${editingUser.lastName}`} onClose={() => setEditingUser(null)}>
+          <form onSubmit={handleEdit} noValidate>
+            {editError && <div className="alert alert-danger">{editError}</div>}
+            <div className="form-row">
+              <div className="field">
+                <label>Nombres</label>
+                <input required value={editForm.firstName} onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })} />
+              </div>
+              <div className="field">
+                <label>Apellidos</label>
+                <input required value={editForm.lastName} onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })} />
+              </div>
+            </div>
+            <div className="field">
+              <label>Correo electrónico</label>
+              <input type="email" required value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+            </div>
+            <div className="field">
+              <label>Identificación</label>
+              <input value={editForm.documentId} onChange={(e) => setEditForm({ ...editForm, documentId: e.target.value })} />
+            </div>
+            <div className="form-row">
+              <div className="field">
+                <label>Empresa</label>
+                <input value={editForm.company} onChange={(e) => setEditForm({ ...editForm, company: e.target.value })} />
+              </div>
+              <div className="field">
+                <label>Área</label>
+                <input value={editForm.area} onChange={(e) => setEditForm({ ...editForm, area: e.target.value })} />
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="field">
+                <label>Cargo</label>
+                <input value={editForm.position} onChange={(e) => setEditForm({ ...editForm, position: e.target.value })} />
+              </div>
+              <div className="field">
+                <label>Rol</label>
+                <select
+                  value={editForm.roleKey}
+                  disabled={editingUser.id === currentUser?.id}
+                  onChange={(e) => setEditForm({ ...editForm, roleKey: e.target.value as "admin" | "user" })}
+                >
+                  <option value="user">Capacitado / Contratista</option>
+                  <option value="admin">Administrador</option>
+                </select>
+                {editingUser.id === currentUser?.id && (
+                  <div className="field-hint">No puede cambiar su propio rol.</div>
+                )}
+              </div>
+            </div>
+            <button className="btn btn-primary" type="submit">
+              Guardar cambios
+            </button>
+          </form>
         </Modal>
       )}
     </div>
