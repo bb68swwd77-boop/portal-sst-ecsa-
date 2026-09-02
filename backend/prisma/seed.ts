@@ -63,10 +63,16 @@ async function main() {
 
   console.log("Sembrando usuarios DEMO...");
   const demoPasswordHash = await hashPassword("Demo#2026Sst");
+  // Las cuentas DEMO siempre vuelven a la contraseña documentada en el README
+  // en cada siembra (ej. al redesplegar) — así un "Restablecer clave" o
+  // bloqueo accidental sobre estas cuentas de prueba siempre es recuperable
+  // sin acceso directo a la base de datos. Nunca se aplica a cuentas reales
+  // (isDemo: false), que solo se crean vía panel admin y no pasan por aquí.
+  const demoAccountReset = { passwordHash: demoPasswordHash, failedLoginCount: 0, lockedUntil: null, mustChangePassword: false, isActive: true };
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@example.com" },
-    update: {},
+    update: demoAccountReset,
     create: {
       email: "admin@example.com",
       passwordHash: demoPasswordHash,
@@ -82,7 +88,7 @@ async function main() {
 
   const usuario1 = await prisma.user.upsert({
     where: { email: "usuario1@example.com" },
-    update: {},
+    update: demoAccountReset,
     create: {
       email: "usuario1@example.com",
       passwordHash: demoPasswordHash,
@@ -99,7 +105,7 @@ async function main() {
 
   const usuario2 = await prisma.user.upsert({
     where: { email: "usuario2@example.com" },
-    update: {},
+    update: demoAccountReset,
     create: {
       email: "usuario2@example.com",
       passwordHash: demoPasswordHash,
