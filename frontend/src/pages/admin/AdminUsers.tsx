@@ -3,6 +3,7 @@ import { api, ApiError } from "../../api/client";
 import { Modal } from "../../components/Modal";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
+import { AREAS, COMPANIES, POSITIONS } from "../../constants/organization";
 
 interface AdminUser {
   id: string;
@@ -237,17 +238,38 @@ export function AdminUsersPage() {
               <div className="form-row">
                 <div className="field">
                   <label>Empresa</label>
-                  <input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+                  <select value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })}>
+                    <option value="">Seleccionar…</option>
+                    {COMPANIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="field">
                   <label>Área</label>
-                  <input value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} />
+                  <select value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })}>
+                    <option value="">Seleccionar…</option>
+                    {AREAS.map((a) => (
+                      <option key={a} value={a}>
+                        {a}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="form-row">
                 <div className="field">
                   <label>Cargo</label>
-                  <input value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} />
+                  <select value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })}>
+                    <option value="">Seleccionar…</option>
+                    {POSITIONS.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="field">
                   <label>Rol</label>
@@ -290,17 +312,38 @@ export function AdminUsersPage() {
             <div className="form-row">
               <div className="field">
                 <label>Empresa</label>
-                <input value={editForm.company} onChange={(e) => setEditForm({ ...editForm, company: e.target.value })} />
+                <select value={editForm.company} onChange={(e) => setEditForm({ ...editForm, company: e.target.value })}>
+                  <option value="">Seleccionar…</option>
+                  {COMPANIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="field">
                 <label>Área</label>
-                <input value={editForm.area} onChange={(e) => setEditForm({ ...editForm, area: e.target.value })} />
+                <select value={editForm.area} onChange={(e) => setEditForm({ ...editForm, area: e.target.value })}>
+                  <option value="">Seleccionar…</option>
+                  {AREAS.map((a) => (
+                    <option key={a} value={a}>
+                      {a}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="form-row">
               <div className="field">
                 <label>Cargo</label>
-                <input value={editForm.position} onChange={(e) => setEditForm({ ...editForm, position: e.target.value })} />
+                <select value={editForm.position} onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}>
+                  <option value="">Seleccionar…</option>
+                  {POSITIONS.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="field">
                 <label>Rol</label>
