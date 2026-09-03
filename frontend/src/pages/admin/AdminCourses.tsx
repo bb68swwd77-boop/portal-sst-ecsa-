@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api, ApiError } from "../../api/client";
 import { Modal } from "../../components/Modal";
 import { useLanguage } from "../../context/LanguageContext";
+import { useToast } from "../../context/ToastContext";
 
 interface AdminCourse {
   id: string;
@@ -25,6 +26,7 @@ const emptyForm = {
 
 export function AdminCoursesPage() {
   const { t } = useLanguage();
+  const { notify } = useToast();
   const [courses, setCourses] = useState<AdminCourse[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -33,6 +35,24 @@ export function AdminCoursesPage() {
   async function load() {
     const res = await api.get<{ courses: AdminCourse[] }>("/admin/courses");
     setCourses(res.courses);
+  }
+
+  async function handleDelete(c: AdminCourse) {
+    if (c._count.certificates > 0) {
+      notify(
+        t("Esta capacitación ya emitió certificados — no se puede eliminar (se perderían). Archívela en su lugar desde \"Administrar\"."),
+        "danger"
+      );
+      return;
+    }
+    if (!confirm(`${t("¿Eliminar definitivamente la capacitación")} "${c.title}"? ${t("Esta acción no se puede deshacer.")}`)) return;
+    try {
+      await api.delete(`/admin/courses/${c.id}`);
+      notify(t("Capacitación eliminada."), "success");
+      await load();
+    } catch (err) {
+      notify(err instanceof ApiError ? t(err.message) : t("No fue posible eliminar la capacitación."), "danger");
+    }
   }
 
   useEffect(() => {
@@ -92,10 +112,18 @@ export function AdminCoursesPage() {
                 <td>{c.durationMin} min</td>
                 <td>{c._count.modules}</td>
                 <td>{c._count.certificates}</td>
-                <td>
+                <td className="flex gap-8">
                   <Link to={`/admin/capacitaciones/${c.id}`} className="btn-link">
                     {t("Administrar")}
                   </Link>
+                  <button
+                    className="btn-link"
+                    style={{ color: "var(--color-danger)" }}
+                    onClick={() => handleDelete(c)}
+                    title={c._count.certificates > 0 ? t("No se puede eliminar: ya tiene certificados emitidos.") : undefined}
+                  >
+                    {t("Eliminar")}
+                  </button>
                 </td>
               </tr>
             ))}

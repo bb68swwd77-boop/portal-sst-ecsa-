@@ -315,6 +315,13 @@ export const translations: Record<string, string> = {
   visto: "已观看",
   "Se marca como completada automáticamente al terminar de ver el video.": "观看完成后将自动标记为已完成。",
   "URL del video de YouTube": "YouTube 视频链接",
+  'Esta capacitación ya emitió certificados — no se puede eliminar (se perderían). Archívela en su lugar desde "Administrar".':
+    "该培训已颁发证书——无法删除（会导致证书丢失）。请改用“管理”中的归档功能。",
+  "¿Eliminar definitivamente la capacitación": "确定要永久删除培训",
+  "Esta acción no se puede deshacer.": "此操作无法撤销。",
+  "Capacitación eliminada.": "培训已删除。",
+  "No fue posible eliminar la capacitación.": "无法删除该培训。",
+  "No se puede eliminar: ya tiene certificados emitidos.": "无法删除：已有证书颁发。",
   'Acepta un video de YouTube "no listado" — el sistema detecta automáticamente cuándo el capacitado lo termina de ver.':
     "支持“未列出”的YouTube视频——系统会自动检测学员是否已看完。",
 };
