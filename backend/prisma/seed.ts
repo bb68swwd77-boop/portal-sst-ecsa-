@@ -23,6 +23,7 @@ const PERMISSIONS = [
   "evaluations:take",
   "certificates:view",
   "audit:view",
+  "signatories:manage",
 ];
 
 const USER_PERMISSIONS = ["courses:view_assigned", "evaluations:take", "certificates:view"];
@@ -119,6 +120,20 @@ async function main() {
       isDemo: true,
     },
   });
+
+  console.log("Sembrando firmante institucional por defecto...");
+  const existingSignatory = await prisma.signatory.findFirst({ where: { isActive: true } });
+  if (!existingSignatory) {
+    // PLACEHOLDER — reemplazar por el nombre y cargo reales desde el panel
+    // admin (Firmantes). Nunca se usa el nombre del participante certificado.
+    await prisma.signatory.create({
+      data: {
+        name: "Responsable SSO (pendiente de definir)",
+        position: "Departamento de Seguridad y Salud Ocupacional",
+        isActive: true,
+      },
+    });
+  }
 
   console.log("Sembrando capacitaciones DEMO...");
 

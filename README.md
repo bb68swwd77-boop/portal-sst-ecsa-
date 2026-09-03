@@ -91,6 +91,12 @@ el id de la URL). Si el volumen de documentos crece, migrar a
 almacenamiento de objetos (ej. Cloudflare R2) es sencillo: `FileAsset.storageKey`
 ya existe para ese propósito.
 
+**Acción pendiente antes de producción real**: el firmante institucional que
+aparece en los certificados se siembra con un nombre placeholder
+("Responsable SSO (pendiente de definir)"). Ve a **Panel admin → Firmantes**
+y reemplázalo por el nombre y cargo reales antes de emitir certificados a
+personas reales.
+
 Pendiente para siguientes iteraciones (documentado, no bloqueante para el
 MVP): envío real de correos (hoy el flujo de recuperación de contraseña
 expone el token solo en `DEMO_MODE`), exportación a Excel/PDF de reportes,

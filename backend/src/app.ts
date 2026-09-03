@@ -20,6 +20,7 @@ import { adminReportsRouter } from "./routes/admin/reports.routes";
 import { adminAuditRouter } from "./routes/admin/audit.routes";
 import { adminDashboardRouter } from "./routes/admin/dashboard.routes";
 import { adminFilesRouter } from "./routes/admin/files.routes";
+import { adminSignatoriesRouter } from "./routes/admin/signatories.routes";
 import { filesRouter } from "./routes/files.routes";
 
 export function createApp() {
@@ -81,6 +82,7 @@ export function createApp() {
   app.use("/api/admin/evaluations", adminEvaluationsRouter);
   app.use("/api/admin/reports", adminReportsRouter);
   app.use("/api/admin/audit", adminAuditRouter);
+  app.use("/api/admin/signatories", adminSignatoriesRouter);
 
   app.use((req, res) => {
     res.status(404).json({ error: "Recurso no encontrado." });
