@@ -2,8 +2,10 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import { AuthLayout } from "../components/AuthLayout";
+import { useLanguage } from "../context/LanguageContext";
 
 export function ForgotPasswordPage() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +24,7 @@ export function ForgotPasswordPage() {
         setDemoLink(`/restablecer-password?token=${encodeURIComponent(res.demoToken)}`);
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No fue posible procesar la solicitud.");
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible procesar la solicitud."));
     } finally {
       setSubmitting(false);
     }
@@ -33,30 +35,30 @@ export function ForgotPasswordPage() {
       <div className="auth-card">
         <div className="auth-logo">
           <div className="mark">ECSA · Proyecto Mirador</div>
-          <h2>Recuperar contraseña</h2>
+          <h2>{t("Recuperar contraseña")}</h2>
         </div>
 
         {error && <div className="alert alert-danger">{error}</div>}
-        {message && <div className="alert alert-success">{message}</div>}
+        {message && <div className="alert alert-success">{t(message)}</div>}
         {demoLink && (
           <div className="alert alert-info">
-            Modo DEMO (sin correo configurado): <Link to={demoLink}>continuar el restablecimiento aquí</Link>.
+            {t("Modo DEMO (sin correo configurado):")} <Link to={demoLink}>{t("continuar el restablecimiento aquí")}</Link>.
           </div>
         )}
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="field">
-            <label htmlFor="email">Correo electrónico</label>
+            <label htmlFor="email">{t("Correo electrónico")}</label>
             <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <button className="btn btn-primary" type="submit" disabled={submitting} style={{ width: "100%" }}>
-            {submitting ? "Enviando…" : "Enviar instrucciones"}
+            {submitting ? t("Enviando…") : t("Enviar instrucciones")}
           </button>
         </form>
 
         <div className="mt-16 text-center">
           <Link to="/login" className="btn-link">
-            Volver a iniciar sesión
+            {t("Volver a iniciar sesión")}
           </Link>
         </div>
       </div>

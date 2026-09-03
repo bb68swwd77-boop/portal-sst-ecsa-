@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError } from "../../api/client";
 import { Modal } from "../../components/Modal";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface AdminCourse {
   id: string;
@@ -23,6 +24,7 @@ const emptyForm = {
 };
 
 export function AdminCoursesPage() {
+  const { t } = useLanguage();
   const [courses, setCourses] = useState<AdminCourse[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -46,21 +48,21 @@ export function AdminCoursesPage() {
       setForm(emptyForm);
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No fue posible crear la capacitación.");
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible crear la capacitación."));
     }
   }
 
-  const statusLabel: Record<string, string> = { DRAFT: "Borrador", PUBLISHED: "Publicado", ARCHIVED: "Archivado" };
+  const statusLabel: Record<string, string> = { DRAFT: t("Borrador"), PUBLISHED: t("Publicado"), ARCHIVED: t("Archivado") };
 
   return (
     <div>
       <div className="flex-between">
         <div>
-          <h2 className="page-title">Capacitaciones</h2>
-          <p className="page-subtitle">Gestión de cursos, módulos y evaluaciones SST.</p>
+          <h2 className="page-title">{t("Capacitaciones")}</h2>
+          <p className="page-subtitle">{t("Gestión de cursos, módulos y evaluaciones SST.")}</p>
         </div>
         <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-          + Nueva capacitación
+          + {t("Nueva capacitación")}
         </button>
       </div>
 
@@ -68,12 +70,12 @@ export function AdminCoursesPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Código</th>
-              <th>Título</th>
-              <th>Estado</th>
-              <th>Duración</th>
-              <th>Módulos</th>
-              <th>Certificados emitidos</th>
+              <th>{t("Código")}</th>
+              <th>{t("Título")}</th>
+              <th>{t("Estado")}</th>
+              <th>{t("Duración")}</th>
+              <th>{t("Módulos")}</th>
+              <th>{t("Certificados emitidos")}</th>
               <th></th>
             </tr>
           </thead>
@@ -92,7 +94,7 @@ export function AdminCoursesPage() {
                 <td>{c._count.certificates}</td>
                 <td>
                   <Link to={`/admin/capacitaciones/${c.id}`} className="btn-link">
-                    Administrar
+                    {t("Administrar")}
                   </Link>
                 </td>
               </tr>
@@ -102,43 +104,43 @@ export function AdminCoursesPage() {
       </div>
 
       {showCreate && (
-        <Modal title="Nueva capacitación" onClose={() => setShowCreate(false)}>
+        <Modal title={t("Nueva capacitación")} onClose={() => setShowCreate(false)}>
           <form onSubmit={handleCreate} noValidate>
             {error && <div className="alert alert-danger">{error}</div>}
             <div className="form-row">
               <div className="field">
-                <label>Código</label>
+                <label>{t("Código")}</label>
                 <input required value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="SST-XXX-01" />
               </div>
               <div className="field">
-                <label>Categoría</label>
+                <label>{t("Categoría")}</label>
                 <input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
               </div>
             </div>
             <div className="field">
-              <label>Título</label>
+              <label>{t("Título")}</label>
               <input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
             </div>
             <div className="field">
-              <label>Descripción</label>
+              <label>{t("Descripción")}</label>
               <textarea required rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
             <div className="form-row">
               <div className="field">
-                <label>Duración (min)</label>
+                <label>{t("Duración (min)")}</label>
                 <input type="number" min={0} value={form.durationMin} onChange={(e) => setForm({ ...form, durationMin: Number(e.target.value) })} />
               </div>
               <div className="field">
-                <label>Nota mínima (%)</label>
+                <label>{t("Nota mínima (%)")}</label>
                 <input type="number" min={1} max={100} value={form.passingScore} onChange={(e) => setForm({ ...form, passingScore: Number(e.target.value) })} />
               </div>
             </div>
             <div className="field">
-              <label>Intentos máximos</label>
+              <label>{t("Intentos máximos")}</label>
               <input type="number" min={1} value={form.maxAttempts} onChange={(e) => setForm({ ...form, maxAttempts: Number(e.target.value) })} />
             </div>
             <button className="btn btn-primary" type="submit">
-              Crear capacitación (borrador)
+              {t("Crear capacitación (borrador)")}
             </button>
           </form>
         </Modal>

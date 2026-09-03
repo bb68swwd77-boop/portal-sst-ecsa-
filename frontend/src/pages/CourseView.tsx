@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, apiUrl, ApiError } from "../api/client";
 import { useToast } from "../context/ToastContext";
+import { useLanguage } from "../context/LanguageContext";
 import type { CourseDetail } from "../types";
 
 export function CourseViewPage() {
   const { courseId } = useParams();
   const { notify } = useToast();
+  const { t } = useLanguage();
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +20,7 @@ export function CourseViewPage() {
       const firstIncomplete = res.course.modules.flatMap((m) => m.lessons).find((l) => !l.completed);
       setActiveLessonId(firstIncomplete?.id ?? res.course.modules[0]?.lessons[0]?.id ?? null);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No fue posible cargar la capacitación.");
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible cargar la capacitación."));
     }
   }
 
@@ -30,19 +32,19 @@ export function CourseViewPage() {
   async function completeLesson(lessonId: string) {
     if (!courseId) return;
     await api.post(`/courses/${courseId}/lessons/${lessonId}/complete`);
-    notify("Lección marcada como completada.", "success");
+    notify(t("Lección marcada como completada."), "success");
     await load();
   }
 
   if (error) return <div className="alert alert-danger">{error}</div>;
-  if (!course) return <div className="empty-state">Cargando…</div>;
+  if (!course) return <div className="empty-state">{t("Cargando…")}</div>;
 
   const activeLesson = course.modules.flatMap((m) => m.lessons).find((l) => l.id === activeLessonId);
 
   return (
     <div>
       <div className="breadcrumbs">
-        <Link to="/">Mi capacitación</Link> / {course.title}
+        <Link to="/">{t("Mi capacitación")}</Link> / {course.title}
       </div>
       <h2 className="page-title">{course.title}</h2>
       <p className="page-subtitle">{course.description}</p>
@@ -52,7 +54,7 @@ export function CourseViewPage() {
           {course.modules.map((m) => (
             <div key={m.id} className="mt-16">
               <div className="text-secondary" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                Módulo {m.order} · {m.title}
+                {t("Módulo")} {m.order} · {m.title}
               </div>
               {m.lessons.map((l) => (
                 <button
@@ -74,7 +76,7 @@ export function CourseViewPage() {
                 >
                   <div style={{ fontSize: 13 }}>{l.title}</div>
                   <div style={{ fontSize: 11 }} className={l.completed ? "" : "text-muted"}>
-                    {l.completed ? <span style={{ color: "var(--color-success)" }}>✓ Completado</span> : "Pendiente"}
+                    {l.completed ? <span style={{ color: "var(--color-success)" }}>✓ {t("Completado")}</span> : t("Pendiente")}
                   </div>
                 </button>
               ))}
@@ -82,17 +84,17 @@ export function CourseViewPage() {
                 <div className="card mt-8" style={{ padding: 12 }}>
                   <div style={{ fontSize: 13, fontWeight: 600 }}>{m.evaluation.title}</div>
                   <div className="text-muted" style={{ fontSize: 11 }}>
-                    Intentos: {m.evaluation.attemptsUsed}/{m.evaluation.maxAttempts}
-                    {m.evaluation.lastScore !== null && ` · Último puntaje: ${m.evaluation.lastScore}%`}
+                    {t("Intentos:")} {m.evaluation.attemptsUsed}/{m.evaluation.maxAttempts}
+                    {m.evaluation.lastScore !== null && ` · ${t("Último puntaje:")} ${m.evaluation.lastScore}%`}
                   </div>
                   {m.evaluation.lastPassed ? (
-                    <span className="badge badge-status-completed mt-8">Aprobado</span>
+                    <span className="badge badge-status-completed mt-8">{t("Aprobado")}</span>
                   ) : m.evaluation.canAttempt ? (
                     <Link to={`/curso/${course.id}/evaluacion/${m.evaluation.id}`} className="btn btn-primary btn-sm mt-8">
-                      Iniciar evaluación
+                      {t("Iniciar evaluación")}
                     </Link>
                   ) : (
-                    <span className="badge badge-status-overdue mt-8">Sin intentos disponibles</span>
+                    <span className="badge badge-status-overdue mt-8">{t("Sin intentos disponibles")}</span>
                   )}
                 </div>
               )}
@@ -101,7 +103,7 @@ export function CourseViewPage() {
         </div>
 
         <div className="card">
-          {!activeLesson && <div className="empty-state">Seleccione una lección para comenzar.</div>}
+          {!activeLesson && <div className="empty-state">{t("Seleccione una lección para comenzar.")}</div>}
           {activeLesson && (
             <>
               <span className="badge badge-copper">{activeLesson.contentType}</span>
@@ -109,14 +111,14 @@ export function CourseViewPage() {
 
               {(activeLesson.normReference || activeLesson.normCode) && (
                 <div className="norma">
-                  <strong>Base normativa:</strong> {activeLesson.normReference}
+                  <strong>{t("Base normativa:")}</strong> {activeLesson.normReference}
                   {activeLesson.normCode && ` (${activeLesson.normCode}`}
                   {activeLesson.normArticle && `, ${activeLesson.normArticle}`}
                   {activeLesson.normCode && ")"}
                   {activeLesson.normReviewedAt && (
                     <div className="text-muted mt-8" style={{ fontSize: 11 }}>
-                      Última revisión normativa: {new Date(activeLesson.normReviewedAt).toLocaleDateString("es-EC")}
-                      {activeLesson.normSource && ` · Fuente: ${activeLesson.normSource}`}
+                      {t("Última revisión normativa:")} {new Date(activeLesson.normReviewedAt).toLocaleDateString("es-EC")}
+                      {activeLesson.normSource && ` · ${t("Fuente:")} ${activeLesson.normSource}`}
                     </div>
                   )}
                 </div>
@@ -129,7 +131,7 @@ export function CourseViewPage() {
               {activeLesson.file && (
                 <p>
                   <a href={apiUrl(`/files/${activeLesson.file.id}`)} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm">
-                    📄 Descargar {activeLesson.file.filename} ({Math.round(activeLesson.file.sizeBytes / 1024)} KB)
+                    📄 {t("Descargar")} {activeLesson.file.filename} ({Math.round(activeLesson.file.sizeBytes / 1024)} KB)
                   </a>
                 </p>
               )}
@@ -137,17 +139,17 @@ export function CourseViewPage() {
               {activeLesson.externalUrl && (
                 <p>
                   <a href={activeLesson.externalUrl} target="_blank" rel="noopener noreferrer">
-                    Abrir recurso externo ↗
+                    {t("Abrir recurso externo")} ↗
                   </a>
                 </p>
               )}
 
               <div className="mt-24">
                 {activeLesson.completed ? (
-                  <span className="badge badge-status-completed">✓ Lección completada</span>
+                  <span className="badge badge-status-completed">✓ {t("Lección completada")}</span>
                 ) : (
                   <button className="btn btn-primary" onClick={() => completeLesson(activeLesson.id)}>
-                    Marcar como completada
+                    {t("Marcar como completada")}
                   </button>
                 )}
               </div>

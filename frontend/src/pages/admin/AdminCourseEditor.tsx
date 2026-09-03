@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { api, ApiError, uploadFile } from "../../api/client";
 import { Modal } from "../../components/Modal";
 import { useToast } from "../../context/ToastContext";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface AnswerOption {
   id: string;
@@ -69,6 +70,7 @@ const emptyOption = () => ({ text: "", isCorrect: false, order: 1 });
 export function AdminCourseEditorPage() {
   const { courseId } = useParams();
   const { notify } = useToast();
+  const { t } = useLanguage();
   const [course, setCourse] = useState<CourseAdmin | null>(null);
   const [moduleModal, setModuleModal] = useState(false);
   const [lessonModal, setLessonModal] = useState<{ moduleId: string } | null>(null);
@@ -87,18 +89,18 @@ export function AdminCourseEditorPage() {
 
   async function saveCourseField(field: string, value: unknown) {
     await api.put(`/admin/courses/${courseId}`, { [field]: value });
-    notify("Capacitación actualizada.", "success");
+    notify(t("Capacitación actualizada."), "success");
     await load();
   }
 
   async function deleteLesson(lessonId: string) {
-    if (!confirm("¿Eliminar esta lección?")) return;
+    if (!confirm(t("¿Eliminar esta lección?"))) return;
     await api.delete(`/admin/courses/lessons/${lessonId}`);
     await load();
   }
 
   async function deleteQuestion(questionId: string) {
-    if (!confirm("¿Eliminar esta pregunta?")) return;
+    if (!confirm(t("¿Eliminar esta pregunta?"))) return;
     await api.delete(`/admin/evaluations/questions/${questionId}`);
     await load();
   }
@@ -108,34 +110,34 @@ export function AdminCourseEditorPage() {
     await load();
   }
 
-  if (!course) return <div className="empty-state">Cargando…</div>;
+  if (!course) return <div className="empty-state">{t("Cargando…")}</div>;
 
   return (
     <div>
       <div className="breadcrumbs">
-        <Link to="/admin/capacitaciones">Capacitaciones</Link> / {course.title}
+        <Link to="/admin/capacitaciones">{t("Capacitaciones")}</Link> / {course.title}
       </div>
       <div className="flex-between">
         <h2 className="page-title">{course.title}</h2>
         <select value={course.status} onChange={(e) => saveCourseField("status", e.target.value)}>
-          <option value="DRAFT">Borrador</option>
-          <option value="PUBLISHED">Publicado</option>
-          <option value="ARCHIVED">Archivado</option>
+          <option value="DRAFT">{t("Borrador")}</option>
+          <option value="PUBLISHED">{t("Publicado")}</option>
+          <option value="ARCHIVED">{t("Archivado")}</option>
         </select>
       </div>
 
       <div className="card">
-        <h3>Información general</h3>
+        <h3>{t("Información general")}</h3>
         <div className="form-row">
           <div className="field">
-            <label>Título</label>
+            <label>{t("Título")}</label>
             <input
               defaultValue={course.title}
               onBlur={(e) => e.target.value.trim() && e.target.value !== course.title && saveCourseField("title", e.target.value.trim())}
             />
           </div>
           <div className="field">
-            <label>Código</label>
+            <label>{t("Código")}</label>
             <input
               defaultValue={course.code}
               onBlur={(e) => e.target.value.trim() && e.target.value !== course.code && saveCourseField("code", e.target.value.trim())}
@@ -143,7 +145,7 @@ export function AdminCourseEditorPage() {
           </div>
         </div>
         <div className="field">
-          <label>Descripción</label>
+          <label>{t("Descripción")}</label>
           <textarea
             rows={3}
             defaultValue={course.description}
@@ -152,7 +154,7 @@ export function AdminCourseEditorPage() {
         </div>
         <div className="form-row">
           <div className="field">
-            <label>Duración (min)</label>
+            <label>{t("Duración (min)")}</label>
             <input
               type="number"
               defaultValue={course.durationMin}
@@ -160,7 +162,7 @@ export function AdminCourseEditorPage() {
             />
           </div>
           <div className="field">
-            <label>Nota mínima (%)</label>
+            <label>{t("Nota mínima (%)")}</label>
             <input
               type="number"
               defaultValue={course.passingScore}
@@ -171,9 +173,9 @@ export function AdminCourseEditorPage() {
       </div>
 
       <div className="flex-between mt-24">
-        <h3>Módulos</h3>
+        <h3>{t("Módulos")}</h3>
         <button className="btn btn-secondary btn-sm" onClick={() => setModuleModal(true)}>
-          + Módulo
+          + {t("Módulo")}
         </button>
       </div>
 
@@ -181,7 +183,7 @@ export function AdminCourseEditorPage() {
         <div className="card mt-16" key={m.id}>
           <div className="flex-between">
             <h4>
-              Módulo {m.order} · {m.title}
+              {t("Módulo")} {m.order} · {m.title}
             </h4>
           </div>
 
@@ -190,8 +192,8 @@ export function AdminCourseEditorPage() {
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Lección</th>
-                  <th>Tipo</th>
+                  <th>{t("Lección")}</th>
+                  <th>{t("Tipo")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -203,7 +205,7 @@ export function AdminCourseEditorPage() {
                     <td>{l.contentType}</td>
                     <td>
                       <button className="btn-link" onClick={() => deleteLesson(l.id)}>
-                        Eliminar
+                        {t("Eliminar")}
                       </button>
                     </td>
                   </tr>
@@ -212,7 +214,7 @@ export function AdminCourseEditorPage() {
             </table>
           </div>
           <button className="btn btn-secondary btn-sm mt-8" onClick={() => setLessonModal({ moduleId: m.id })}>
-            + Lección
+            + {t("Lección")}
           </button>
 
           <div className="mt-16">
@@ -221,11 +223,12 @@ export function AdminCourseEditorPage() {
                 <div className="flex-between">
                   <strong>{m.evaluation.title}</strong>
                   <button className="btn btn-secondary btn-sm" onClick={() => setQuestionModal({ evaluationId: m.evaluation!.id })}>
-                    + Pregunta
+                    + {t("Pregunta")}
                   </button>
                 </div>
                 <p className="text-muted" style={{ fontSize: 12 }}>
-                  Nota mínima {m.evaluation.passingScore}% · Intentos máx. {m.evaluation.maxAttempts} · Preguntas: {m.evaluation.questions.length}
+                  {t("Nota mínima")} {m.evaluation.passingScore}% · {t("Intentos máx.")} {m.evaluation.maxAttempts} ·{" "}
+                  {t("Preguntas:")} {m.evaluation.questions.length}
                 </p>
                 {m.evaluation.questions.map((q) => (
                   <div key={q.id} className="card mt-8" style={{ padding: 12 }}>
@@ -234,7 +237,7 @@ export function AdminCourseEditorPage() {
                         {q.order}. {q.text}
                       </strong>
                       <button className="btn-link" onClick={() => deleteQuestion(q.id)}>
-                        Eliminar
+                        {t("Eliminar")}
                       </button>
                     </div>
                     <ul style={{ margin: "8px 0 0", paddingLeft: 18, fontSize: 12 }}>
@@ -249,7 +252,7 @@ export function AdminCourseEditorPage() {
               </div>
             ) : (
               <button className="btn btn-secondary btn-sm" onClick={() => setEvalModal({ moduleId: m.id })}>
-                + Crear evaluación para este módulo
+                + {t("Crear evaluación para este módulo")}
               </button>
             )}
           </div>
@@ -283,6 +286,7 @@ export function AdminCourseEditorPage() {
 }
 
 function ModuleFormModal({ courseId, nextOrder, onClose, onSaved }: { courseId: string; nextOrder: number; onClose: () => void; onSaved: () => void }) {
+  const { t } = useLanguage();
   const [title, setTitle] = useState("");
   const [order, setOrder] = useState(nextOrder);
   const [error, setError] = useState<string | null>(null);
@@ -294,24 +298,24 @@ function ModuleFormModal({ courseId, nextOrder, onClose, onSaved }: { courseId: 
       onSaved();
       onClose();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No fue posible crear el módulo.");
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible crear el módulo."));
     }
   }
 
   return (
-    <Modal title="Nuevo módulo" onClose={onClose}>
+    <Modal title={t("Nuevo módulo")} onClose={onClose}>
       <form onSubmit={handleSubmit} noValidate>
         {error && <div className="alert alert-danger">{error}</div>}
         <div className="field">
-          <label>Título</label>
+          <label>{t("Título")}</label>
           <input required value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
         <div className="field">
-          <label>Orden</label>
+          <label>{t("Orden")}</label>
           <input type="number" min={1} value={order} onChange={(e) => setOrder(Number(e.target.value))} />
         </div>
         <button className="btn btn-primary" type="submit">
-          Crear módulo
+          {t("Crear módulo")}
         </button>
       </form>
     </Modal>
@@ -319,6 +323,7 @@ function ModuleFormModal({ courseId, nextOrder, onClose, onSaved }: { courseId: 
 }
 
 function LessonFormModal({ moduleId, nextOrder, onClose, onSaved }: { moduleId: string; nextOrder: number; onClose: () => void; onSaved: () => void }) {
+  const { t } = useLanguage();
   const [form, setForm] = useState({
     title: "",
     order: nextOrder,
@@ -345,7 +350,7 @@ function LessonFormModal({ moduleId, nextOrder, onClose, onSaved }: { moduleId: 
       setForm((prev) => ({ ...prev, fileId: res.file.id }));
       setUploadedFilename(res.file.filename);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No fue posible subir el archivo.");
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible subir el archivo."));
     } finally {
       setUploading(false);
     }
@@ -354,7 +359,7 @@ function LessonFormModal({ moduleId, nextOrder, onClose, onSaved }: { moduleId: 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (needsFile && !form.fileId) {
-      setError("Debe subir un archivo PDF para este tipo de contenido.");
+      setError(t("Debe subir un archivo PDF para este tipo de contenido."));
       return;
     }
     try {
@@ -363,67 +368,67 @@ function LessonFormModal({ moduleId, nextOrder, onClose, onSaved }: { moduleId: 
       onSaved();
       onClose();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No fue posible crear la lección.");
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible crear la lección."));
     }
   }
 
   return (
-    <Modal title="Nueva lección" onClose={onClose}>
+    <Modal title={t("Nueva lección")} onClose={onClose}>
       <form onSubmit={handleSubmit} noValidate>
         {error && <div className="alert alert-danger">{error}</div>}
         <div className="field">
-          <label>Título</label>
+          <label>{t("Título")}</label>
           <input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
         </div>
         <div className="form-row">
           <div className="field">
-            <label>Orden</label>
+            <label>{t("Orden")}</label>
             <input type="number" min={1} value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} />
           </div>
           <div className="field">
-            <label>Tipo de contenido</label>
+            <label>{t("Tipo de contenido")}</label>
             <select value={form.contentType} onChange={(e) => setForm({ ...form, contentType: e.target.value, fileId: "", externalUrl: "" })}>
-              <option value="RICH_TEXT">Texto enriquecido</option>
-              <option value="VIDEO">Video (enlace)</option>
-              <option value="PDF">PDF (archivo adjunto)</option>
-              <option value="DOCUMENT">Documento (archivo adjunto)</option>
-              <option value="LINK">Enlace externo</option>
+              <option value="RICH_TEXT">{t("Texto enriquecido")}</option>
+              <option value="VIDEO">{t("Video (enlace)")}</option>
+              <option value="PDF">{t("PDF (archivo adjunto)")}</option>
+              <option value="DOCUMENT">{t("Documento (archivo adjunto)")}</option>
+              <option value="LINK">{t("Enlace externo")}</option>
             </select>
           </div>
         </div>
         <div className="field">
-          <label>Contenido (HTML permitido: p, b, i, ul, li, a, img…)</label>
+          <label>{t("Contenido (HTML permitido: p, b, i, ul, li, a, img…)")}</label>
           <textarea rows={4} value={form.bodyHtml} onChange={(e) => setForm({ ...form, bodyHtml: e.target.value })} />
           <div className="field-hint">
-            Puede incluir imágenes de referencia ya alojadas en internet con{" "}
+            {t("Puede incluir imágenes de referencia ya alojadas en internet con")}{" "}
             <code>&lt;img src="https://..." alt="descripción"&gt;</code>.
           </div>
         </div>
 
         {needsFile && (
           <div className="field">
-            <label>Archivo PDF</label>
+            <label>{t("Archivo PDF")}</label>
             <input type="file" accept="application/pdf" onChange={handleFileChange} />
-            {uploading && <div className="field-hint">Subiendo…</div>}
-            {uploadedFilename && <div className="field-hint">✓ {uploadedFilename} cargado correctamente.</div>}
-            <div className="field-hint">Máximo 10 MB, solo PDF.</div>
+            {uploading && <div className="field-hint">{t("Subiendo…")}</div>}
+            {uploadedFilename && <div className="field-hint">✓ {uploadedFilename} {t("cargado correctamente.")}</div>}
+            <div className="field-hint">{t("Máximo 10 MB, solo PDF.")}</div>
           </div>
         )}
 
         {needsUrl && (
           <div className="field">
-            <label>URL externa</label>
+            <label>{t("URL externa")}</label>
             <input value={form.externalUrl} onChange={(e) => setForm({ ...form, externalUrl: e.target.value })} placeholder="https://…" />
           </div>
         )}
 
-        <h4 className="mt-16">Referencia normativa</h4>
+        <h4 className="mt-16">{t("Referencia normativa")}</h4>
         <div className="field">
-          <label>Norma</label>
+          <label>{t("Norma")}</label>
           <input value={form.normReference} onChange={(e) => setForm({ ...form, normReference: e.target.value })} />
         </div>
         <button className="btn btn-primary" type="submit">
-          Crear lección
+          {t("Crear lección")}
         </button>
       </form>
     </Modal>
@@ -431,6 +436,7 @@ function LessonFormModal({ moduleId, nextOrder, onClose, onSaved }: { moduleId: 
 }
 
 function EvaluationFormModal({ moduleId, onClose, onSaved }: { moduleId: string; onClose: () => void; onSaved: () => void }) {
+  const { t } = useLanguage();
   const [form, setForm] = useState({ title: "Evaluación del módulo", passingScore: 80, maxAttempts: 3, showCorrectAnswers: true });
   const [error, setError] = useState<string | null>(null);
 
@@ -441,25 +447,25 @@ function EvaluationFormModal({ moduleId, onClose, onSaved }: { moduleId: string;
       onSaved();
       onClose();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No fue posible crear la evaluación.");
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible crear la evaluación."));
     }
   }
 
   return (
-    <Modal title="Nueva evaluación" onClose={onClose}>
+    <Modal title={t("Nueva evaluación")} onClose={onClose}>
       <form onSubmit={handleSubmit} noValidate>
         {error && <div className="alert alert-danger">{error}</div>}
         <div className="field">
-          <label>Título</label>
+          <label>{t("Título")}</label>
           <input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
         </div>
         <div className="form-row">
           <div className="field">
-            <label>Nota mínima (%)</label>
+            <label>{t("Nota mínima (%)")}</label>
             <input type="number" min={1} max={100} value={form.passingScore} onChange={(e) => setForm({ ...form, passingScore: Number(e.target.value) })} />
           </div>
           <div className="field">
-            <label>Intentos máximos</label>
+            <label>{t("Intentos máximos")}</label>
             <input type="number" min={1} value={form.maxAttempts} onChange={(e) => setForm({ ...form, maxAttempts: Number(e.target.value) })} />
           </div>
         </div>
@@ -470,10 +476,10 @@ function EvaluationFormModal({ moduleId, onClose, onSaved }: { moduleId: string;
             checked={form.showCorrectAnswers}
             onChange={(e) => setForm({ ...form, showCorrectAnswers: e.target.checked })}
           />
-          Mostrar respuestas correctas al finalizar
+          {t("Mostrar respuestas correctas al finalizar")}
         </label>
         <button className="btn btn-primary" type="submit">
-          Crear evaluación
+          {t("Crear evaluación")}
         </button>
       </form>
     </Modal>
@@ -481,6 +487,7 @@ function EvaluationFormModal({ moduleId, onClose, onSaved }: { moduleId: string;
 }
 
 function QuestionFormModal({ evaluationId, onClose, onSaved }: { evaluationId: string; onClose: () => void; onSaved: () => void }) {
+  const { t } = useLanguage();
   const [type, setType] = useState("SINGLE_CHOICE");
   const [text, setText] = useState("");
   const [order, setOrder] = useState(1);
@@ -511,37 +518,37 @@ function QuestionFormModal({ evaluationId, onClose, onSaved }: { evaluationId: s
       onSaved();
       onClose();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No fue posible crear la pregunta.");
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible crear la pregunta."));
     }
   }
 
   return (
-    <Modal title="Nueva pregunta" onClose={onClose}>
+    <Modal title={t("Nueva pregunta")} onClose={onClose}>
       <form onSubmit={handleSubmit} noValidate>
         {error && <div className="alert alert-danger">{error}</div>}
         <div className="form-row">
           <div className="field">
-            <label>Tipo</label>
+            <label>{t("Tipo")}</label>
             <select value={type} onChange={(e) => setType(e.target.value)}>
-              <option value="SINGLE_CHOICE">Selección única</option>
-              <option value="MULTIPLE_CHOICE">Selección múltiple</option>
-              <option value="TRUE_FALSE">Verdadero / Falso</option>
-              <option value="SHORT_ANSWER">Respuesta corta</option>
+              <option value="SINGLE_CHOICE">{t("Selección única")}</option>
+              <option value="MULTIPLE_CHOICE">{t("Selección múltiple")}</option>
+              <option value="TRUE_FALSE">{t("Verdadero / Falso")}</option>
+              <option value="SHORT_ANSWER">{t("Respuesta corta")}</option>
             </select>
           </div>
           <div className="field">
-            <label>Orden</label>
+            <label>{t("Orden")}</label>
             <input type="number" min={1} value={order} onChange={(e) => setOrder(Number(e.target.value))} />
           </div>
         </div>
         <div className="field">
-          <label>Enunciado</label>
+          <label>{t("Enunciado")}</label>
           <textarea required rows={2} value={text} onChange={(e) => setText(e.target.value)} />
         </div>
 
         {type !== "SHORT_ANSWER" && (
           <div className="field">
-            <label>Opciones (marque la(s) correcta(s))</label>
+            <label>{t("Opciones (marque la(s) correcta(s))")}</label>
             {options.map((o, idx) => (
               <div key={idx} className="option-row mt-8">
                 <input
@@ -553,7 +560,7 @@ function QuestionFormModal({ evaluationId, onClose, onSaved }: { evaluationId: s
                 />
                 <input
                   className="option-text"
-                  placeholder={`Opción ${idx + 1}`}
+                  placeholder={`${t("Opción")} ${idx + 1}`}
                   value={o.text}
                   onChange={(e) => updateOption(idx, { text: e.target.value })}
                 />
@@ -561,7 +568,7 @@ function QuestionFormModal({ evaluationId, onClose, onSaved }: { evaluationId: s
             ))}
             {type !== "TRUE_FALSE" && (
               <button type="button" className="btn-link mt-8" onClick={() => setOptions((prev) => [...prev, emptyOption()])}>
-                + Agregar opción
+                + {t("Agregar opción")}
               </button>
             )}
           </div>
@@ -569,24 +576,24 @@ function QuestionFormModal({ evaluationId, onClose, onSaved }: { evaluationId: s
 
         {type === "SHORT_ANSWER" && (
           <div className="field">
-            <label>Respuesta(s) válida(s) (una por opción)</label>
+            <label>{t("Respuesta(s) válida(s) (una por opción)")}</label>
             {options.map((o, idx) => (
               <input
                 key={idx}
                 className="mt-8"
-                placeholder="Respuesta válida"
+                placeholder={t("Respuesta válida")}
                 value={o.text}
                 onChange={(e) => updateOption(idx, { text: e.target.value, isCorrect: true })}
               />
             ))}
             <button type="button" className="btn-link mt-8" onClick={() => setOptions((prev) => [...prev, { ...emptyOption(), isCorrect: true }])}>
-              + Agregar respuesta válida
+              + {t("Agregar respuesta válida")}
             </button>
           </div>
         )}
 
         <button className="btn btn-primary mt-16" type="submit">
-          Guardar pregunta
+          {t("Guardar pregunta")}
         </button>
       </form>
     </Modal>
@@ -604,6 +611,7 @@ function AssignmentsSection({
   onChange: () => void;
   onDelete: (id: string) => void;
 }) {
+  const { t } = useLanguage();
   const [targetType, setTargetType] = useState("COMPANY");
   const [targetValue, setTargetValue] = useState("");
   const [dueAt, setDueAt] = useState("");
@@ -622,20 +630,20 @@ function AssignmentsSection({
       setTargetValue("");
       onChange();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No fue posible crear la asignación.");
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible crear la asignación."));
     }
   }
 
   return (
     <div className="mt-24">
-      <h3>Asignaciones</h3>
+      <h3>{t("Asignaciones")}</h3>
       <div className="table-wrap">
         <table className="data-table">
           <thead>
             <tr>
-              <th>Tipo</th>
-              <th>Valor</th>
-              <th>Fecha límite</th>
+              <th>{t("Tipo")}</th>
+              <th>{t("Valor")}</th>
+              <th>{t("Fecha límite")}</th>
               <th></th>
             </tr>
           </thead>
@@ -643,11 +651,11 @@ function AssignmentsSection({
             {assignments.map((a) => (
               <tr key={a.id}>
                 <td>{a.targetType}</td>
-                <td>{a.targetValue ?? a.userId ?? "Todos"}</td>
+                <td>{a.targetValue ?? a.userId ?? t("Todos")}</td>
                 <td>{a.dueAt ? new Date(a.dueAt).toLocaleDateString("es-EC") : "—"}</td>
                 <td>
                   <button className="btn-link" onClick={() => onDelete(a.id)}>
-                    Quitar
+                    {t("Quitar")}
                   </button>
                 </td>
               </tr>
@@ -659,26 +667,26 @@ function AssignmentsSection({
       <form onSubmit={handleSubmit} className="flex gap-8 mt-16" style={{ flexWrap: "wrap", alignItems: "flex-end" }}>
         {error && <div className="alert alert-danger" style={{ width: "100%" }}>{error}</div>}
         <div className="field" style={{ marginBottom: 0 }}>
-          <label>Asignar por</label>
+          <label>{t("Asignar por")}</label>
           <select value={targetType} onChange={(e) => setTargetType(e.target.value)}>
-            <option value="COMPANY">Empresa</option>
-            <option value="AREA">Área</option>
-            <option value="POSITION">Cargo</option>
-            <option value="ALL">Todos los usuarios</option>
+            <option value="COMPANY">{t("Empresa")}</option>
+            <option value="AREA">{t("Área")}</option>
+            <option value="POSITION">{t("Cargo")}</option>
+            <option value="ALL">{t("Todos los usuarios")}</option>
           </select>
         </div>
         {targetType !== "ALL" && (
           <div className="field" style={{ marginBottom: 0 }}>
-            <label>Valor</label>
+            <label>{t("Valor")}</label>
             <input required value={targetValue} onChange={(e) => setTargetValue(e.target.value)} />
           </div>
         )}
         <div className="field" style={{ marginBottom: 0 }}>
-          <label>Fecha límite</label>
+          <label>{t("Fecha límite")}</label>
           <input type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
         </div>
         <button className="btn btn-secondary" type="submit">
-          Asignar
+          {t("Asignar")}
         </button>
       </form>
     </div>

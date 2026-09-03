@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
+import { LanguageProvider } from "./context/LanguageContext";
 import { Layout } from "./components/Layout";
 import { RequireAuth, RequirePermission } from "./components/RouteGuards";
 
@@ -24,6 +25,7 @@ import { AdminAuditPage } from "./pages/admin/AdminAudit";
 export default function App() {
   return (
     <BrowserRouter>
+      <LanguageProvider>
       <ToastProvider>
         <AuthProvider>
           <Routes>
@@ -97,6 +99,7 @@ export default function App() {
           </Routes>
         </AuthProvider>
       </ToastProvider>
+      </LanguageProvider>
     </BrowserRouter>
   );
 }

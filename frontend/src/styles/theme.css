@@ -250,6 +250,38 @@ textarea {
   }
 }
 
+/* ---------- Selector de idioma ---------- */
+
+.lang-toggle {
+  display: inline-flex;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.lang-toggle button {
+  background: transparent;
+  border: none;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.lang-toggle button.active {
+  background: var(--color-copper);
+  color: #0a1628;
+}
+
+.lang-toggle button:not(.active):hover {
+  color: var(--color-text-primary);
+}
+
+.topbar-lang {
+  margin-left: auto;
+}
+
 /* ---------- Typography / basics ---------- */
 
 h1,
@@ -621,11 +653,18 @@ h4 {
 }
 
 .auth-panel {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
   background: radial-gradient(circle at top, #ffffff 0%, #eef1f6 65%);
+}
+
+.auth-lang {
+  position: absolute;
+  top: 20px;
+  right: 20px;
 }
 
 @media (min-width: 900px) {

@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 import { ApiError } from "../api/client";
 import { AuthLayout } from "../components/AuthLayout";
 
 export function LoginPage() {
   const { login, user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +26,7 @@ export function LoginPage() {
       await login(email, password);
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No fue posible iniciar sesión.");
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible iniciar sesión."));
     } finally {
       setSubmitting(false);
     }
@@ -35,14 +37,14 @@ export function LoginPage() {
       <div className="auth-card">
         <div className="auth-logo">
           <div className="mark">ECSA · Proyecto Mirador</div>
-          <h2>Portal de Capacitación SST</h2>
+          <h2>{t("Portal de Capacitación SST")}</h2>
         </div>
 
         {error && <div className="alert alert-danger">{error}</div>}
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="field">
-            <label htmlFor="email">Correo electrónico</label>
+            <label htmlFor="email">{t("Correo electrónico")}</label>
             <input
               id="email"
               type="email"
@@ -53,7 +55,7 @@ export function LoginPage() {
             />
           </div>
           <div className="field">
-            <label htmlFor="password">Contraseña</label>
+            <label htmlFor="password">{t("Contraseña")}</label>
             <input
               id="password"
               type="password"
@@ -64,21 +66,21 @@ export function LoginPage() {
             />
           </div>
           <button className="btn btn-primary" type="submit" disabled={submitting} style={{ width: "100%" }}>
-            {submitting ? "Ingresando…" : "Iniciar sesión"}
+            {submitting ? t("Ingresando…") : t("Iniciar sesión")}
           </button>
         </form>
 
         <div className="flex-between mt-16">
           <Link to="/recuperar-password" className="btn-link">
-            ¿Olvidó su contraseña?
+            {t("¿Olvidó su contraseña?")}
           </Link>
           <Link to="/verificar-certificado" className="btn-link">
-            Verificar certificado
+            {t("Verificar certificado")}
           </Link>
         </div>
 
         <p className="field-hint mt-16">
-          Acceso DEMO: admin@example.com / usuario1@example.com — contraseña Demo#2026Sst
+          {t("Acceso DEMO: admin@example.com / usuario1@example.com — contraseña Demo#2026Sst")}
         </p>
       </div>
     </AuthLayout>

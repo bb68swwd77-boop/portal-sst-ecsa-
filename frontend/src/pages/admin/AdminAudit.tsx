@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../../api/client";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface AuditLog {
   id: string;
@@ -12,6 +13,7 @@ interface AuditLog {
 }
 
 export function AdminAuditPage() {
+  const { t } = useLanguage();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -33,12 +35,12 @@ export function AdminAuditPage() {
 
   return (
     <div>
-      <h2 className="page-title">Auditoría</h2>
-      <p className="page-subtitle">Trazabilidad de eventos sensibles del sistema.</p>
+      <h2 className="page-title">{t("Auditoría")}</h2>
+      <p className="page-subtitle">{t("Trazabilidad de eventos sensibles del sistema.")}</p>
 
       <div className="flex gap-8">
         <input
-          placeholder="Filtrar por acción (ej: auth.login)"
+          placeholder={t("Filtrar por acción (ej: auth.login)")}
           value={actionFilter}
           onChange={(e) => setActionFilter(e.target.value)}
         />
@@ -49,7 +51,7 @@ export function AdminAuditPage() {
             load();
           }}
         >
-          Filtrar
+          {t("Filtrar")}
         </button>
       </div>
 
@@ -57,11 +59,11 @@ export function AdminAuditPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Fecha</th>
-              <th>Usuario</th>
-              <th>Acción</th>
-              <th>Recurso</th>
-              <th>Resultado</th>
+              <th>{t("Fecha")}</th>
+              <th>{t("Usuario")}</th>
+              <th>{t("Acción")}</th>
+              <th>{t("Recurso")}</th>
+              <th>{t("Resultado")}</th>
               <th>IP</th>
             </tr>
           </thead>
@@ -73,7 +75,9 @@ export function AdminAuditPage() {
                 <td>{l.action}</td>
                 <td>{l.resource ?? "—"}</td>
                 <td>
-                  <span className={`badge badge-status-${l.result === "success" ? "completed" : "overdue"}`}>{l.result}</span>
+                  <span className={`badge badge-status-${l.result === "success" ? "completed" : "overdue"}`}>
+                    {t(l.result === "success" ? "éxito" : "fallo")}
+                  </span>
                 </td>
                 <td>{l.ip ?? "—"}</td>
               </tr>
@@ -84,14 +88,14 @@ export function AdminAuditPage() {
 
       <div className="flex-between mt-16">
         <span className="text-muted" style={{ fontSize: 12 }}>
-          {total} eventos · página {page} de {Math.max(1, Math.ceil(total / pageSize))}
+          {total} {t("eventos")} · {t("página")} {page} {t("de")} {Math.max(1, Math.ceil(total / pageSize))}
         </span>
         <div className="flex gap-8">
           <button className="btn btn-secondary btn-sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-            Anterior
+            {t("Anterior")}
           </button>
           <button className="btn btn-secondary btn-sm" disabled={page >= Math.ceil(total / pageSize)} onClick={() => setPage((p) => p + 1)}>
-            Siguiente
+            {t("Siguiente")}
           </button>
         </div>
       </div>

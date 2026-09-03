@@ -3,6 +3,7 @@ import { api, ApiError } from "../../api/client";
 import { Modal } from "../../components/Modal";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { AREAS, COMPANIES, POSITIONS } from "../../constants/organization";
 
 interface AdminUser {
@@ -32,6 +33,7 @@ const emptyForm = {
 };
 
 export function AdminUsersPage() {
+  const { t } = useLanguage();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
@@ -75,19 +77,19 @@ export function AdminUsersPage() {
       setForm(emptyForm);
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No fue posible crear el usuario.");
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible crear el usuario."));
     }
   }
 
   async function toggleActive(id: string) {
     await api.post(`/admin/users/${id}/toggle-active`);
-    notify("Estado actualizado.", "success");
+    notify(t("Estado actualizado."), "success");
     await load();
   }
 
   async function resetPassword(id: string) {
     const res = await api.post<{ temporaryPassword: string }>(`/admin/users/${id}/reset-password`);
-    notify(`Contraseña temporal generada: ${res.temporaryPassword}`, "info");
+    notify(`${t("Contraseña temporal generada:")} ${res.temporaryPassword}`, "info");
   }
 
   function openEdit(u: AdminUser) {
@@ -111,11 +113,11 @@ export function AdminUsersPage() {
     setEditError(null);
     try {
       await api.put(`/admin/users/${editingUser.id}`, editForm);
-      notify("Usuario actualizado.", "success");
+      notify(t("Usuario actualizado."), "success");
       setEditingUser(null);
       await load();
     } catch (err) {
-      setEditError(err instanceof ApiError ? err.message : "No fue posible actualizar el usuario.");
+      setEditError(err instanceof ApiError ? t(err.message) : t("No fue posible actualizar el usuario."));
     }
   }
 
@@ -123,18 +125,18 @@ export function AdminUsersPage() {
     <div>
       <div className="flex-between">
         <div>
-          <h2 className="page-title">Usuarios</h2>
-          <p className="page-subtitle">Gestión de trabajadores, contratistas y administradores.</p>
+          <h2 className="page-title">{t("Usuarios")}</h2>
+          <p className="page-subtitle">{t("Gestión de trabajadores, contratistas y administradores.")}</p>
         </div>
         <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
-          + Nuevo usuario
+          + {t("Nuevo usuario")}
         </button>
       </div>
 
       <form onSubmit={handleSearch} className="flex gap-8 mt-16" style={{ maxWidth: 400 }}>
-        <input placeholder="Buscar por nombre, correo o empresa" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input placeholder={t("Buscar por nombre, correo o empresa")} value={search} onChange={(e) => setSearch(e.target.value)} />
         <button className="btn btn-secondary" type="submit">
-          Buscar
+          {t("Buscar")}
         </button>
       </form>
 
@@ -142,14 +144,14 @@ export function AdminUsersPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Nombre</th>
-              <th>Correo</th>
-              <th>Empresa</th>
-              <th>Área</th>
-              <th>Rol</th>
-              <th>Estado</th>
-              <th>Último acceso</th>
-              <th>Acciones</th>
+              <th>{t("Nombre")}</th>
+              <th>{t("Correo")}</th>
+              <th>{t("Empresa")}</th>
+              <th>{t("Área")}</th>
+              <th>{t("Rol")}</th>
+              <th>{t("Estado")}</th>
+              <th>{t("Último acceso")}</th>
+              <th>{t("Acciones")}</th>
             </tr>
           </thead>
           <tbody>
@@ -161,22 +163,22 @@ export function AdminUsersPage() {
                 <td>{u.email}</td>
                 <td>{u.company ?? "—"}</td>
                 <td>{u.area ?? "—"}</td>
-                <td>{u.role === "admin" ? "Administrador" : "Capacitado"}</td>
+                <td>{u.role === "admin" ? t("Administrador") : t("Capacitado")}</td>
                 <td>
                   <span className={`badge badge-status-${u.isActive ? "completed" : "overdue"}`}>
-                    {u.isActive ? "Activo" : "Inactivo"}
+                    {u.isActive ? t("Activo") : t("Inactivo")}
                   </span>
                 </td>
-                <td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString("es-EC") : "Nunca"}</td>
+                <td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString("es-EC") : t("Nunca")}</td>
                 <td className="flex gap-8">
                   <button className="btn-link" onClick={() => openEdit(u)}>
-                    Editar
+                    {t("Editar")}
                   </button>
                   <button className="btn-link" onClick={() => toggleActive(u.id)}>
-                    {u.isActive ? "Desactivar" : "Activar"}
+                    {u.isActive ? t("Desactivar") : t("Activar")}
                   </button>
                   <button className="btn-link" onClick={() => resetPassword(u.id)}>
-                    Restablecer clave
+                    {t("Restablecer clave")}
                   </button>
                 </td>
               </tr>
@@ -187,25 +189,25 @@ export function AdminUsersPage() {
 
       <div className="flex-between mt-16">
         <span className="text-muted" style={{ fontSize: 12 }}>
-          {total} usuarios · página {page} de {Math.max(1, Math.ceil(total / pageSize))}
+          {total} {t("usuarios")} · {t("página")} {page} {t("de")} {Math.max(1, Math.ceil(total / pageSize))}
         </span>
         <div className="flex gap-8">
           <button className="btn btn-secondary btn-sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-            Anterior
+            {t("Anterior")}
           </button>
           <button
             className="btn btn-secondary btn-sm"
             disabled={page >= Math.ceil(total / pageSize)}
             onClick={() => setPage((p) => p + 1)}
           >
-            Siguiente
+            {t("Siguiente")}
           </button>
         </div>
       </div>
 
       {showCreate && (
         <Modal
-          title="Nuevo usuario"
+          title={t("Nuevo usuario")}
           onClose={() => {
             setShowCreate(false);
             setTempPassword(null);
@@ -214,32 +216,32 @@ export function AdminUsersPage() {
         >
           {tempPassword ? (
             <div className="alert alert-success">
-              Usuario creado. Contraseña temporal: <strong>{tempPassword}</strong>
+              {t("Usuario creado. Contraseña temporal:")} <strong>{tempPassword}</strong>
               <br />
-              Compártala de forma segura; el usuario deberá cambiarla en su primer acceso.
+              {t("Compártala de forma segura; el usuario deberá cambiarla en su primer acceso.")}
             </div>
           ) : (
             <form onSubmit={handleCreate} noValidate>
               {error && <div className="alert alert-danger">{error}</div>}
               <div className="form-row">
                 <div className="field">
-                  <label>Nombres</label>
+                  <label>{t("Nombres")}</label>
                   <input required value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
                 </div>
                 <div className="field">
-                  <label>Apellidos</label>
+                  <label>{t("Apellidos")}</label>
                   <input required value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
                 </div>
               </div>
               <div className="field">
-                <label>Correo electrónico</label>
+                <label>{t("Correo electrónico")}</label>
                 <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </div>
               <div className="form-row">
                 <div className="field">
-                  <label>Empresa</label>
+                  <label>{t("Empresa")}</label>
                   <select value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })}>
-                    <option value="">Seleccionar…</option>
+                    <option value="">{t("Seleccionar…")}</option>
                     {COMPANIES.map((c) => (
                       <option key={c} value={c}>
                         {c}
@@ -248,9 +250,9 @@ export function AdminUsersPage() {
                   </select>
                 </div>
                 <div className="field">
-                  <label>Área</label>
+                  <label>{t("Área")}</label>
                   <select value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })}>
-                    <option value="">Seleccionar…</option>
+                    <option value="">{t("Seleccionar…")}</option>
                     {AREAS.map((a) => (
                       <option key={a} value={a}>
                         {a}
@@ -261,9 +263,9 @@ export function AdminUsersPage() {
               </div>
               <div className="form-row">
                 <div className="field">
-                  <label>Cargo</label>
+                  <label>{t("Cargo")}</label>
                   <select value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })}>
-                    <option value="">Seleccionar…</option>
+                    <option value="">{t("Seleccionar…")}</option>
                     {POSITIONS.map((p) => (
                       <option key={p} value={p}>
                         {p}
@@ -272,15 +274,15 @@ export function AdminUsersPage() {
                   </select>
                 </div>
                 <div className="field">
-                  <label>Rol</label>
+                  <label>{t("Rol")}</label>
                   <select value={form.roleKey} onChange={(e) => setForm({ ...form, roleKey: e.target.value as "admin" | "user" })}>
-                    <option value="user">Capacitado / Contratista</option>
-                    <option value="admin">Administrador</option>
+                    <option value="user">{t("Capacitado / Contratista")}</option>
+                    <option value="admin">{t("Administrador")}</option>
                   </select>
                 </div>
               </div>
               <button className="btn btn-primary" type="submit">
-                Crear usuario
+                {t("Crear usuario")}
               </button>
             </form>
           )}
@@ -288,32 +290,32 @@ export function AdminUsersPage() {
       )}
 
       {editingUser && (
-        <Modal title={`Editar usuario — ${editingUser.firstName} ${editingUser.lastName}`} onClose={() => setEditingUser(null)}>
+        <Modal title={`${t("Editar usuario")} — ${editingUser.firstName} ${editingUser.lastName}`} onClose={() => setEditingUser(null)}>
           <form onSubmit={handleEdit} noValidate>
             {editError && <div className="alert alert-danger">{editError}</div>}
             <div className="form-row">
               <div className="field">
-                <label>Nombres</label>
+                <label>{t("Nombres")}</label>
                 <input required value={editForm.firstName} onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })} />
               </div>
               <div className="field">
-                <label>Apellidos</label>
+                <label>{t("Apellidos")}</label>
                 <input required value={editForm.lastName} onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })} />
               </div>
             </div>
             <div className="field">
-              <label>Correo electrónico</label>
+              <label>{t("Correo electrónico")}</label>
               <input type="email" required value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
             </div>
             <div className="field">
-              <label>Identificación</label>
+              <label>{t("Identificación")}</label>
               <input value={editForm.documentId} onChange={(e) => setEditForm({ ...editForm, documentId: e.target.value })} />
             </div>
             <div className="form-row">
               <div className="field">
-                <label>Empresa</label>
+                <label>{t("Empresa")}</label>
                 <select value={editForm.company} onChange={(e) => setEditForm({ ...editForm, company: e.target.value })}>
-                  <option value="">Seleccionar…</option>
+                  <option value="">{t("Seleccionar…")}</option>
                   {COMPANIES.map((c) => (
                     <option key={c} value={c}>
                       {c}
@@ -322,9 +324,9 @@ export function AdminUsersPage() {
                 </select>
               </div>
               <div className="field">
-                <label>Área</label>
+                <label>{t("Área")}</label>
                 <select value={editForm.area} onChange={(e) => setEditForm({ ...editForm, area: e.target.value })}>
-                  <option value="">Seleccionar…</option>
+                  <option value="">{t("Seleccionar…")}</option>
                   {AREAS.map((a) => (
                     <option key={a} value={a}>
                       {a}
@@ -335,9 +337,9 @@ export function AdminUsersPage() {
             </div>
             <div className="form-row">
               <div className="field">
-                <label>Cargo</label>
+                <label>{t("Cargo")}</label>
                 <select value={editForm.position} onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}>
-                  <option value="">Seleccionar…</option>
+                  <option value="">{t("Seleccionar…")}</option>
                   {POSITIONS.map((p) => (
                     <option key={p} value={p}>
                       {p}
@@ -346,22 +348,20 @@ export function AdminUsersPage() {
                 </select>
               </div>
               <div className="field">
-                <label>Rol</label>
+                <label>{t("Rol")}</label>
                 <select
                   value={editForm.roleKey}
                   disabled={editingUser.id === currentUser?.id}
                   onChange={(e) => setEditForm({ ...editForm, roleKey: e.target.value as "admin" | "user" })}
                 >
-                  <option value="user">Capacitado / Contratista</option>
-                  <option value="admin">Administrador</option>
+                  <option value="user">{t("Capacitado / Contratista")}</option>
+                  <option value="admin">{t("Administrador")}</option>
                 </select>
-                {editingUser.id === currentUser?.id && (
-                  <div className="field-hint">No puede cambiar su propio rol.</div>
-                )}
+                {editingUser.id === currentUser?.id && <div className="field-hint">{t("No puede cambiar su propio rol.")}</div>}
               </div>
             </div>
             <button className="btn btn-primary" type="submit">
-              Guardar cambios
+              {t("Guardar cambios")}
             </button>
           </form>
         </Modal>

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useLanguage } from "../context/LanguageContext";
 
 const LABELS: Record<string, string> = {
   pending: "Pendiente",
@@ -8,7 +9,8 @@ const LABELS: Record<string, string> = {
 };
 
 export function StatusBadge({ status }: { status: string }) {
-  return <span className={`badge badge-status-${status}`}>{LABELS[status] ?? status}</span>;
+  const { t } = useLanguage();
+  return <span className={`badge badge-status-${status}`}>{t(LABELS[status] ?? status)}</span>;
 }
 
 export function Badge({ children }: { children: ReactNode }) {

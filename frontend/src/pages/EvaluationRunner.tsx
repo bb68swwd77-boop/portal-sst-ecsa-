@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, ApiError } from "../api/client";
+import { useLanguage } from "../context/LanguageContext";
 import type { AttemptSession } from "../types";
 
 interface AnswerState {
@@ -17,6 +18,7 @@ interface SubmitResult {
 
 export function EvaluationRunnerPage() {
   const { courseId, evaluationId } = useParams();
+  const { t } = useLanguage();
   const [session, setSession] = useState<AttemptSession | null>(null);
   const [answers, setAnswers] = useState<Record<string, AnswerState>>({});
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export function EvaluationRunnerPage() {
     api
       .post<{ attempt: AttemptSession }>(`/evaluations/${evaluationId}/start`)
       .then((res) => setSession(res.attempt))
-      .catch((err) => setError(err instanceof ApiError ? err.message : "No fue posible iniciar la evaluación."));
+      .catch((err) => setError(err instanceof ApiError ? t(err.message) : t("No fue posible iniciar la evaluación.")));
   }, [evaluationId]);
 
   function selectSingle(questionId: string, optionId: string) {
@@ -58,30 +60,32 @@ export function EvaluationRunnerPage() {
       const res = await api.post<{ result: SubmitResult }>(`/evaluations/attempts/${session.attemptId}/submit`, payload);
       setResult(res.result);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No fue posible enviar la evaluación.");
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible enviar la evaluación."));
     } finally {
       setSubmitting(false);
     }
   }
 
   if (error && !session) return <div className="alert alert-danger">{error}</div>;
-  if (!session && !result) return <div className="empty-state">Cargando evaluación…</div>;
+  if (!session && !result) return <div className="empty-state">{t("Cargando evaluación…")}</div>;
 
   if (result) {
     return (
       <div className="card" style={{ maxWidth: 520, margin: "0 auto" }}>
         <span className={`badge badge-status-${result.passed ? "completed" : "overdue"}`}>
-          {result.passed ? "APROBADO" : "NO APROBADO"}
+          {result.passed ? t("APROBADO") : t("NO APROBADO")}
         </span>
-        <h2 className="mt-8">Puntaje: {result.score}%</h2>
+        <h2 className="mt-8">
+          {t("Puntaje:")} {result.score}%
+        </h2>
         {result.certificateIssued && (
           <div className="alert alert-success mt-16">
-            ¡Felicidades! Completó todos los requisitos y se emitió su certificado ({result.certificateCode}).
+            {t("¡Felicidades! Completó todos los requisitos y se emitió su certificado")} ({result.certificateCode}).
           </div>
         )}
-        {!result.passed && <p className="text-secondary">Puede reintentar si le quedan intentos disponibles.</p>}
+        {!result.passed && <p className="text-secondary">{t("Puede reintentar si le quedan intentos disponibles.")}</p>}
         <Link to={`/curso/${courseId}`} className="btn btn-primary mt-16">
-          Volver a la capacitación
+          {t("Volver a la capacitación")}
         </Link>
       </div>
     );
@@ -90,13 +94,13 @@ export function EvaluationRunnerPage() {
   return (
     <div>
       <div className="breadcrumbs">
-        <Link to={`/curso/${courseId}`}>{session!.title}</Link> / Evaluación
+        <Link to={`/curso/${courseId}`}>{session!.title}</Link> / {t("Evaluación")}
       </div>
       <h2 className="page-title">{session!.title}</h2>
       {session!.description && <p className="page-subtitle">{session!.description}</p>}
       <p className="text-muted" style={{ fontSize: 12 }}>
-        Nota mínima de aprobación: {session!.passingScore}%
-        {session!.timeLimitMin && ` · Tiempo límite: ${session!.timeLimitMin} min`}
+        {t("Nota mínima de aprobación:")} {session!.passingScore}%
+        {session!.timeLimitMin && ` · ${t("Tiempo límite:")} ${session!.timeLimitMin} min`}
       </p>
 
       {error && <div className="alert alert-danger">{error}</div>}
@@ -111,7 +115,7 @@ export function EvaluationRunnerPage() {
               <input
                 value={answers[q.id]?.shortAnswerText ?? ""}
                 onChange={(e) => setShortAnswer(q.id, e.target.value)}
-                placeholder="Escriba su respuesta"
+                placeholder={t("Escriba su respuesta")}
               />
             </div>
           ) : (
@@ -135,7 +139,7 @@ export function EvaluationRunnerPage() {
       ))}
 
       <button className="btn btn-primary mt-24" onClick={handleSubmit} disabled={submitting}>
-        {submitting ? "Enviando…" : "Enviar respuestas"}
+        {submitting ? t("Enviando…") : t("Enviar respuestas")}
       </button>
     </div>
   );

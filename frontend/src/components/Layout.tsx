@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
+import { LanguageToggle } from "./LanguageToggle";
 import logoEcsa from "../assets/logo-ecsa.png";
 
 const USER_LINKS = [
@@ -21,6 +23,7 @@ const COLLAPSE_STORAGE_KEY = "ecsa-sidebar-collapsed";
 
 export function Layout() {
   const { user, logout, hasPermission } = useAuth();
+  const { t } = useLanguage();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
     try {
@@ -55,8 +58,8 @@ export function Layout() {
         type="button"
         className={`sidebar-collapse-toggle ${collapsed ? "collapsed" : ""}`}
         onClick={() => setCollapsed((v) => !v)}
-        aria-label={collapsed ? "Mostrar menú" : "Ocultar menú"}
-        title={collapsed ? "Mostrar menú" : "Ocultar menú"}
+        aria-label={collapsed ? t("Mostrar menú") : t("Ocultar menú")}
+        title={collapsed ? t("Mostrar menú") : t("Ocultar menú")}
       >
         {collapsed ? "›" : "‹"}
       </button>
@@ -64,7 +67,7 @@ export function Layout() {
       <aside className={`sidebar ${drawerOpen ? "open" : ""} ${collapsed ? "collapsed" : ""}`}>
         <div className="sidebar-brand">
           <img src={logoEcsa} alt="ECSA" className="sidebar-logo" />
-          <p>Capacitaciones de Seguridad y Salud en el Trabajo ECSA</p>
+          <p>{t("Capacitaciones de Seguridad y Salud en el Trabajo ECSA")}</p>
         </div>
         <nav className="sidebar-nav">
           {links.map((l) => (
@@ -75,34 +78,36 @@ export function Layout() {
               className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
               onClick={() => setDrawerOpen(false)}
             >
-              {l.label}
+              {t(l.label)}
             </NavLink>
           ))}
           {isAdmin && (
             <NavLink to="/" className="sidebar-link" style={{ marginTop: 12 }} onClick={() => setDrawerOpen(false)}>
-              ← Ir al portal del capacitado
+              ← {t("Ir al portal del capacitado")}
             </NavLink>
           )}
         </nav>
         <div className="sidebar-footer">
-          <div className="sidebar-user">
+          <LanguageToggle className="mt-8" />
+          <div className="sidebar-user mt-8">
             {user?.firstName} {user?.lastName}
             <br />
             <span className="text-muted">{user?.email}</span>
           </div>
           <button className="btn btn-secondary btn-sm" onClick={handleLogout} style={{ width: "100%" }}>
-            Cerrar sesión
+            {t("Cerrar sesión")}
           </button>
         </div>
       </aside>
 
       <div className={`main-area ${collapsed ? "sidebar-collapsed" : ""}`}>
         <div className="topbar">
-          <button className="btn btn-secondary btn-sm" onClick={() => setDrawerOpen((v) => !v)} aria-label="Abrir menú">
+          <button className="btn btn-secondary btn-sm" onClick={() => setDrawerOpen((v) => !v)} aria-label={t("Abrir menú")}>
             ☰
           </button>
           <img src={logoEcsa} alt="ECSA" className="topbar-logo" />
-          <strong>Capacitación SST</strong>
+          <strong>{t("Capacitación SST")}</strong>
+          <LanguageToggle className="topbar-lang" />
         </div>
         <div className="main-content">
           <Outlet />

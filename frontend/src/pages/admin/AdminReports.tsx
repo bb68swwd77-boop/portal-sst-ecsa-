@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { api, downloadFile } from "../../api/client";
 import { StatusBadge } from "../../components/Badge";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface ReportRow {
   userId: string;
@@ -15,6 +16,7 @@ interface ReportRow {
 }
 
 export function AdminReportsPage() {
+  const { t } = useLanguage();
   const [rows, setRows] = useState<ReportRow[]>([]);
   const [company, setCompany] = useState("");
   const [status, setStatus] = useState("");
@@ -51,26 +53,26 @@ export function AdminReportsPage() {
     <div>
       <div className="flex-between">
         <div>
-          <h2 className="page-title">Reportes</h2>
-          <p className="page-subtitle">Estado de capacitación por usuario y curso.</p>
+          <h2 className="page-title">{t("Reportes")}</h2>
+          <p className="page-subtitle">{t("Estado de capacitación por usuario y curso.")}</p>
         </div>
         <button className="btn btn-secondary" onClick={handleExport}>
-          Exportar CSV
+          {t("Exportar CSV")}
         </button>
       </div>
 
       <form onSubmit={handleSubmit} className="flex gap-8 mt-16" style={{ flexWrap: "wrap" }}>
-        <input placeholder="Buscar usuario" value={search} onChange={(e) => setSearch(e.target.value)} />
-        <input placeholder="Empresa" value={company} onChange={(e) => setCompany(e.target.value)} />
+        <input placeholder={t("Buscar usuario")} value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input placeholder={t("Empresa")} value={company} onChange={(e) => setCompany(e.target.value)} />
         <select value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="">Todos los estados</option>
-          <option value="pending">Pendiente</option>
-          <option value="in_progress">En progreso</option>
-          <option value="completed">Completado</option>
-          <option value="overdue">Vencido</option>
+          <option value="">{t("Todos los estados")}</option>
+          <option value="pending">{t("Pendiente")}</option>
+          <option value="in_progress">{t("En progreso")}</option>
+          <option value="completed">{t("Completado")}</option>
+          <option value="overdue">{t("Vencido")}</option>
         </select>
         <button className="btn btn-secondary" type="submit">
-          Filtrar
+          {t("Filtrar")}
         </button>
       </form>
 
@@ -78,13 +80,13 @@ export function AdminReportsPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Usuario</th>
-              <th>Empresa</th>
-              <th>Capacitación</th>
-              <th>Estado</th>
-              <th>Progreso</th>
-              <th>Mejor puntaje</th>
-              <th>Certificado</th>
+              <th>{t("Usuario")}</th>
+              <th>{t("Empresa")}</th>
+              <th>{t("Capacitación")}</th>
+              <th>{t("Estado")}</th>
+              <th>{t("Progreso")}</th>
+              <th>{t("Mejor puntaje")}</th>
+              <th>{t("Certificado")}</th>
             </tr>
           </thead>
           <tbody>

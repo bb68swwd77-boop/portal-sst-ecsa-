@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../../api/client";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface DashboardData {
   totalUsers: number;
@@ -12,55 +13,56 @@ interface DashboardData {
 }
 
 export function AdminDashboardPage() {
+  const { t } = useLanguage();
   const [data, setData] = useState<DashboardData | null>(null);
 
   useEffect(() => {
     api.get<DashboardData>("/admin/dashboard").then(setData);
   }, []);
 
-  if (!data) return <div className="empty-state">Cargando…</div>;
+  if (!data) return <div className="empty-state">{t("Cargando…")}</div>;
 
   return (
     <div>
-      <h2 className="page-title">Panel administrativo</h2>
-      <p className="page-subtitle">Indicadores generales de capacitación SST.</p>
+      <h2 className="page-title">{t("Panel administrativo")}</h2>
+      <p className="page-subtitle">{t("Indicadores generales de capacitación SST.")}</p>
 
       <div className="stat-grid">
         <div className="stat-card">
           <div className="value">{data.totalUsers}</div>
-          <div className="label">Usuarios registrados</div>
+          <div className="label">{t("Usuarios registrados")}</div>
         </div>
         <div className="stat-card">
           <div className="value">{data.activeUsers}</div>
-          <div className="label">Usuarios activos</div>
+          <div className="label">{t("Usuarios activos")}</div>
         </div>
         <div className="stat-card">
           <div className="value">{data.activeCourses}</div>
-          <div className="label">Capacitaciones activas</div>
+          <div className="label">{t("Capacitaciones activas")}</div>
         </div>
         <div className="stat-card">
           <div className="value">{data.totalAttempts}</div>
-          <div className="label">Evaluaciones realizadas</div>
+          <div className="label">{t("Evaluaciones realizadas")}</div>
         </div>
         <div className="stat-card">
           <div className="value">{data.approvalRate}%</div>
-          <div className="label">Tasa de aprobación</div>
+          <div className="label">{t("Tasa de aprobación")}</div>
         </div>
         <div className="stat-card">
           <div className="value">{data.certificatesIssued}</div>
-          <div className="label">Certificados emitidos</div>
+          <div className="label">{t("Certificados emitidos")}</div>
         </div>
       </div>
 
-      <h3>Aprobación por capacitación</h3>
+      <h3>{t("Aprobación por capacitación")}</h3>
       <div className="table-wrap">
         <table className="data-table">
           <thead>
             <tr>
-              <th>Capacitación</th>
-              <th>Intentos</th>
-              <th>% Aprobación</th>
-              <th>Certificados emitidos</th>
+              <th>{t("Capacitación")}</th>
+              <th>{t("Intentos")}</th>
+              <th>{t("% Aprobación")}</th>
+              <th>{t("Certificados emitidos")}</th>
             </tr>
           </thead>
           <tbody>
