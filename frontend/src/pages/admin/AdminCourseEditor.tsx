@@ -417,8 +417,17 @@ function LessonFormModal({ moduleId, nextOrder, onClose, onSaved }: { moduleId: 
 
         {needsUrl && (
           <div className="field">
-            <label>{t("URL externa")}</label>
-            <input value={form.externalUrl} onChange={(e) => setForm({ ...form, externalUrl: e.target.value })} placeholder="https://…" />
+            <label>{form.contentType === "VIDEO" ? t("URL del video de YouTube") : t("URL externa")}</label>
+            <input
+              value={form.externalUrl}
+              onChange={(e) => setForm({ ...form, externalUrl: e.target.value })}
+              placeholder={form.contentType === "VIDEO" ? "https://youtu.be/…" : "https://…"}
+            />
+            {form.contentType === "VIDEO" && (
+              <div className="field-hint">
+                {t("Acepta un video de YouTube \"no listado\" — el sistema detecta automáticamente cuándo el capacitado lo termina de ver.")}
+              </div>
+            )}
           </div>
         )}
 

@@ -46,6 +46,8 @@ export interface LessonDetail {
   bodyHtml: string | null;
   externalUrl: string | null;
   file: LessonFile | null;
+  // Solo aplica a contentType "VIDEO" — null para el resto de tipos.
+  percentWatched: number | null;
   normReference: string | null;
   normCode: string | null;
   normArticle: string | null;

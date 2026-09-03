@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { api, apiUrl, ApiError } from "../api/client";
 import { useToast } from "../context/ToastContext";
 import { useLanguage } from "../context/LanguageContext";
+import { extractYouTubeId, YouTubePlayer } from "../components/YouTubePlayer";
 import type { CourseDetail } from "../types";
 
 export function CourseViewPage() {
@@ -34,6 +35,33 @@ export function CourseViewPage() {
     await api.post(`/courses/${courseId}/lessons/${lessonId}/complete`);
     notify(t("Lección marcada como completada."), "success");
     await load();
+  }
+
+  // Heartbeat de video (cada ~10s y al terminar) — actualiza el estado local
+  // sin recargar todo el curso, para no interrumpir la reproducción. El
+  // servidor decide cuándo queda "completado" (nunca el cliente).
+  async function handleVideoProgress(lessonId: string, percent: number) {
+    if (!courseId) return;
+    try {
+      const res = await api.post<{ percentWatched: number; completed: boolean }>(
+        `/courses/${courseId}/lessons/${lessonId}/video-progress`,
+        { percentWatched: percent }
+      );
+      setCourse((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          modules: prev.modules.map((m) => ({
+            ...m,
+            lessons: m.lessons.map((l) =>
+              l.id === lessonId ? { ...l, percentWatched: res.percentWatched, completed: res.completed } : l
+            ),
+          })),
+        };
+      });
+    } catch {
+      // Un heartbeat fallido no debe interrumpir la reproducción del video.
+    }
   }
 
   if (error) return <div className="alert alert-danger">{error}</div>;
@@ -136,17 +164,30 @@ export function CourseViewPage() {
                 </p>
               )}
 
-              {activeLesson.externalUrl && (
-                <p>
-                  <a href={activeLesson.externalUrl} target="_blank" rel="noopener noreferrer">
-                    {t("Abrir recurso externo")} ↗
-                  </a>
-                </p>
+              {activeLesson.contentType === "VIDEO" && activeLesson.externalUrl && extractYouTubeId(activeLesson.externalUrl) ? (
+                <YouTubePlayer
+                  key={activeLesson.id}
+                  videoId={extractYouTubeId(activeLesson.externalUrl)!}
+                  onProgress={(percent) => handleVideoProgress(activeLesson.id, percent)}
+                />
+              ) : (
+                activeLesson.externalUrl && (
+                  <p>
+                    <a href={activeLesson.externalUrl} target="_blank" rel="noopener noreferrer">
+                      {t("Abrir recurso externo")} ↗
+                    </a>
+                  </p>
+                )
               )}
 
               <div className="mt-24">
                 {activeLesson.completed ? (
                   <span className="badge badge-status-completed">✓ {t("Lección completada")}</span>
+                ) : activeLesson.contentType === "VIDEO" ? (
+                  <p className="text-muted" style={{ fontSize: 12 }}>
+                    {activeLesson.percentWatched ? `${activeLesson.percentWatched}% ${t("visto")} · ` : ""}
+                    {t("Se marca como completada automáticamente al terminar de ver el video.")}
+                  </p>
                 ) : (
                   <button className="btn btn-primary" onClick={() => completeLesson(activeLesson.id)}>
                     {t("Marcar como completada")}

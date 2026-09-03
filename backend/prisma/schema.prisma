@@ -188,12 +188,16 @@ model Lesson {
 }
 
 model LessonProgress {
-  id          String   @id @default(cuid())
-  userId      String
-  lessonId    String
-  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  completedAt DateTime?
-  updatedAt   DateTime @updatedAt
+  id             String    @id @default(cuid())
+  userId         String
+  lessonId       String
+  lesson         Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  startedAt      DateTime? // primera vez que se registró avance (ej. primer heartbeat de video)
+  completedAt    DateTime?
+  // Solo tiene sentido para Lesson.contentType = VIDEO — nulo para el resto
+  // de tipos de contenido, que se marcan completos con un clic explícito.
+  percentWatched Int?
+  updatedAt      DateTime  @updatedAt
 
   @@unique([userId, lessonId])
   @@index([userId])

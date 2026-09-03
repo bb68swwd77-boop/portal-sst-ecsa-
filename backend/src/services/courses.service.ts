@@ -137,6 +137,7 @@ export async function getCourseDetailForUser(userId: string, courseId: string) {
     where: { userId, lesson: { module: { courseId } } },
   });
   const completedLessonIds = new Set(progressRows.filter((p) => p.completedAt).map((p) => p.lessonId));
+  const progressByLessonId = new Map(progressRows.map((p) => [p.lessonId, p]));
 
   const attempts = await prisma.evaluationAttempt.findMany({
     where: { userId, evaluation: { module: { courseId } } },
@@ -160,6 +161,8 @@ export async function getCourseDetailForUser(userId: string, courseId: string) {
       normSource: l.normSource,
       normReviewedAt: l.normReviewedAt,
       completed: completedLessonIds.has(l.id),
+      // Solo relevante para contentType VIDEO — null para el resto de tipos.
+      percentWatched: progressByLessonId.get(l.id)?.percentWatched ?? null,
     }));
     const moduleAttempts = m.evaluation ? attempts.filter((a) => a.evaluationId === m.evaluation!.id) : [];
     const bestAttempt = moduleAttempts.find((a) => a.status === "SUBMITTED");
@@ -203,4 +206,42 @@ export async function markLessonComplete(userId: string, lessonId: string) {
     update: { completedAt: new Date() },
     create: { userId, lessonId, completedAt: new Date() },
   });
+}
+
+// Umbral para considerar un video "visto" — tolera que no se reproduzcan
+// los últimos segundos exactos (ej. créditos finales).
+const VIDEO_COMPLETION_THRESHOLD = 95;
+
+/**
+ * Registra avance de reproducción de un video (heartbeat periódico del
+ * reproductor de YouTube, o el evento ENDED). Reutiliza LessonProgress —
+ * la misma tabla que usan PDF/texto — en vez de una tabla aparte.
+ *
+ * Nunca confía en el porcentaje del cliente para "completar" sin más: se
+ * clampa a 0-100 y se guarda como el máximo histórico visto (monótono, no
+ * retrocede si el usuario rebobina), como control básico anti-manipulación.
+ * El único lugar donde completedAt se escribe para un video es aquí —
+ * nunca hay un endpoint que acepte completed=true directo desde el cliente.
+ */
+export async function recordVideoProgress(userId: string, lessonId: string, rawPercent: number) {
+  const lesson = await prisma.lesson.findUnique({ where: { id: lessonId } });
+  if (!lesson) throw new HttpError(404, "Lección no encontrada.");
+  if (lesson.contentType !== "VIDEO") {
+    throw new HttpError(400, "Esta lección no es de tipo video.");
+  }
+
+  const clamped = Math.max(0, Math.min(100, Math.round(rawPercent)));
+  const existing = await prisma.lessonProgress.findUnique({ where: { userId_lessonId: { userId, lessonId } } });
+
+  const bestPercent = Math.max(existing?.percentWatched ?? 0, clamped);
+  const shouldComplete = bestPercent >= VIDEO_COMPLETION_THRESHOLD;
+  const completedAt = existing?.completedAt ?? (shouldComplete ? new Date() : null);
+
+  const progress = await prisma.lessonProgress.upsert({
+    where: { userId_lessonId: { userId, lessonId } },
+    update: { percentWatched: bestPercent, completedAt },
+    create: { userId, lessonId, startedAt: new Date(), percentWatched: bestPercent, completedAt },
+  });
+
+  return { percentWatched: progress.percentWatched, completed: Boolean(progress.completedAt) };
 }

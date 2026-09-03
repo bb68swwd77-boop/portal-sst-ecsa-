@@ -310,4 +310,11 @@ export const translations: Record<string, string> = {
   "Subiendo…": "上传中…",
   "URL externa": "外部链接地址",
   Área: "部门",
+
+  // --- Video (seguimiento de finalización) ------------------------------
+  visto: "已观看",
+  "Se marca como completada automáticamente al terminar de ver el video.": "观看完成后将自动标记为已完成。",
+  "URL del video de YouTube": "YouTube 视频链接",
+  'Acepta un video de YouTube "no listado" — el sistema detecta automáticamente cuándo el capacitado lo termina de ver.':
+    "支持“未列出”的YouTube视频——系统会自动检测学员是否已看完。",
 };
