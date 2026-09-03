@@ -23,10 +23,12 @@ const LAYOUT = {
   fecha: { xFrac: 0.245, yFromTop: 0.705, size: 11 },
   duracion: { xFrac: 0.495, yFromTop: 0.705, size: 11 },
   modalidad: { xFrac: 0.755, yFromTop: 0.705, size: 11 },
-  // Firma derecha: una sola línea (nombre — cargo) sobre el renglón en
-  // blanco, ARRIBA de las etiquetas fijas "NOMBRE DEL REPRESENTANTE"/"CARGO"
-  // (que ya están impresas en la plantilla, igual que a la izquierda).
-  repLine: { xFrac: 0.735, yFromTop: 0.795, size: 11 },
+  // Firma derecha: la plantilla ya no trae "NOMBRE DEL REPRESENTANTE"/"CARGO"
+  // impresos — se dibujan dos líneas (nombre y, debajo, cargo) bajo el
+  // renglón en blanco, en el mismo ritmo vertical que el texto fijo del lado
+  // izquierdo ("Departamento de Seguridad..." / "Ecuacorriente S.A.").
+  repName: { xFrac: 0.735, yFromTop: 0.85, size: 11 },
+  repRole: { xFrac: 0.735, yFromTop: 0.88, size: 9 },
   // Código de verificación: esquina inferior derecha, lejos del eslogan
   // centrado para no superponerse.
   code: { xFracRight: 0.93, yFromTop: 0.965, size: 7 },
@@ -80,8 +82,14 @@ export async function renderCertificatePdf(data: CertificatePdfData): Promise<Ui
   const courseSize = fitFontSize(data.courseTitle, fontBold, LAYOUT.courseTitle.size, courseMaxWidth);
   drawCentered(page, data.courseTitle, centerX, yFromTopFrac(height, LAYOUT.courseTitle.yFromTop), courseSize, fontBold, GREEN);
 
-  // Fecha / Duración / Modalidad
-  const fechaStr = data.issuedAt.toLocaleDateString("es-EC", { year: "numeric", month: "long", day: "numeric" });
+  // Fecha / Duración / Modalidad — DD/MM/AAAA a propósito: no varía de
+  // ancho por mes (evita que un mes largo como "septiembre" se salga de la
+  // línea disponible).
+  const fechaStr = [
+    String(data.issuedAt.getDate()).padStart(2, "0"),
+    String(data.issuedAt.getMonth() + 1).padStart(2, "0"),
+    data.issuedAt.getFullYear(),
+  ].join("/");
   page.drawText(fechaStr, {
     x: width * LAYOUT.fecha.xFrac,
     y: yFromTopFrac(height, LAYOUT.fecha.yFromTop),
@@ -104,18 +112,27 @@ export async function renderCertificatePdf(data: CertificatePdfData): Promise<Ui
     color: INK,
   });
 
-  // Firma derecha: nombre y cargo del propio titular en una sola línea,
-  // sobre el renglón en blanco (según definición del cliente).
-  const repLineText = data.holderPosition ? `${data.holderName} — ${data.holderPosition}` : data.holderName;
+  // Firma derecha: nombre del titular y, debajo, su cargo (según definición del cliente).
   drawCentered(
     page,
-    repLineText,
-    width * LAYOUT.repLine.xFrac,
-    yFromTopFrac(height, LAYOUT.repLine.yFromTop),
-    LAYOUT.repLine.size,
+    data.holderName,
+    width * LAYOUT.repName.xFrac,
+    yFromTopFrac(height, LAYOUT.repName.yFromTop),
+    LAYOUT.repName.size,
     fontBold,
     INK
   );
+  if (data.holderPosition) {
+    drawCentered(
+      page,
+      data.holderPosition,
+      width * LAYOUT.repRole.xFrac,
+      yFromTopFrac(height, LAYOUT.repRole.yFromTop),
+      LAYOUT.repRole.size,
+      fontRegular,
+      INK
+    );
+  }
 
   // Código de verificación, discreto en la esquina — permite validar en /verificar-certificado
   const codeText = `Código de verificación: ${data.code}`;
