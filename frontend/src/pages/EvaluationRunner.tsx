@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, ApiError } from "../api/client";
+import { api, ApiError, downloadFile } from "../api/client";
 import type { AttemptSession } from "../types";
 
 interface AnswerState {
@@ -13,6 +13,7 @@ interface SubmitResult {
   passed: boolean;
   certificateIssued: boolean;
   certificateCode?: string;
+  certificateId?: string;
 }
 
 export function EvaluationRunnerPage() {
@@ -77,6 +78,17 @@ export function EvaluationRunnerPage() {
         {result.certificateIssued && (
           <div className="alert alert-success mt-16">
             ¡Felicidades! Completó todos los requisitos y se emitió su certificado ({result.certificateCode}).
+            {result.certificateId && (
+              <div className="mt-8">
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => downloadFile(`/certificates/mine/${result.certificateId}/pdf`, `certificado-${result.certificateCode}.pdf`)}
+                >
+                  📄 Descargar certificado (PDF)
+                </button>
+              </div>
+            )}
           </div>
         )}
         {!result.passed && <p className="text-secondary">Puede reintentar si le quedan intentos disponibles.</p>}

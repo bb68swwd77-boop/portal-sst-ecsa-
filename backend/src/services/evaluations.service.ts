@@ -182,6 +182,7 @@ export async function submitAttempt(userId: string, attemptId: string, answers: 
       : undefined,
     certificateIssued: Boolean(certificate),
     certificateCode: certificate?.code,
+    certificateId: certificate?.id,
   };
 }
 

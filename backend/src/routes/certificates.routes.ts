@@ -6,6 +6,7 @@ import { z } from "zod";
 import { validateQuery } from "../middleware/validate";
 import { getCertificateForUser, getMyCertificates, verifyCertificateByCode } from "../services/certificates.service";
 import { audit } from "../lib/audit";
+import { renderCertificatePdf } from "../lib/certificatePdf";
 
 export const certificatesRouter = Router();
 
@@ -26,6 +27,28 @@ certificatesRouter.get(
   asyncHandler(async (req, res) => {
     const cert = await getCertificateForUser(req.currentUser!.id, req.params.id);
     res.json({ certificate: cert });
+  })
+);
+
+certificatesRouter.get(
+  "/mine/:id/pdf",
+  requireAuth,
+  requirePermission("certificates:view"),
+  asyncHandler(async (req, res) => {
+    const cert = await getCertificateForUser(req.currentUser!.id, req.params.id);
+    const pdfBytes = await renderCertificatePdf({
+      holderName: `${cert.user.firstName} ${cert.user.lastName}`,
+      holderPosition: cert.user.position,
+      courseTitle: cert.course.title,
+      issuedAt: cert.issuedAt,
+      durationMin: cert.durationMin,
+      modality: "Virtual",
+      code: cert.code,
+    });
+    await audit({ userId: req.currentUser!.id, action: "certificate.download_pdf", resource: `Certificate:${cert.id}`, result: "success", req });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="certificado-${cert.code}.pdf"`);
+    res.send(Buffer.from(pdfBytes));
   })
 );
 

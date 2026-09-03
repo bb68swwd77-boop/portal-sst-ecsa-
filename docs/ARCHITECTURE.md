@@ -61,6 +61,7 @@ POST   /api/evaluations/attempts/:attemptId/submit
 
 GET    /api/certificates/mine
 GET    /api/certificates/mine/:id
+GET    /api/certificates/mine/:id/pdf         (certificado personalizado en PDF)
 GET    /api/certificates/verify?code=...      (público)
 
 GET    /api/admin/dashboard
