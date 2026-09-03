@@ -15,7 +15,6 @@ const ADMIN_LINKS = [
   { to: "/admin/capacitaciones", label: "Capacitaciones" },
   { to: "/admin/reportes", label: "Reportes" },
   { to: "/admin/auditoria", label: "Auditoría" },
-  { to: "/admin/firmantes", label: "Firmantes" },
 ];
 
 const COLLAPSE_STORAGE_KEY = "ecsa-sidebar-collapsed";

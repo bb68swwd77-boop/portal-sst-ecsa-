@@ -1,7 +1,6 @@
 import { prisma } from "../lib/prisma";
 import { HttpError } from "../middleware/errorHandler";
 import { generateCertificateCode } from "../lib/hash";
-import { computeCertificateHash } from "../lib/certificateHash";
 import { audit } from "../lib/audit";
 import type { Request } from "express";
 
@@ -183,7 +182,6 @@ export async function submitAttempt(userId: string, attemptId: string, answers: 
       : undefined,
     certificateIssued: Boolean(certificate),
     certificateCode: certificate?.code,
-    certificateId: certificate?.id,
   };
 }
 
@@ -215,23 +213,6 @@ async function maybeIssueCertificate(userId: string, courseId: string, req?: Req
   }
   const avgScore = Math.round([...bestByEvaluation.values()].reduce((a, b) => a + b, 0) / bestByEvaluation.size);
 
-  // Firma institucional vigente — nunca los datos del participante. Si no
-  // hay ningún firmante activo configurado, el certificado se emite igual
-  // (firmante null) en vez de bloquear la emisión; el PDF cae a un texto
-  // genérico en ese caso (ver certificatePdf.ts).
-  const activeSignatory = await prisma.signatory.findFirst({ where: { isActive: true }, orderBy: { createdAt: "asc" } });
-
-  const modality = "Virtual";
-  const issuedAt = new Date();
-  const contentHash = computeCertificateHash({
-    userId,
-    courseId,
-    issuedAt,
-    durationMin: course.durationMin,
-    modality,
-    score: avgScore,
-  });
-
   const certificate = await prisma.certificate.create({
     data: {
       code: generateCertificateCode(),
@@ -239,10 +220,6 @@ async function maybeIssueCertificate(userId: string, courseId: string, req?: Req
       courseId,
       score: avgScore,
       durationMin: course.durationMin,
-      modality,
-      issuedAt,
-      signatoryId: activeSignatory?.id,
-      contentHash,
     },
   });
 

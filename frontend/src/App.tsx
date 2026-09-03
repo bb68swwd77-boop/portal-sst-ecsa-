@@ -20,7 +20,6 @@ import { AdminCoursesPage } from "./pages/admin/AdminCourses";
 import { AdminCourseEditorPage } from "./pages/admin/AdminCourseEditor";
 import { AdminReportsPage } from "./pages/admin/AdminReports";
 import { AdminAuditPage } from "./pages/admin/AdminAudit";
-import { AdminSignatoriesPage } from "./pages/admin/AdminSignatories";
 
 export default function App() {
   return (
@@ -91,14 +90,6 @@ export default function App() {
                 element={
                   <RequirePermission permission="audit:view">
                     <AdminAuditPage />
-                  </RequirePermission>
-                }
-              />
-              <Route
-                path="/admin/firmantes"
-                element={
-                  <RequirePermission permission="signatories:manage">
-                    <AdminSignatoriesPage />
                   </RequirePermission>
                 }
               />

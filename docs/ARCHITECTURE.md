@@ -61,7 +61,6 @@ POST   /api/evaluations/attempts/:attemptId/submit
 
 GET    /api/certificates/mine
 GET    /api/certificates/mine/:id
-GET    /api/certificates/mine/:id/pdf         (certificado personalizado en PDF)
 GET    /api/certificates/verify?code=...      (público)
 
 GET    /api/admin/dashboard
@@ -87,11 +86,6 @@ GET    /api/admin/audit
 
 POST   /api/admin/files/upload   (multipart, PDF, máx. 10MB)
 GET    /api/files/:id            (descarga — valida acceso al curso)
-
-GET    /api/admin/signatories
-POST   /api/admin/signatories
-PUT    /api/admin/signatories/:id
-GET    /api/certificates/mine/:id/pdf   (certificado en PDF con QR de verificación)
 ```
 
 Ningún endpoint `/api/admin/*` es alcanzable sin el permiso correspondiente
@@ -123,20 +117,6 @@ Ningún endpoint `/api/admin/*` es alcanzable sin el permiso correspondiente
 - **Evaluaciones**: `AnswerOption.isCorrect` se omite explícitamente en el
   payload de inicio de intento; la calificación se calcula server-side en
   `evaluations.service.ts`.
-- **Certificados — integridad y firma**: el código, la fecha de emisión y el
-  hash (`contentHash`, SHA-256 de participante+curso+fecha+duración+
-  modalidad+calificación) se generan siempre en `evaluations.service.ts`
-  (servidor), nunca a partir de datos enviados por el cliente. `GET
-  /certificates/verify` recalcula el hash contra los valores actuales en BD
-  y expone `integrityValid` — si alguien edita el registro directamente en
-  la base de datos, la próxima verificación lo delata. La firma que aparece
-  en el PDF/verificación viene siempre de `Signatory` (firmante institucional
-  activo al momento de emitir), nunca del usuario que recibe el certificado
-  — ver `backend/prisma/schema.prisma` y `routes/admin/signatories.routes.ts`.
-  No hay equivalente a "RLS" porque no aplica: el cliente nunca tiene acceso
-  directo a la base de datos (a diferencia de Supabase), solo a la API REST,
-  y la tabla `Certificate` únicamente se escribe desde código de servidor
-  (`maybeIssueCertificate`), nunca desde un endpoint que el cliente controle.
 
 ## 6. Escalabilidad futura (no implementado en el MVP, arquitectura lo permite)
 

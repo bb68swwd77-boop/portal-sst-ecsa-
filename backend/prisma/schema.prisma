@@ -355,43 +355,12 @@ model Certificate {
   courseId      String
   course        Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   score         Int
-  issuedAt      DateTime @default(now()) // generado por el servidor; nunca editable desde el cliente
+  issuedAt      DateTime @default(now())
   durationMin   Int
-  modality      String   @default("Virtual")
-  // Firmante institucional vigente AL MOMENTO DE EMITIR — se copia el id acá
-  // (no se recalcula si luego cambia el firmante activo) para que el
-  // certificado histórico siga mostrando/verificando contra quien realmente
-  // firmó en su momento.
-  signatoryId   String?
-  signatory     Signatory? @relation(fields: [signatoryId], references: [id])
-  // SHA-256 de una concatenación determinística de los campos anteriores,
-  // calculado en el servidor al emitir. Permite detectar en /verificar si el
-  // registro fue alterado después de la emisión (ver lib/certificateHash.ts).
-  // Opcional: los certificados emitidos antes de este campo no tienen hash
-  // que recalcular, así que /verify reporta integridad "desconocida" para
-  // esos en vez de un falso positivo de alteración.
-  contentHash   String?
   revokedAt     DateTime?
 
   @@index([userId])
   @@index([courseId])
-}
-
-// Firma institucional que aparece en el certificado — deliberadamente
-// independiente del participante que lo recibe (nunca se toma del usuario
-// certificado). Se permite más de un registro para poder tener distintos
-// firmantes en el futuro (por curso, por instructor, etc.); "isActive"
-// marca cuál se usa por defecto al emitir un certificado nuevo.
-model Signatory {
-  id                String   @id @default(cuid())
-  name              String
-  position          String
-  signatureImageUrl String?
-  isActive          Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  certificates      Certificate[]
 }
 
 // ---------------------------------------------------------------------------
