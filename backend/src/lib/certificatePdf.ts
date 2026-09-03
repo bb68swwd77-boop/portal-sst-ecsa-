@@ -17,12 +17,19 @@ const GREEN = rgb(0.05, 0.35, 0.18);
 const LAYOUT = {
   holderName: { yFromTop: 0.465, size: 22 },
   courseTitle: { yFromTop: 0.605, size: 15, maxWidthFrac: 0.62 },
-  fecha: { xFrac: 0.175, yFromTop: 0.715, size: 11 },
-  duracion: { xFrac: 0.435, yFromTop: 0.715, size: 11 },
-  modalidad: { xFrac: 0.695, yFromTop: 0.715, size: 11 },
-  repName: { xFrac: 0.735, yFromTop: 0.825, size: 11, centered: true },
-  repRole: { xFrac: 0.735, yFromTop: 0.855, size: 9, centered: true },
-  code: { yFromTop: 0.975, size: 8 },
+  // Fecha/Duración/Modalidad van EN LA MISMA fila que su etiqueta (ej.
+  // "FECHA: ____"), no debajo — el x debe caer después del texto de la
+  // etiqueta, sobre la línea en blanco que sigue.
+  fecha: { xFrac: 0.245, yFromTop: 0.705, size: 11 },
+  duracion: { xFrac: 0.495, yFromTop: 0.705, size: 11 },
+  modalidad: { xFrac: 0.755, yFromTop: 0.705, size: 11 },
+  // Firma derecha: una sola línea (nombre — cargo) sobre el renglón en
+  // blanco, ARRIBA de las etiquetas fijas "NOMBRE DEL REPRESENTANTE"/"CARGO"
+  // (que ya están impresas en la plantilla, igual que a la izquierda).
+  repLine: { xFrac: 0.735, yFromTop: 0.795, size: 11 },
+  // Código de verificación: esquina inferior derecha, lejos del eslogan
+  // centrado para no superponerse.
+  code: { xFracRight: 0.93, yFromTop: 0.965, size: 7 },
 };
 
 function yFromTopFrac(pageHeight: number, frac: number) {
@@ -97,38 +104,30 @@ export async function renderCertificatePdf(data: CertificatePdfData): Promise<Ui
     color: INK,
   });
 
-  // Firma derecha: nombre y cargo del propio titular (según definición del cliente)
+  // Firma derecha: nombre y cargo del propio titular en una sola línea,
+  // sobre el renglón en blanco (según definición del cliente).
+  const repLineText = data.holderPosition ? `${data.holderName} — ${data.holderPosition}` : data.holderName;
   drawCentered(
     page,
-    data.holderName,
-    width * LAYOUT.repName.xFrac,
-    yFromTopFrac(height, LAYOUT.repName.yFromTop),
-    LAYOUT.repName.size,
+    repLineText,
+    width * LAYOUT.repLine.xFrac,
+    yFromTopFrac(height, LAYOUT.repLine.yFromTop),
+    LAYOUT.repLine.size,
     fontBold,
     INK
   );
-  if (data.holderPosition) {
-    drawCentered(
-      page,
-      data.holderPosition,
-      width * LAYOUT.repRole.xFrac,
-      yFromTopFrac(height, LAYOUT.repRole.yFromTop),
-      LAYOUT.repRole.size,
-      fontRegular,
-      INK
-    );
-  }
 
-  // Código de verificación, discreto en el pie — permite validar en /verificar-certificado
-  drawCentered(
-    page,
-    `Código de verificación: ${data.code}`,
-    centerX,
-    yFromTopFrac(height, LAYOUT.code.yFromTop),
-    LAYOUT.code.size,
-    fontRegular,
-    rgb(0.5, 0.5, 0.5)
-  );
+  // Código de verificación, discreto en la esquina — permite validar en /verificar-certificado
+  const codeText = `Código de verificación: ${data.code}`;
+  const codeSize = LAYOUT.code.size;
+  const codeWidth = fontRegular.widthOfTextAtSize(codeText, codeSize);
+  page.drawText(codeText, {
+    x: width * LAYOUT.code.xFracRight - codeWidth,
+    y: yFromTopFrac(height, LAYOUT.code.yFromTop),
+    size: codeSize,
+    font: fontRegular,
+    color: rgb(0.55, 0.55, 0.55),
+  });
 
   return pdfDoc.save();
 }
