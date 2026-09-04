@@ -15,6 +15,7 @@ export const translations: Record<string, string> = {
   Reportes: "报表",
   Auditoría: "审计日志",
   "Capacitaciones de Seguridad y Salud en el Trabajo ECSA": "ECSA 职业健康与安全培训",
+  "Seguridad y Salud Ocupacional": "职业健康与安全",
   "Ir al portal del capacitado": "前往学员门户",
   "Cerrar sesión": "退出登录",
   "Mostrar menú": "显示菜单",

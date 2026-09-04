@@ -35,7 +35,10 @@ export function LoginPage() {
   return (
     <AuthLayout>
       <div className="auth-card">
-        <div className="auth-logo">
+        <Link to="/" className="btn-link">
+          ← {t("Volver al inicio")}
+        </Link>
+        <div className="auth-logo mt-8">
           <div className="mark">ECSA · Proyecto Mirador</div>
           <h2>{t("Portal de Capacitación SST")}</h2>
         </div>
