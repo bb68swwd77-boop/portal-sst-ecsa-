@@ -18,6 +18,7 @@ export const translations: Record<string, string> = {
   "Seguridad y Salud Ocupacional": "职业健康与安全",
   "Ir al portal del capacitado": "前往学员门户",
   "Cerrar sesión": "退出登录",
+  "Sesión cerrada por inactividad.": "由于长时间无操作，登录已自动退出。",
   "Mostrar menú": "显示菜单",
   "Ocultar menú": "隐藏菜单",
   "Abrir menú": "打开菜单",

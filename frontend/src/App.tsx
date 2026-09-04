@@ -4,6 +4,7 @@ import { ToastProvider } from "./context/ToastContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { Layout } from "./components/Layout";
 import { RequireAuth, RequirePermission } from "./components/RouteGuards";
+import { IdleTimeoutWatcher } from "./components/IdleTimeoutWatcher";
 
 import { WelcomePage } from "./pages/Welcome";
 import { VisitorInductionPage } from "./pages/VisitorInduction";
@@ -30,6 +31,7 @@ export default function App() {
       <LanguageProvider>
       <ToastProvider>
         <AuthProvider>
+          <IdleTimeoutWatcher />
           <Routes>
             <Route path="/" element={<WelcomePage />} />
             <Route path="/induccion-visitantes" element={<VisitorInductionPage />} />
