@@ -15,7 +15,7 @@ export function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
 
   if (user) {
-    navigate("/", { replace: true });
+    navigate("/portal", { replace: true });
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -24,7 +24,7 @@ export function LoginPage() {
     setSubmitting(true);
     try {
       await login(email, password);
-      navigate("/", { replace: true });
+      navigate("/portal", { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? t(err.message) : t("No fue posible iniciar sesión."));
     } finally {

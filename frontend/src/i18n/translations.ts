@@ -23,6 +23,15 @@ export const translations: Record<string, string> = {
   "Capacitación SST": "职业健康与安全培训",
   "Módulos, evaluaciones y certificados verificables en un solo portal.": "模块、考核和可验证证书，尽在一个门户网站。",
 
+  // --- Auth: bienvenida / inducción de visitantes ----------------------
+  "Seleccione una opción para continuar.": "请选择一个选项以继续。",
+  "Portal de Capacitaciones": "培训门户",
+  "Inducción de Visitantes": "访客入场指导",
+  "Próximamente": "即将推出",
+  "Estamos preparando el formulario de inducción para visitantes. Vuelva pronto.":
+    "访客入场指导表单正在准备中，请稍后再来查看。",
+  "Volver al inicio": "返回首页",
+
   // --- Auth: login / recuperar / restablecer / verificar --------------
   "No fue posible iniciar sesión.": "无法登录。",
   "Portal de Capacitación SST": "职业健康安全培训门户",

@@ -5,6 +5,8 @@ import { LanguageProvider } from "./context/LanguageContext";
 import { Layout } from "./components/Layout";
 import { RequireAuth, RequirePermission } from "./components/RouteGuards";
 
+import { WelcomePage } from "./pages/Welcome";
+import { VisitorInductionPage } from "./pages/VisitorInduction";
 import { LoginPage } from "./pages/Login";
 import { ForgotPasswordPage } from "./pages/ForgotPassword";
 import { ResetPasswordPage } from "./pages/ResetPassword";
@@ -29,6 +31,8 @@ export default function App() {
       <ToastProvider>
         <AuthProvider>
           <Routes>
+            <Route path="/" element={<WelcomePage />} />
+            <Route path="/induccion-visitantes" element={<VisitorInductionPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/recuperar-password" element={<ForgotPasswordPage />} />
             <Route path="/restablecer-password" element={<ResetPasswordPage />} />
@@ -41,7 +45,7 @@ export default function App() {
                 </RequireAuth>
               }
             >
-              <Route path="/" element={<DashboardPage />} />
+              <Route path="/portal" element={<DashboardPage />} />
               <Route path="/curso/:courseId" element={<CourseViewPage />} />
               <Route path="/curso/:courseId/evaluacion/:evaluationId" element={<EvaluationRunnerPage />} />
               <Route path="/certificados" element={<CertificatesPage />} />

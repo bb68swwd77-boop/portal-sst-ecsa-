@@ -72,7 +72,7 @@ export function CourseViewPage() {
   return (
     <div>
       <div className="breadcrumbs">
-        <Link to="/">{t("Mi capacitación")}</Link> / {course.title}
+        <Link to="/portal">{t("Mi capacitación")}</Link> / {course.title}
       </div>
       <h2 className="page-title">{course.title}</h2>
       <p className="page-subtitle">{course.description}</p>

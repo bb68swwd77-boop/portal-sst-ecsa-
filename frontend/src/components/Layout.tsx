@@ -6,7 +6,7 @@ import { LanguageToggle } from "./LanguageToggle";
 import logoEcsa from "../assets/logo-ecsa.png";
 
 const USER_LINKS = [
-  { to: "/", label: "Mi capacitación", end: true },
+  { to: "/portal", label: "Mi capacitación", end: true },
   { to: "/certificados", label: "Mis certificados" },
   { to: "/perfil", label: "Mi perfil" },
 ];
@@ -82,7 +82,7 @@ export function Layout() {
             </NavLink>
           ))}
           {isAdmin && (
-            <NavLink to="/" className="sidebar-link" style={{ marginTop: 12 }} onClick={() => setDrawerOpen(false)}>
+            <NavLink to="/portal" className="sidebar-link" style={{ marginTop: 12 }} onClick={() => setDrawerOpen(false)}>
               ← {t("Ir al portal del capacitado")}
             </NavLink>
           )}
