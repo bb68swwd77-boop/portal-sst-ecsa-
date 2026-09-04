@@ -76,6 +76,8 @@ export function AdminCourseEditorPage() {
   const [lessonModal, setLessonModal] = useState<{ moduleId: string } | null>(null);
   const [evalModal, setEvalModal] = useState<{ moduleId: string } | null>(null);
   const [questionModal, setQuestionModal] = useState<{ evaluationId: string } | null>(null);
+  const [editModuleModal, setEditModuleModal] = useState<Module | null>(null);
+  const [editEvalModal, setEditEvalModal] = useState<Evaluation | null>(null);
 
   async function load() {
     const res = await api.get<{ course: CourseAdmin }>(`/admin/courses/${courseId}`);
@@ -185,6 +187,9 @@ export function AdminCourseEditorPage() {
             <h4>
               {t("Módulo")} {m.order} · {m.title}
             </h4>
+            <button className="btn-link" onClick={() => setEditModuleModal(m)}>
+              {t("Editar")}
+            </button>
           </div>
 
           <div className="table-wrap mt-8">
@@ -222,9 +227,14 @@ export function AdminCourseEditorPage() {
               <div>
                 <div className="flex-between">
                   <strong>{m.evaluation.title}</strong>
-                  <button className="btn btn-secondary btn-sm" onClick={() => setQuestionModal({ evaluationId: m.evaluation!.id })}>
-                    + {t("Pregunta")}
-                  </button>
+                  <div className="flex gap-8">
+                    <button className="btn-link" onClick={() => setEditEvalModal(m.evaluation)}>
+                      {t("Editar")}
+                    </button>
+                    <button className="btn btn-secondary btn-sm" onClick={() => setQuestionModal({ evaluationId: m.evaluation!.id })}>
+                      + {t("Pregunta")}
+                    </button>
+                  </div>
                 </div>
                 <p className="text-muted" style={{ fontSize: 12 }}>
                   {t("Nota mínima")} {m.evaluation.passingScore}% · {t("Intentos máx.")} {m.evaluation.maxAttempts} ·{" "}
@@ -281,6 +291,12 @@ export function AdminCourseEditorPage() {
       {questionModal && (
         <QuestionFormModal evaluationId={questionModal.evaluationId} onClose={() => setQuestionModal(null)} onSaved={load} />
       )}
+      {editModuleModal && (
+        <EditModuleModal module={editModuleModal} onClose={() => setEditModuleModal(null)} onSaved={load} />
+      )}
+      {editEvalModal && (
+        <EditEvaluationModal evaluation={editEvalModal} onClose={() => setEditEvalModal(null)} onSaved={load} />
+      )}
     </div>
   );
 }
@@ -316,6 +332,43 @@ function ModuleFormModal({ courseId, nextOrder, onClose, onSaved }: { courseId: 
         </div>
         <button className="btn btn-primary" type="submit">
           {t("Crear módulo")}
+        </button>
+      </form>
+    </Modal>
+  );
+}
+
+function EditModuleModal({ module, onClose, onSaved }: { module: Module; onClose: () => void; onSaved: () => void }) {
+  const { t } = useLanguage();
+  const [title, setTitle] = useState(module.title);
+  const [order, setOrder] = useState(module.order);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    try {
+      await api.put(`/admin/courses/modules/${module.id}`, { title, order });
+      onSaved();
+      onClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible actualizar el módulo."));
+    }
+  }
+
+  return (
+    <Modal title={t("Editar módulo")} onClose={onClose}>
+      <form onSubmit={handleSubmit} noValidate>
+        {error && <div className="alert alert-danger">{error}</div>}
+        <div className="field">
+          <label>{t("Título")}</label>
+          <input required value={title} onChange={(e) => setTitle(e.target.value)} />
+        </div>
+        <div className="field">
+          <label>{t("Orden")}</label>
+          <input type="number" min={1} value={order} onChange={(e) => setOrder(Number(e.target.value))} />
+        </div>
+        <button className="btn btn-primary" type="submit">
+          {t("Guardar cambios")}
         </button>
       </form>
     </Modal>
@@ -489,6 +542,81 @@ function EvaluationFormModal({ moduleId, onClose, onSaved }: { moduleId: string;
         </label>
         <button className="btn btn-primary" type="submit">
           {t("Crear evaluación")}
+        </button>
+      </form>
+    </Modal>
+  );
+}
+
+function EditEvaluationModal({
+  evaluation,
+  onClose,
+  onSaved,
+}: {
+  evaluation: Evaluation;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const { t } = useLanguage();
+  const [form, setForm] = useState({
+    title: evaluation.title,
+    passingScore: evaluation.passingScore,
+    maxAttempts: evaluation.maxAttempts,
+    showCorrectAnswers: evaluation.showCorrectAnswers,
+  });
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    try {
+      await api.put(`/admin/evaluations/${evaluation.id}`, form);
+      onSaved();
+      onClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible actualizar la evaluación."));
+    }
+  }
+
+  return (
+    <Modal title={t("Editar evaluación")} onClose={onClose}>
+      <form onSubmit={handleSubmit} noValidate>
+        {error && <div className="alert alert-danger">{error}</div>}
+        <div className="field">
+          <label>{t("Título")}</label>
+          <input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+        </div>
+        <div className="form-row">
+          <div className="field">
+            <label>{t("Nota mínima (%)")}</label>
+            <input
+              type="number"
+              min={1}
+              max={100}
+              value={form.passingScore}
+              onChange={(e) => setForm({ ...form, passingScore: Number(e.target.value) })}
+            />
+          </div>
+          <div className="field">
+            <label>{t("Intentos máximos")}</label>
+            <input
+              type="number"
+              min={1}
+              value={form.maxAttempts}
+              onChange={(e) => setForm({ ...form, maxAttempts: Number(e.target.value) })}
+            />
+          </div>
+        </div>
+        <label className="field option-row" style={{ marginBottom: 16 }}>
+          <input
+            type="checkbox"
+            className="option-toggle"
+            checked={form.showCorrectAnswers}
+            onChange={(e) => setForm({ ...form, showCorrectAnswers: e.target.checked })}
+          />
+          {t("Mostrar respuestas correctas al finalizar")}
+        </label>
+        <button className="btn btn-primary" type="submit">
+          {t("Guardar cambios")}
         </button>
       </form>
     </Modal>
