@@ -5,9 +5,9 @@ import { useToast } from "../context/ToastContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useIdleTimer } from "../hooks/useIdleTimer";
 
-const IDLE_TIMEOUT_MS = 5 * 60 * 1000;
+const IDLE_TIMEOUT_MS = 10 * 60 * 1000;
 
-// Vigía global de inactividad: sin clics/teclas/scroll durante 5 minutos,
+// Vigía global de inactividad: sin clics/teclas/scroll durante 10 minutos,
 // cierra la sesión (si había una) y regresa a la pantalla de bienvenida.
 export function IdleTimeoutWatcher() {
   const { user, logout } = useAuth();
