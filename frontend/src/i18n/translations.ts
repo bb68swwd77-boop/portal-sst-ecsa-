@@ -28,10 +28,10 @@ export const translations: Record<string, string> = {
   // --- Auth: bienvenida / inducción de visitantes ----------------------
   "Seleccione una opción para continuar.": "请选择一个选项以继续。",
   "Portal de Capacitaciones": "培训门户",
-  "Inducción de Visitantes": "访客入场指导",
-  "Próximamente": "即将推出",
-  "Estamos preparando el formulario de inducción para visitantes. Vuelva pronto.":
-    "访客入场指导表单正在准备中，请稍后再来查看。",
+  "Inducción a Visitantes": "访客入场指导",
+  "Complete el formulario de inducción antes de ingresar a las instalaciones.":
+    "请在进入设施之前填写入场指导表单。",
+  "Iniciar formulario de inducción": "开始填写入场指导表单",
   "Volver al inicio": "返回首页",
 
   // --- Auth: login / recuperar / restablecer / verificar --------------

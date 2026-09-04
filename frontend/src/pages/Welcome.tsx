@@ -20,7 +20,7 @@ export function WelcomePage() {
             {t("Portal de Capacitaciones")}
           </Link>
           <Link to="/induccion-visitantes" className="btn btn-secondary" style={{ width: "100%", textAlign: "center" }}>
-            {t("Inducción de Visitantes")}
+            {t("Inducción a Visitantes")}
           </Link>
         </div>
       </div>

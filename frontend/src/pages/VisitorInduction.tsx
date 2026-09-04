@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { useLanguage } from "../context/LanguageContext";
 import { AuthLayout } from "../components/AuthLayout";
 
+const INDUCTION_FORM_URL = "https://forms.gle/VMn5v9z4s7ZQpV4A8";
+
 export function VisitorInductionPage() {
   const { t } = useLanguage();
 
@@ -10,12 +12,23 @@ export function VisitorInductionPage() {
       <div className="auth-card">
         <div className="auth-logo">
           <div className="mark">ECSA · Proyecto Mirador</div>
-          <h2>{t("Inducción de Visitantes")}</h2>
+          <h2>{t("Inducción a Visitantes")}</h2>
         </div>
 
-        <div className="empty-state mt-16">
-          <h3>{t("Próximamente")}</h3>
-          <p>{t("Estamos preparando el formulario de inducción para visitantes. Vuelva pronto.")}</p>
+        <p className="page-subtitle mt-8">
+          {t("Complete el formulario de inducción antes de ingresar a las instalaciones.")}
+        </p>
+
+        <div className="mt-24">
+          <a
+            href={INDUCTION_FORM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary"
+            style={{ width: "100%", textAlign: "center" }}
+          >
+            {t("Iniciar formulario de inducción")} ↗
+          </a>
         </div>
 
         <div className="mt-16">
