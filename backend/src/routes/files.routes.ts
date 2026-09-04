@@ -20,10 +20,17 @@ filesRouter.get(
     }
 
     if (!req.currentUser!.permissions.has("courses:view")) {
-      const lesson = await prisma.lesson.findFirst({
-        where: { fileId: file.id },
-        include: { module: { select: { courseId: true } } },
-      });
+      const lesson =
+        (await prisma.lesson.findFirst({
+          where: { fileId: file.id },
+          include: { module: { select: { courseId: true } } },
+        })) ??
+        (
+          await prisma.lessonFile.findFirst({
+            where: { fileId: file.id },
+            include: { lesson: { include: { module: { select: { courseId: true } } } } },
+          })
+        )?.lesson;
       if (!lesson) {
         throw new HttpError(404, "Archivo no encontrado.");
       }

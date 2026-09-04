@@ -182,9 +182,26 @@ model Lesson {
   updatedAt   DateTime          @updatedAt
 
   progress    LessonProgress[]
+  files       LessonFile[]
 
   @@index([moduleId])
   @@unique([moduleId, order])
+}
+
+// Adjuntos adicionales de una lección — el campo Lesson.fileId original
+// sigue soportando un único archivo "principal"; esta tabla permite sumar
+// más PDF sin tocar ese campo ni los datos ya existentes.
+model LessonFile {
+  id        String    @id @default(cuid())
+  lessonId  String
+  lesson    Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  fileId    String
+  file      FileAsset @relation(fields: [fileId], references: [id])
+  order     Int       @default(1)
+  createdAt DateTime  @default(now())
+
+  @@unique([lessonId, fileId])
+  @@index([lessonId])
 }
 
 model LessonProgress {
@@ -215,6 +232,7 @@ model FileAsset {
   createdAt    DateTime @default(now())
 
   lessons      Lesson[]
+  lessonFiles  LessonFile[]
 }
 
 // ---------------------------------------------------------------------------

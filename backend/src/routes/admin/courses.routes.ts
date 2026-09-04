@@ -32,7 +32,12 @@ adminCoursesRouter.get(
         modules: {
           orderBy: { order: "asc" },
           include: {
-            lessons: { orderBy: { order: "asc" } },
+            lessons: {
+              orderBy: { order: "asc" },
+              include: {
+                files: { orderBy: { order: "asc" }, include: { file: { select: { id: true, filename: true, sizeBytes: true } } } },
+              },
+            },
             evaluation: { include: { questions: { include: { options: true }, orderBy: { order: "asc" } } } },
           },
         },
@@ -171,6 +176,53 @@ adminCoursesRouter.delete(
   asyncHandler(async (req, res) => {
     await prisma.lesson.delete({ where: { id: req.params.lessonId } });
     await audit({ userId: req.currentUser!.id, action: "lesson.delete", resource: `Lesson:${req.params.lessonId}`, result: "success", req });
+    res.json({ ok: true });
+  })
+);
+
+// --- Archivos adicionales de lección (más de un PDF por lección) -----------
+
+adminCoursesRouter.post(
+  "/lessons/:lessonId/files",
+  requirePermission("courses:edit"),
+  asyncHandler(async (req, res) => {
+    const fileId = typeof req.body?.fileId === "string" ? req.body.fileId : "";
+    if (!fileId) throw new HttpError(400, "Debe indicar el archivo a adjuntar.");
+    const file = await prisma.fileAsset.findUnique({ where: { id: fileId } });
+    if (!file) throw new HttpError(404, "Archivo no encontrado.");
+
+    const maxOrder = await prisma.lessonFile.aggregate({
+      where: { lessonId: req.params.lessonId },
+      _max: { order: true },
+    });
+    const lessonFile = await prisma.lessonFile.create({
+      data: { lessonId: req.params.lessonId, fileId, order: (maxOrder._max.order ?? 0) + 1 },
+      include: { file: { select: { id: true, filename: true, sizeBytes: true } } },
+    });
+    await audit({
+      userId: req.currentUser!.id,
+      action: "lesson.file_attach",
+      resource: `Lesson:${req.params.lessonId}`,
+      result: "success",
+      req,
+      metadata: { fileId },
+    });
+    res.status(201).json({ lessonFile });
+  })
+);
+
+adminCoursesRouter.delete(
+  "/lessons/files/:lessonFileId",
+  requirePermission("courses:edit"),
+  asyncHandler(async (req, res) => {
+    await prisma.lessonFile.delete({ where: { id: req.params.lessonFileId } });
+    await audit({
+      userId: req.currentUser!.id,
+      action: "lesson.file_detach",
+      resource: `LessonFile:${req.params.lessonFileId}`,
+      result: "success",
+      req,
+    });
     res.json({ ok: true });
   })
 );

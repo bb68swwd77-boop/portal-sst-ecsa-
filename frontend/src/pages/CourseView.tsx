@@ -164,6 +164,22 @@ export function CourseViewPage() {
                 </p>
               )}
 
+              {activeLesson.files.length > 0 && (
+                <div className="flex gap-8" style={{ flexWrap: "wrap" }}>
+                  {activeLesson.files.map((f) => (
+                    <a
+                      key={f.id}
+                      href={apiUrl(`/files/${f.id}`)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-secondary btn-sm"
+                    >
+                      📄 {t("Descargar")} {f.filename} ({Math.round(f.sizeBytes / 1024)} KB)
+                    </a>
+                  ))}
+                </div>
+              )}
+
               {activeLesson.contentType === "VIDEO" && activeLesson.externalUrl && extractYouTubeId(activeLesson.externalUrl) ? (
                 <YouTubePlayer
                   key={activeLesson.id}

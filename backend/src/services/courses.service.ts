@@ -124,7 +124,13 @@ export async function getCourseDetailForUser(userId: string, courseId: string) {
         include: {
           lessons: {
             orderBy: { order: "asc" },
-            include: { file: { select: { id: true, filename: true, mimeType: true, sizeBytes: true } } },
+            include: {
+              file: { select: { id: true, filename: true, mimeType: true, sizeBytes: true } },
+              files: {
+                orderBy: { order: "asc" },
+                include: { file: { select: { id: true, filename: true, mimeType: true, sizeBytes: true } } },
+              },
+            },
           },
           evaluation: { select: { id: true, title: true, description: true, passingScore: true, timeLimitMin: true, maxAttempts: true } },
         },
@@ -153,6 +159,12 @@ export async function getCourseDetailForUser(userId: string, courseId: string) {
       bodyHtml: l.bodyHtml,
       externalUrl: l.externalUrl,
       file: l.file ? { id: l.file.id, filename: l.file.filename, mimeType: l.file.mimeType, sizeBytes: l.file.sizeBytes } : null,
+      files: l.files.map((lf) => ({
+        id: lf.file.id,
+        filename: lf.file.filename,
+        mimeType: lf.file.mimeType,
+        sizeBytes: lf.file.sizeBytes,
+      })),
       normReference: l.normReference,
       normCode: l.normCode,
       normArticle: l.normArticle,

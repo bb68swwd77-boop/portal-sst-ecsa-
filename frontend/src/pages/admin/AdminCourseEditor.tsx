@@ -27,6 +27,10 @@ interface Evaluation {
   showCorrectAnswers: boolean;
   questions: Question[];
 }
+interface LessonAttachment {
+  id: string; // id de LessonFile (para desasociar)
+  file: { id: string; filename: string; sizeBytes: number };
+}
 interface Lesson {
   id: string;
   title: string;
@@ -35,6 +39,7 @@ interface Lesson {
   bodyHtml: string | null;
   externalUrl: string | null;
   fileId: string | null;
+  files: LessonAttachment[];
   normReference: string | null;
   normCode: string | null;
   normArticle: string | null;
@@ -529,6 +534,9 @@ function EditLessonModal({ lesson, onClose, onSaved }: { lesson: Lesson; onClose
   const [uploadedFilename, setUploadedFilename] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<LessonAttachment[]>(lesson.files);
+  const [attachUploading, setAttachUploading] = useState(false);
+  const [attachError, setAttachError] = useState<string | null>(null);
 
   const needsFile = form.contentType === "PDF" || form.contentType === "DOCUMENT";
   const needsUrl = form.contentType === "VIDEO" || form.contentType === "LINK";
@@ -546,6 +554,37 @@ function EditLessonModal({ lesson, onClose, onSaved }: { lesson: Lesson; onClose
       setError(err instanceof ApiError ? t(err.message) : t("No fue posible subir el archivo."));
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleAddAttachment(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setAttachError(null);
+    setAttachUploading(true);
+    try {
+      const uploaded = await uploadFile<{ file: { id: string; filename: string } }>("/admin/files/upload", file);
+      const res = await api.post<{ lessonFile: LessonAttachment }>(`/admin/courses/lessons/${lesson.id}/files`, {
+        fileId: uploaded.file.id,
+      });
+      setAttachments((prev) => [...prev, res.lessonFile]);
+      onSaved();
+    } catch (err) {
+      setAttachError(err instanceof ApiError ? t(err.message) : t("No fue posible subir el archivo."));
+    } finally {
+      setAttachUploading(false);
+    }
+  }
+
+  async function handleRemoveAttachment(lessonFileId: string) {
+    if (!confirm(t("¿Quitar este archivo de la lección?"))) return;
+    try {
+      await api.delete(`/admin/courses/lessons/files/${lessonFileId}`);
+      setAttachments((prev) => prev.filter((a) => a.id !== lessonFileId));
+      onSaved();
+    } catch (err) {
+      setAttachError(err instanceof ApiError ? t(err.message) : t("No fue posible quitar el archivo."));
     }
   }
 
@@ -609,6 +648,32 @@ function EditLessonModal({ lesson, onClose, onSaved }: { lesson: Lesson; onClose
             {uploadedFilename && <div className="field-hint">✓ {uploadedFilename} {t("cargado correctamente.")}</div>}
             {!uploadedFilename && form.fileId && <div className="field-hint">{t("Ya tiene un archivo cargado. Suba uno nuevo para reemplazarlo.")}</div>}
             <div className="field-hint">{t("Máximo 20 MB, solo PDF.")}</div>
+          </div>
+        )}
+
+        {needsFile && (
+          <div className="field">
+            <label>{t("Archivos adicionales (PDF)")}</label>
+            {attachError && <div className="alert alert-danger">{attachError}</div>}
+            {attachments.length > 0 && (
+              <ul style={{ margin: "0 0 8px", paddingLeft: 0, listStyle: "none", fontSize: 13 }}>
+                {attachments.map((a) => (
+                  <li key={a.id} className="flex-between mt-8">
+                    <span>
+                      📄 {a.file.filename} ({Math.round(a.file.sizeBytes / 1024)} KB)
+                    </span>
+                    <button type="button" className="btn-link" onClick={() => handleRemoveAttachment(a.id)}>
+                      {t("Quitar")}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <input type="file" accept="application/pdf" onChange={handleAddAttachment} disabled={attachUploading} />
+            {attachUploading && <div className="field-hint">{t("Subiendo…")}</div>}
+            <div className="field-hint">
+              {t("Se suman al archivo principal de arriba — útil para adjuntar varios PDF a la misma lección.")}
+            </div>
           </div>
         )}
 

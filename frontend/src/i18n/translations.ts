@@ -250,6 +250,11 @@ export const translations: Record<string, string> = {
   "Editar lección": "编辑课时",
   "No fue posible actualizar la lección.": "无法更新课时。",
   "Ya tiene un archivo cargado. Suba uno nuevo para reemplazarlo.": "已上传文件。上传新文件可替换当前文件。",
+  "Archivos adicionales (PDF)": "附加文件（PDF）",
+  "¿Quitar este archivo de la lección?": "确定要从该课时移除此文件吗？",
+  "No fue posible quitar el archivo.": "无法移除该文件。",
+  "Se suman al archivo principal de arriba — útil para adjuntar varios PDF a la misma lección.":
+    "这些文件会附加在上面的主文件之外——适用于给同一课时添加多个PDF。",
   "Tipo de contenido": "内容类型",
   "Texto enriquecido": "富文本",
   "Video (enlace)": "视频（链接）",
