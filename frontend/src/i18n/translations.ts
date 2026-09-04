@@ -260,7 +260,7 @@ export const translations: Record<string, string> = {
   "Puede incluir imágenes de referencia ya alojadas en internet con": "可以使用以下标签插入已在网络上托管的参考图片：",
   "Archivo PDF": "PDF文件",
   "cargado correctamente.": "已成功上传。",
-  "Máximo 10 MB, solo PDF.": "最大10 MB，仅限PDF格式。",
+  "Máximo 20 MB, solo PDF.": "最大20 MB，仅限PDF格式。",
   "Referencia normativa": "法规依据",
   "Crear lección": "创建课时",
   "No fue posible crear la evaluación.": "无法创建考核。",

@@ -482,7 +482,7 @@ function LessonFormModal({ moduleId, nextOrder, onClose, onSaved }: { moduleId: 
             <input type="file" accept="application/pdf" onChange={handleFileChange} />
             {uploading && <div className="field-hint">{t("Subiendo…")}</div>}
             {uploadedFilename && <div className="field-hint">✓ {uploadedFilename} {t("cargado correctamente.")}</div>}
-            <div className="field-hint">{t("Máximo 10 MB, solo PDF.")}</div>
+            <div className="field-hint">{t("Máximo 20 MB, solo PDF.")}</div>
           </div>
         )}
 
@@ -608,7 +608,7 @@ function EditLessonModal({ lesson, onClose, onSaved }: { lesson: Lesson; onClose
             {uploading && <div className="field-hint">{t("Subiendo…")}</div>}
             {uploadedFilename && <div className="field-hint">✓ {uploadedFilename} {t("cargado correctamente.")}</div>}
             {!uploadedFilename && form.fileId && <div className="field-hint">{t("Ya tiene un archivo cargado. Suba uno nuevo para reemplazarlo.")}</div>}
-            <div className="field-hint">{t("Máximo 10 MB, solo PDF.")}</div>
+            <div className="field-hint">{t("Máximo 20 MB, solo PDF.")}</div>
           </div>
         )}
 

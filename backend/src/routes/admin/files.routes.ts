@@ -17,7 +17,7 @@ adminFilesRouter.post(
       uploadPdf(req, res, (err) => (err ? reject(err) : resolve()));
     }).catch((err) => {
       if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
-        throw new HttpError(400, "El archivo supera el tamaño máximo permitido (10 MB).");
+        throw new HttpError(400, "El archivo supera el tamaño máximo permitido (20 MB).");
       }
       // El único error no-multer que produce fileFilter es el mensaje ya en
       // español "Solo se permiten archivos PDF." — se reenvía tal cual.

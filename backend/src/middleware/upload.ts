@@ -1,6 +1,6 @@
 import multer from "multer";
 
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB
 const ALLOWED_MIME_TYPES = new Set(["application/pdf"]);
 
 /**
