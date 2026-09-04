@@ -33,6 +33,8 @@ interface Lesson {
   order: number;
   contentType: string;
   bodyHtml: string | null;
+  externalUrl: string | null;
+  fileId: string | null;
   normReference: string | null;
   normCode: string | null;
   normArticle: string | null;
@@ -78,6 +80,8 @@ export function AdminCourseEditorPage() {
   const [questionModal, setQuestionModal] = useState<{ evaluationId: string } | null>(null);
   const [editModuleModal, setEditModuleModal] = useState<Module | null>(null);
   const [editEvalModal, setEditEvalModal] = useState<Evaluation | null>(null);
+  const [editLessonModal, setEditLessonModal] = useState<Lesson | null>(null);
+  const [editQuestionModal, setEditQuestionModal] = useState<Question | null>(null);
 
   async function load() {
     const res = await api.get<{ course: CourseAdmin }>(`/admin/courses/${courseId}`);
@@ -208,7 +212,10 @@ export function AdminCourseEditorPage() {
                     <td>{l.order}</td>
                     <td>{l.title}</td>
                     <td>{l.contentType}</td>
-                    <td>
+                    <td className="flex gap-8">
+                      <button className="btn-link" onClick={() => setEditLessonModal(l)}>
+                        {t("Editar")}
+                      </button>
                       <button className="btn-link" onClick={() => deleteLesson(l.id)}>
                         {t("Eliminar")}
                       </button>
@@ -246,9 +253,14 @@ export function AdminCourseEditorPage() {
                       <strong style={{ fontSize: 13 }}>
                         {q.order}. {q.text}
                       </strong>
-                      <button className="btn-link" onClick={() => deleteQuestion(q.id)}>
-                        {t("Eliminar")}
-                      </button>
+                      <div className="flex gap-8">
+                        <button className="btn-link" onClick={() => setEditQuestionModal(q)}>
+                          {t("Editar")}
+                        </button>
+                        <button className="btn-link" onClick={() => deleteQuestion(q.id)}>
+                          {t("Eliminar")}
+                        </button>
+                      </div>
                     </div>
                     <ul style={{ margin: "8px 0 0", paddingLeft: 18, fontSize: 12 }}>
                       {q.options.map((o) => (
@@ -296,6 +308,12 @@ export function AdminCourseEditorPage() {
       )}
       {editEvalModal && (
         <EditEvaluationModal evaluation={editEvalModal} onClose={() => setEditEvalModal(null)} onSaved={load} />
+      )}
+      {editLessonModal && (
+        <EditLessonModal lesson={editLessonModal} onClose={() => setEditLessonModal(null)} onSaved={load} />
+      )}
+      {editQuestionModal && (
+        <EditQuestionModal question={editQuestionModal} onClose={() => setEditQuestionModal(null)} onSaved={load} />
       )}
     </div>
   );
@@ -491,6 +509,132 @@ function LessonFormModal({ moduleId, nextOrder, onClose, onSaved }: { moduleId: 
         </div>
         <button className="btn btn-primary" type="submit">
           {t("Crear lección")}
+        </button>
+      </form>
+    </Modal>
+  );
+}
+
+function EditLessonModal({ lesson, onClose, onSaved }: { lesson: Lesson; onClose: () => void; onSaved: () => void }) {
+  const { t } = useLanguage();
+  const [form, setForm] = useState({
+    title: lesson.title,
+    order: lesson.order,
+    contentType: lesson.contentType,
+    bodyHtml: lesson.bodyHtml ?? "",
+    externalUrl: lesson.externalUrl ?? "",
+    fileId: lesson.fileId ?? "",
+    normReference: lesson.normReference ?? "",
+  });
+  const [uploadedFilename, setUploadedFilename] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const needsFile = form.contentType === "PDF" || form.contentType === "DOCUMENT";
+  const needsUrl = form.contentType === "VIDEO" || form.contentType === "LINK";
+
+  async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError(null);
+    setUploading(true);
+    try {
+      const res = await uploadFile<{ file: { id: string; filename: string } }>("/admin/files/upload", file);
+      setForm((prev) => ({ ...prev, fileId: res.file.id }));
+      setUploadedFilename(res.file.filename);
+    } catch (err) {
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible subir el archivo."));
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (needsFile && !form.fileId) {
+      setError(t("Debe subir un archivo PDF para este tipo de contenido."));
+      return;
+    }
+    try {
+      await api.put(`/admin/courses/lessons/${lesson.id}`, {
+        ...form,
+        fileId: form.fileId || undefined,
+        externalUrl: form.externalUrl || undefined,
+      });
+      onSaved();
+      onClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible actualizar la lección."));
+    }
+  }
+
+  return (
+    <Modal title={t("Editar lección")} onClose={onClose}>
+      <form onSubmit={handleSubmit} noValidate>
+        {error && <div className="alert alert-danger">{error}</div>}
+        <div className="field">
+          <label>{t("Título")}</label>
+          <input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+        </div>
+        <div className="form-row">
+          <div className="field">
+            <label>{t("Orden")}</label>
+            <input type="number" min={1} value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} />
+          </div>
+          <div className="field">
+            <label>{t("Tipo de contenido")}</label>
+            <select value={form.contentType} onChange={(e) => setForm({ ...form, contentType: e.target.value })}>
+              <option value="RICH_TEXT">{t("Texto enriquecido")}</option>
+              <option value="VIDEO">{t("Video (enlace)")}</option>
+              <option value="PDF">{t("PDF (archivo adjunto)")}</option>
+              <option value="DOCUMENT">{t("Documento (archivo adjunto)")}</option>
+              <option value="LINK">{t("Enlace externo")}</option>
+            </select>
+          </div>
+        </div>
+        <div className="field">
+          <label>{t("Contenido (HTML permitido: p, b, i, ul, li, a, img…)")}</label>
+          <textarea rows={4} value={form.bodyHtml} onChange={(e) => setForm({ ...form, bodyHtml: e.target.value })} />
+          <div className="field-hint">
+            {t("Puede incluir imágenes de referencia ya alojadas en internet con")}{" "}
+            <code>&lt;img src="https://..." alt="descripción"&gt;</code>.
+          </div>
+        </div>
+
+        {needsFile && (
+          <div className="field">
+            <label>{t("Archivo PDF")}</label>
+            <input type="file" accept="application/pdf" onChange={handleFileChange} />
+            {uploading && <div className="field-hint">{t("Subiendo…")}</div>}
+            {uploadedFilename && <div className="field-hint">✓ {uploadedFilename} {t("cargado correctamente.")}</div>}
+            {!uploadedFilename && form.fileId && <div className="field-hint">{t("Ya tiene un archivo cargado. Suba uno nuevo para reemplazarlo.")}</div>}
+            <div className="field-hint">{t("Máximo 10 MB, solo PDF.")}</div>
+          </div>
+        )}
+
+        {needsUrl && (
+          <div className="field">
+            <label>{form.contentType === "VIDEO" ? t("URL del video de YouTube") : t("URL externa")}</label>
+            <input
+              value={form.externalUrl}
+              onChange={(e) => setForm({ ...form, externalUrl: e.target.value })}
+              placeholder={form.contentType === "VIDEO" ? "https://youtu.be/…" : "https://…"}
+            />
+            {form.contentType === "VIDEO" && (
+              <div className="field-hint">
+                {t("Acepta un video de YouTube \"no listado\" — el sistema detecta automáticamente cuándo el capacitado lo termina de ver.")}
+              </div>
+            )}
+          </div>
+        )}
+
+        <h4 className="mt-16">{t("Referencia normativa")}</h4>
+        <div className="field">
+          <label>{t("Norma")}</label>
+          <input value={form.normReference} onChange={(e) => setForm({ ...form, normReference: e.target.value })} />
+        </div>
+        <button className="btn btn-primary" type="submit">
+          {t("Guardar cambios")}
         </button>
       </form>
     </Modal>
@@ -731,6 +875,125 @@ function QuestionFormModal({ evaluationId, onClose, onSaved }: { evaluationId: s
 
         <button className="btn btn-primary mt-16" type="submit">
           {t("Guardar pregunta")}
+        </button>
+      </form>
+    </Modal>
+  );
+}
+
+function EditQuestionModal({ question, onClose, onSaved }: { question: Question; onClose: () => void; onSaved: () => void }) {
+  const { t } = useLanguage();
+  const [type, setType] = useState(question.type);
+  const [text, setText] = useState(question.text);
+  const [order, setOrder] = useState(question.order);
+  const [options, setOptions] = useState(
+    question.options
+      .slice()
+      .sort((a, b) => a.order - b.order)
+      .map((o) => ({ text: o.text, isCorrect: o.isCorrect, order: o.order }))
+  );
+  const [error, setError] = useState<string | null>(null);
+
+  function updateOption(idx: number, patch: Partial<{ text: string; isCorrect: boolean }>) {
+    const exclusive = (type === "SINGLE_CHOICE" || type === "TRUE_FALSE") && patch.isCorrect;
+    setOptions((prev) =>
+      prev.map((o, i) => {
+        if (i === idx) return { ...o, ...patch };
+        return exclusive ? { ...o, isCorrect: false } : o;
+      })
+    );
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    try {
+      await api.put(`/admin/evaluations/questions/${question.id}`, {
+        type,
+        text,
+        order,
+        points: question.points,
+        options: options.map((o, i) => ({ ...o, order: i + 1 })),
+      });
+      onSaved();
+      onClose();
+    } catch (err) {
+      setError(err instanceof ApiError ? t(err.message) : t("No fue posible actualizar la pregunta."));
+    }
+  }
+
+  return (
+    <Modal title={t("Editar pregunta")} onClose={onClose}>
+      <form onSubmit={handleSubmit} noValidate>
+        {error && <div className="alert alert-danger">{error}</div>}
+        <div className="form-row">
+          <div className="field">
+            <label>{t("Tipo")}</label>
+            <select value={type} onChange={(e) => setType(e.target.value)}>
+              <option value="SINGLE_CHOICE">{t("Selección única")}</option>
+              <option value="MULTIPLE_CHOICE">{t("Selección múltiple")}</option>
+              <option value="TRUE_FALSE">{t("Verdadero / Falso")}</option>
+              <option value="SHORT_ANSWER">{t("Respuesta corta")}</option>
+            </select>
+          </div>
+          <div className="field">
+            <label>{t("Orden")}</label>
+            <input type="number" min={1} value={order} onChange={(e) => setOrder(Number(e.target.value))} />
+          </div>
+        </div>
+        <div className="field">
+          <label>{t("Enunciado")}</label>
+          <textarea required rows={2} value={text} onChange={(e) => setText(e.target.value)} />
+        </div>
+
+        {type !== "SHORT_ANSWER" && (
+          <div className="field">
+            <label>{t("Opciones (marque la(s) correcta(s))")}</label>
+            {options.map((o, idx) => (
+              <div key={idx} className="option-row mt-8">
+                <input
+                  type={type === "MULTIPLE_CHOICE" ? "checkbox" : "radio"}
+                  className="option-toggle"
+                  name="edit-correct-option"
+                  checked={o.isCorrect}
+                  onChange={(e) => updateOption(idx, { isCorrect: e.target.checked })}
+                />
+                <input
+                  className="option-text"
+                  placeholder={`${t("Opción")} ${idx + 1}`}
+                  value={o.text}
+                  onChange={(e) => updateOption(idx, { text: e.target.value })}
+                />
+              </div>
+            ))}
+            {type !== "TRUE_FALSE" && (
+              <button type="button" className="btn-link mt-8" onClick={() => setOptions((prev) => [...prev, emptyOption()])}>
+                + {t("Agregar opción")}
+              </button>
+            )}
+          </div>
+        )}
+
+        {type === "SHORT_ANSWER" && (
+          <div className="field">
+            <label>{t("Respuesta(s) válida(s) (una por opción)")}</label>
+            {options.map((o, idx) => (
+              <input
+                key={idx}
+                className="mt-8"
+                placeholder={t("Respuesta válida")}
+                value={o.text}
+                onChange={(e) => updateOption(idx, { text: e.target.value, isCorrect: true })}
+              />
+            ))}
+            <button type="button" className="btn-link mt-8" onClick={() => setOptions((prev) => [...prev, { ...emptyOption(), isCorrect: true }])}>
+              + {t("Agregar respuesta válida")}
+            </button>
+          </div>
+        )}
+
+        <button className="btn btn-primary mt-16" type="submit">
+          {t("Guardar cambios")}
         </button>
       </form>
     </Modal>
