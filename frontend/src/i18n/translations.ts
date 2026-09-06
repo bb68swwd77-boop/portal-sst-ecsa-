@@ -79,6 +79,9 @@ export const translations: Record<string, string> = {
   Pendiente: "待处理",
   Completado: "已完成",
   Vencido: "已逾期",
+  Bloqueado: "已锁定",
+  "Complete el módulo anterior para desbloquear.": "请先完成上一个模块以解锁。",
+  "Debe completar el módulo anterior antes de continuar.": "请先完成上一个模块才能继续。",
 
   // --- Dashboard --------------------------------------------------------
   "Capacitaciones asignadas": "已分配的培训",

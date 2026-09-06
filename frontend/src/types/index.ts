@@ -77,6 +77,8 @@ export interface ModuleDetail {
   id: string;
   title: string;
   order: number;
+  // true si algún módulo anterior del curso aún no está completo.
+  locked: boolean;
   lessons: LessonDetail[];
   evaluation: EvaluationSummary | null;
 }

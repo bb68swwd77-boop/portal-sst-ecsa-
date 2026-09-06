@@ -80,15 +80,18 @@ export function CourseViewPage() {
       <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 24 }} className="course-layout">
         <div className="card" style={{ alignSelf: "start" }}>
           {course.modules.map((m) => (
-            <div key={m.id} className="mt-16">
+            <div key={m.id} className="mt-16" style={m.locked ? { opacity: 0.55 } : undefined}>
               <div className="text-secondary" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                {m.locked && "🔒 "}
                 {t("Módulo")} {m.order} · {m.title}
               </div>
               {m.lessons.map((l) => (
                 <button
                   key={l.id}
                   className="module-item"
-                  onClick={() => setActiveLessonId(l.id)}
+                  onClick={() => !m.locked && setActiveLessonId(l.id)}
+                  disabled={m.locked}
+                  title={m.locked ? t("Complete el módulo anterior para desbloquear.") : undefined}
                   style={{
                     display: "block",
                     width: "100%",
@@ -99,12 +102,18 @@ export function CourseViewPage() {
                     background: activeLessonId === l.id ? "var(--color-bg-subtle)" : "transparent",
                     border: activeLessonId === l.id ? "1px solid var(--color-cyan)" : "1px solid transparent",
                     color: "inherit",
-                    cursor: "pointer",
+                    cursor: m.locked ? "not-allowed" : "pointer",
                   }}
                 >
                   <div style={{ fontSize: 13 }}>{l.title}</div>
                   <div style={{ fontSize: 11 }} className={l.completed ? "" : "text-muted"}>
-                    {l.completed ? <span style={{ color: "var(--color-success)" }}>✓ {t("Completado")}</span> : t("Pendiente")}
+                    {l.completed ? (
+                      <span style={{ color: "var(--color-success)" }}>✓ {t("Completado")}</span>
+                    ) : m.locked ? (
+                      t("Bloqueado")
+                    ) : (
+                      t("Pendiente")
+                    )}
                   </div>
                 </button>
               ))}
@@ -115,7 +124,9 @@ export function CourseViewPage() {
                     {t("Intentos:")} {m.evaluation.attemptsUsed}/{m.evaluation.maxAttempts}
                     {m.evaluation.lastScore !== null && ` · ${t("Último puntaje:")} ${m.evaluation.lastScore}%`}
                   </div>
-                  {m.evaluation.lastPassed ? (
+                  {m.locked ? (
+                    <span className="badge badge-status-pending mt-8">🔒 {t("Bloqueado")}</span>
+                  ) : m.evaluation.lastPassed ? (
                     <span className="badge badge-status-completed mt-8">{t("Aprobado")}</span>
                   ) : m.evaluation.canAttempt ? (
                     <Link to={`/curso/${course.id}/evaluacion/${m.evaluation.id}`} className="btn btn-primary btn-sm mt-8">
