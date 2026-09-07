@@ -72,7 +72,11 @@ async function main() {
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@example.com" },
-    update: demoAccountReset,
+    // code se incluye también en el update: estas cuentas ya existen en
+    // despliegues previos (creadas antes de que existiera este campo), y
+    // demoAccountReset por sí solo nunca lo habría poblado, dejándolas sin
+    // código para siempre — inaccesibles ahora que el login es por código.
+    update: { ...demoAccountReset, code: "DEMO-ADMIN", category: "ADM" },
     create: {
       email: "admin@example.com",
       code: "DEMO-ADMIN",
@@ -90,7 +94,7 @@ async function main() {
 
   const usuario1 = await prisma.user.upsert({
     where: { email: "usuario1@example.com" },
-    update: demoAccountReset,
+    update: { ...demoAccountReset, code: "DEMO-USER1", category: "OPERATIVO" },
     create: {
       email: "usuario1@example.com",
       code: "DEMO-USER1",
@@ -109,7 +113,7 @@ async function main() {
 
   const usuario2 = await prisma.user.upsert({
     where: { email: "usuario2@example.com" },
-    update: demoAccountReset,
+    update: { ...demoAccountReset, code: "DEMO-USER2", category: "OPERATIVO" },
     create: {
       email: "usuario2@example.com",
       code: "DEMO-USER2",
