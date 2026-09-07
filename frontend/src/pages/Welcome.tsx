@@ -10,7 +10,7 @@ export function WelcomePage() {
       <div className="auth-card">
         <div className="auth-logo">
           <div className="mark">ECSA · Mina Mirador</div>
-          <h2>{t("Portal de Capacitación SST")}</h2>
+          <h2>{t("Portal de Seguridad y Salud en el Trabajo")}</h2>
         </div>
 
         <p className="page-subtitle mt-8">{t("Seleccione una opción para continuar.")}</p>
