@@ -9,7 +9,7 @@ export function WelcomePage() {
     <AuthLayout>
       <div className="auth-card">
         <div className="auth-logo">
-          <div className="mark">ECSA · Proyecto Mirador</div>
+          <div className="mark">ECSA · Mina Mirador</div>
           <h2>{t("Portal de Capacitación SST")}</h2>
         </div>
 
@@ -17,7 +17,7 @@ export function WelcomePage() {
 
         <div className="mt-24" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <Link to="/login" className="btn btn-primary" style={{ width: "100%", textAlign: "center" }}>
-            {t("Portal de Capacitaciones")}
+            {t("Portal de Seguridad y Salud en el Trabajo")}
           </Link>
           <Link to="/induccion-visitantes" className="btn btn-secondary" style={{ width: "100%", textAlign: "center" }}>
             {t("Inducción a Visitantes")}

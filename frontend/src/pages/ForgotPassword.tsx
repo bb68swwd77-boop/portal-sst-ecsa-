@@ -34,7 +34,7 @@ export function ForgotPasswordPage() {
     <AuthLayout>
       <div className="auth-card">
         <div className="auth-logo">
-          <div className="mark">ECSA · Proyecto Mirador</div>
+          <div className="mark">ECSA · Mina Mirador</div>
           <h2>{t("Recuperar contraseña")}</h2>
         </div>
 

@@ -33,7 +33,7 @@ export function ForceChangePasswordPage() {
     <AuthLayout>
       <div className="auth-card">
         <div className="auth-logo">
-          <div className="mark">ECSA · Proyecto Mirador</div>
+          <div className="mark">ECSA · Mina Mirador</div>
           <h2>{t("Cree su nueva contraseña")}</h2>
         </div>
 

@@ -39,7 +39,7 @@ export function LoginPage() {
           ← {t("Volver al inicio")}
         </Link>
         <div className="auth-logo mt-8">
-          <div className="mark">ECSA · Proyecto Mirador</div>
+          <div className="mark">ECSA · Mina Mirador</div>
           <h2>{t("Portal de Capacitación SST")}</h2>
         </div>
 

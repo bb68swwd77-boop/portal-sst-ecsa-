@@ -44,7 +44,7 @@ export function VerifyCertificatePage() {
     <AuthLayout>
       <div className="auth-card" style={{ maxWidth: 480 }}>
         <div className="auth-logo">
-          <div className="mark">ECSA · Proyecto Mirador</div>
+          <div className="mark">ECSA · Mina Mirador</div>
           <h2>{t("Verificar certificado")}</h2>
         </div>
 

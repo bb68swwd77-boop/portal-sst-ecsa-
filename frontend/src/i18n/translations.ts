@@ -27,7 +27,7 @@ export const translations: Record<string, string> = {
 
   // --- Auth: bienvenida / inducción de visitantes ----------------------
   "Seleccione una opción para continuar.": "请选择一个选项以继续。",
-  "Portal de Capacitaciones": "培训门户",
+  "Portal de Seguridad y Salud en el Trabajo": "职业健康与安全门户",
   "Inducción a Visitantes": "访客入场指导",
   "Complete el formulario de inducción antes de ingresar a las instalaciones.":
     "请在进入设施之前填写入场指导表单。",

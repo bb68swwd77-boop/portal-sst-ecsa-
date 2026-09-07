@@ -10,7 +10,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       <div className="auth-hero" role="presentation">
         <img src={coverMineria} alt="" />
         <div className="auth-hero-caption">
-          <span className="mark">ECSA · Proyecto Mirador</span>
+          <span className="mark">ECSA · Mina Mirador</span>
           <h2>{t("Seguridad y Salud Ocupacional")}</h2>
           <p>{t("Módulos, evaluaciones y certificados verificables en un solo portal.")}</p>
         </div>
