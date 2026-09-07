@@ -4,6 +4,7 @@ import { api, ApiError, uploadFile } from "../../api/client";
 import { Modal } from "../../components/Modal";
 import { useToast } from "../../context/ToastContext";
 import { useLanguage } from "../../context/LanguageContext";
+import { CATEGORIES } from "../../constants/organization";
 
 interface AnswerOption {
   id: string;
@@ -1141,11 +1142,25 @@ function AssignmentsSection({
             <option value="ALL">{t("Todos los usuarios")}</option>
           </select>
         </div>
-        {targetType !== "ALL" && (
+        {targetType === "CATEGORY" ? (
           <div className="field" style={{ marginBottom: 0 }}>
             <label>{t("Valor")}</label>
-            <input required value={targetValue} onChange={(e) => setTargetValue(e.target.value)} />
+            <select required value={targetValue} onChange={(e) => setTargetValue(e.target.value)}>
+              <option value="">{t("Seleccionar…")}</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
           </div>
+        ) : (
+          targetType !== "ALL" && (
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>{t("Valor")}</label>
+              <input required value={targetValue} onChange={(e) => setTargetValue(e.target.value)} />
+            </div>
+          )
         )}
         <div className="field" style={{ marginBottom: 0 }}>
           <label>{t("Fecha límite")}</label>

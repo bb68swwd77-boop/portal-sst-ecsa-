@@ -43,10 +43,18 @@ export function CourseViewPage() {
   async function handleVideoProgress(lessonId: string, percent: number) {
     if (!courseId) return;
     try {
+      const wasCompleted = course?.modules.flatMap((m) => m.lessons).find((l) => l.id === lessonId)?.completed ?? false;
       const res = await api.post<{ percentWatched: number; completed: boolean }>(
         `/courses/${courseId}/lessons/${lessonId}/video-progress`,
         { percentWatched: percent }
       );
+      // Si esta llamada recién completó la lección, puede haber desbloqueado
+      // el siguiente módulo — recargamos el curso completo para reflejar ese
+      // cambio (el video ya terminó, así que no hay reproducción que cortar).
+      if (res.completed && !wasCompleted) {
+        await load();
+        return;
+      }
       setCourse((prev) => {
         if (!prev) return prev;
         return {
