@@ -53,7 +53,6 @@ export const translations: Record<string, string> = {
   "Por seguridad, debe cambiar la contraseña temporal antes de continuar.":
     "出于安全考虑，您必须先更改临时密码才能继续。",
   "Contraseña temporal": "临时密码",
-  "Mínimo 10 caracteres, con mayúscula, minúscula y número.": "至少10个字符，包含大写字母、小写字母和数字。",
   "Guardar y continuar": "保存并继续",
   "No fue posible procesar la solicitud.": "无法处理该请求。",
   "Recuperar contraseña": "找回密码",
