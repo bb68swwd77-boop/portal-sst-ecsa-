@@ -17,7 +17,7 @@ export function WelcomePage() {
 
         <div className="mt-24" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <Link to="/login" className="btn btn-primary" style={{ width: "100%", textAlign: "center" }}>
-            {t("Portal de Seguridad y Salud en el Trabajo")}
+            {t("Portal de Capacitaciones en SST")}
           </Link>
           <Link to="/induccion-visitantes" className="btn btn-secondary" style={{ width: "100%", textAlign: "center" }}>
             {t("Inducción a Visitantes")}
