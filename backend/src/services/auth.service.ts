@@ -7,11 +7,11 @@ const LOCK_MINUTES = 15;
 const RESET_TOKEN_TTL_MIN = 30;
 
 // Mensaje idéntico para "usuario no existe" y "contraseña incorrecta": no revelar
-// si un correo está registrado (previene enumeración de usuarios).
-const GENERIC_LOGIN_ERROR = "Correo o contraseña incorrectos.";
+// si un código está registrado (previene enumeración de usuarios).
+const GENERIC_LOGIN_ERROR = "Código o contraseña incorrectos.";
 
-export async function authenticate(email: string, password: string) {
-  const user = await prisma.user.findUnique({ where: { email } });
+export async function authenticate(code: string, password: string) {
+  const user = await prisma.user.findUnique({ where: { code } });
 
   if (!user || !user.isActive) {
     // Ejecutar un hash "señuelo" para que el tiempo de respuesta no delate si el usuario existe.

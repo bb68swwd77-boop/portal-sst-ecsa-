@@ -75,6 +75,7 @@ async function main() {
     update: demoAccountReset,
     create: {
       email: "admin@example.com",
+      code: "DEMO-ADMIN",
       passwordHash: demoPasswordHash,
       firstName: "Ana",
       lastName: "Administradora",
@@ -82,6 +83,7 @@ async function main() {
       company: "ECSA",
       area: "SST",
       position: "Coordinadora SST",
+      category: "ADM",
       isDemo: true,
     },
   });
@@ -91,6 +93,7 @@ async function main() {
     update: demoAccountReset,
     create: {
       email: "usuario1@example.com",
+      code: "DEMO-USER1",
       passwordHash: demoPasswordHash,
       firstName: "Carlos",
       lastName: "Contratista",
@@ -98,6 +101,7 @@ async function main() {
       company: "Contratista Andes S.A.",
       area: "Mantenimiento",
       position: "Técnico",
+      category: "OPERATIVO",
       roleId: userRole.id,
       isDemo: true,
     },
@@ -108,6 +112,7 @@ async function main() {
     update: demoAccountReset,
     create: {
       email: "usuario2@example.com",
+      code: "DEMO-USER2",
       passwordHash: demoPasswordHash,
       firstName: "María",
       lastName: "Trabajadora",
@@ -115,10 +120,14 @@ async function main() {
       company: "Contratista Andes S.A.",
       area: "Operaciones",
       position: "Supervisora",
+      category: "OPERATIVO",
       roleId: userRole.id,
       isDemo: true,
     },
   });
+
+  console.log("Sembrando usuarios piloto (código de trabajador)...");
+  await seedPilotUsers(adminRole.id, userRole.id, demoPasswordHash);
 
   console.log("Sembrando capacitaciones DEMO...");
 
@@ -409,9 +418,12 @@ async function main() {
   console.log("Seed completado.");
   console.log("--------------------------------------------------");
   console.log("Credenciales DEMO (usar solo en entornos de desarrollo):");
-  console.log("  Administrador : admin@example.com / Demo#2026Sst");
-  console.log("  Usuario 1     : usuario1@example.com / Demo#2026Sst");
-  console.log("  Usuario 2     : usuario2@example.com / Demo#2026Sst");
+  console.log("  Administrador : código DEMO-ADMIN / Demo#2026Sst");
+  console.log("  Usuario 1     : código DEMO-USER1 / Demo#2026Sst");
+  console.log("  Usuario 2     : código DEMO-USER2 / Demo#2026Sst");
+  console.log("Piloto ECSA: cada trabajador ingresa con su código (columna ID. del Excel)");
+  console.log(`  y la contraseña compartida Demo#2026Sst — se les pide crear una propia al entrar.`);
+  console.log(`  Cuenta admin del piloto: código ${PILOT_ADMIN_CODE} / Demo#2026Sst`);
   console.log("--------------------------------------------------");
 
   async function seedQuestion(
@@ -431,6 +443,140 @@ async function main() {
         order,
         points: 1,
         options: { create: options.map(([t, correct], i) => ({ text: t, isCorrect: correct, order: i + 1 })) },
+      },
+    });
+  }
+}
+
+// Palabras que van en minúscula dentro de un nombre (excepto si son la
+// primera palabra) — convención habitual en nombres compuestos en español.
+const NAME_LOWERCASE_WORDS = new Set(["de", "del", "la", "las", "los", "y"]);
+
+function toTitleCase(fullNameUpper: string): string {
+  return fullNameUpper
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word, i) => (i > 0 && NAME_LOWERCASE_WORDS.has(word) ? word : word.charAt(0).toUpperCase() + word.slice(1)))
+    .join(" ");
+}
+
+// El archivo fuente trae el nombre completo en una sola columna ("NOMBRES"),
+// en el orden habitual de cédula ecuatoriana: 2 apellidos + nombre(s). Con 2
+// palabras (nombres extranjeros: "ZHU DAITING") se asume apellido + nombre.
+function splitFullName(raw: string): { firstName: string; lastName: string } {
+  const words = raw.trim().split(/\s+/);
+  if (words.length <= 2) {
+    return { lastName: toTitleCase(words[0] ?? ""), firstName: toTitleCase(words.slice(1).join(" ")) };
+  }
+  return { lastName: toTitleCase(words.slice(0, 2).join(" ")), firstName: toTitleCase(words.slice(2).join(" ")) };
+}
+
+interface PilotUserRow {
+  name: string;
+  code: string;
+  position: string;
+  category: "ADM" | "OPERATIVO";
+}
+
+// Lote de la prueba piloto (Códigos.xlsx, hoja "Hoja1") — empresa ECSA,
+// departamento "Gestión de Seguridad Industrial y Salud Ocupacional" para
+// todos. Se excluye deliberadamente a Randy Alvarez (código 1003460):
+// será creado manualmente como administrador aparte.
+const PILOT_USERS: PilotUserRow[] = [
+  { name: "FUENTES ESMERALDAS JUAN JOSE", code: "1000337", position: "AUXILIAR I GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "ORDOÑEZ AREVALO FRANKLIN HUMBERTO", code: "1000354", position: "AUXILIAR I GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "URDIALES JARRO MARIA ANGELITA", code: "1000459", position: "AUXILIAR I GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "CRUZ NOVILLO EDGAR VICENTE", code: "1000503", position: "AUXILIAR I GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "BUCHELI ALBAN JUAN ANDRES", code: "1000935", position: "SUPERVISOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "ADM" },
+  { name: "VIVANCO COLLAGUAZO DARWIN ARTEMAN", code: "1000988", position: "GERENTE DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "ADM" },
+  { name: "MALDONADO MALDONADO EDISON GERMAN", code: "1001033", position: "COORDINADOR SEMISENIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "IZA TOAPANTA DORIS FABIOLA", code: "1001155", position: "COORDINADOR SENIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "ADM" },
+  { name: "TORRES SUMBA MAURICIO GABRIEL", code: "1001608", position: "COORDINADOR SEMISENIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "JANETA PAUCAR ALEX FABIAN", code: "1001677", position: "COORDINADOR JUNIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "QUEZADA RIVERA LUIS FERNANDO", code: "1001701", position: "COORDINADOR JUNIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "ZHU DAITING", code: "1001788", position: "GERENTE DE SEGURIDAD INDUSTRIAL Y SALUD OCUPACIONAL", category: "ADM" },
+  { name: "CURIPOMA REMACHE MARJEORY FERNANDA", code: "1001958", position: "AUXILIAR II GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "ADM" },
+  { name: "GONZAGA VALLEJO JUAN FRANKLIN", code: "1002199", position: "COORDINADOR JUNIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "QUEZADA PARDO ANA DEL CISNE", code: "1002234", position: "COORDINADOR SEMISENIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "ADM" },
+  { name: "GONZAGA SANCHEZ MAX ENRIQUE", code: "1002238", position: "COORDINADOR JUNIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "TORRES LUNA OMAR GUILLERMO", code: "1002237", position: "PARAMEDICO", category: "OPERATIVO" },
+  { name: "CASTRO ROMERO GONZALO DANIEL", code: "1002241", position: "COORDINADOR JUNIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "TENECELA GONZALEZ FRANKLIN JOSE", code: "1002240", position: "COORDINADOR JUNIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "ALVARADO FLORES JESSICA JOHANNA", code: "1002244", position: "PARAMEDICO II", category: "OPERATIVO" },
+  { name: "FLORES BOADA ANGELA ESTEFANIA", code: "1002245", position: "PARAMEDICO", category: "OPERATIVO" },
+  { name: "SANCHEZ DIAZ EDDY PATRICIO", code: "1002246", position: "MEDICO OCUPACIONAL", category: "OPERATIVO" },
+  { name: "PLACENCIA ORELLANA CHRISTIAN FABIAN", code: "1002274", position: "COORDINADOR JUNIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "GUAMAN ALTAMIRANO CRISTINA ABIGAIL", code: "1002373", position: "COORDINADOR JUNIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "JAPON NAMICELA ROMARIO JOSE", code: "1002374", position: "ASISTENTE I DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "ADM" },
+  { name: "CASTILLO JIMENEZ CRISTIAN ROMAN", code: "1002390", position: "AUXILIAR II GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "GONZALEZ ESPINOZA FREDDY EDUARDO", code: "1002487", position: "COORDINADOR JUNIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "PEÑA CEDEÑO ARACELY ELIZABETH", code: "1002485", position: "MEDICO OCUPACIONAL", category: "OPERATIVO" },
+  { name: "MORALES LLUMAN ANGEL FABIAN", code: "1002601", position: "COORDINADOR SEMISENIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "RIVADENEIRA AVILA JUAN DIEGO", code: "1002607", position: "COORDINADOR SEMISENIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "LARREATEGUI MORENO LAURO IVAN", code: "1002659", position: "COORDINADOR SEMISENIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "MARIN ULLAURI IVAN PATRICIO", code: "1002662", position: "COORDINADOR SEMISENIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "CAMPOVERDE RUIZ CARLOS EDUARDO", code: "1002758", position: "COORDINADOR JUNIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "GUALAN TORRES THALIA FERNANDA", code: "1002801", position: "MEDICO OCUPACIONAL", category: "OPERATIVO" },
+  { name: "CARVAJAL GARCIA MARIO GIOVANNI", code: "1002893", position: "COORDINADOR JUNIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "CUENCA ZARI HOLGER MAURICIO", code: "1002934", position: "AUXILIAR I GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "TABARA YAGUACHI CARLOS ALBERTO", code: "1002933", position: "ASISTENTE I DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "MORA BARROSO GIOVANNY EFRAIN", code: "1002954", position: "COORDINADOR JUNIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "MAIGUASHCA GUZMAN JUAN PABLO", code: "1002995", position: "COORDINADOR JUNIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "LOAYZA ARMIJOS YARITZA NOHELIA", code: "1003118", position: "ASISTENTE I DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "MOROCHO NAVAS DIANA KARINA", code: "1003119", position: "ASISTENTE I DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "JIAN LIU", code: "1003135", position: "INGENIERO SENIOR", category: "ADM" },
+  { name: "ENCALADA TORRES PABLO ANDRES", code: "1003138", position: "ASISTENTE I DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "REYES VEGAS MARICELA NOEMI", code: "1003253", position: "AUXILIAR I GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "ROMERO LEON CARLOS ALFREDO", code: "1003279", position: "COORDINADOR JUNIOR DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "OPERATIVO" },
+  { name: "HU CHENGCHENG", code: "1003558", position: "ASISTENTE I DE GESTION DE SEGURIDAD Y SALUD OCUPACIONAL", category: "ADM" },
+  { name: "PIGUABE JIMENEZ JUAN CARLOS", code: "1003561", position: "PARAMEDICO", category: "OPERATIVO" },
+];
+
+const PILOT_COMPANY = "ECSA";
+const PILOT_AREA = "GESTION DE SEGURIDAD INDUSTRIAL Y SALUD OCUPACIONAL";
+const PILOT_ADMIN_CODE = "1000001";
+
+async function seedPilotUsers(adminRoleId: string, userRoleId: string, sharedPasswordHash: string) {
+  // Cuenta administrativa del piloto — Randy Alvarez (código 1003460, excluido
+  // de este lote) se crea aparte manualmente y usará su propia cuenta admin.
+  await prisma.user.upsert({
+    where: { code: PILOT_ADMIN_CODE },
+    update: {},
+    create: {
+      email: `${PILOT_ADMIN_CODE}@ecsa.local`,
+      code: PILOT_ADMIN_CODE,
+      passwordHash: sharedPasswordHash,
+      firstName: "Administrador",
+      lastName: "SST",
+      company: PILOT_COMPANY,
+      area: PILOT_AREA,
+      position: "Administrador del portal",
+      category: "ADM",
+      roleId: adminRoleId,
+      mustChangePassword: true,
+      isDemo: false,
+    },
+  });
+
+  for (const row of PILOT_USERS) {
+    const { firstName, lastName } = splitFullName(row.name);
+    await prisma.user.upsert({
+      where: { code: row.code },
+      update: {},
+      create: {
+        email: `${row.code}@ecsa.local`,
+        code: row.code,
+        passwordHash: sharedPasswordHash,
+        firstName,
+        lastName,
+        company: PILOT_COMPANY,
+        area: PILOT_AREA,
+        position: row.position,
+        category: row.category,
+        roleId: userRoleId,
+        mustChangePassword: true,
+        isDemo: false,
       },
     });
   }

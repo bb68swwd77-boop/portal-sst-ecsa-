@@ -27,22 +27,23 @@ authRouter.post(
   loginRateLimiter,
   validateBody(loginSchema),
   asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    const { code, password } = req.body;
     try {
-      const user = await authenticate(email, password);
+      const user = await authenticate(code, password);
       await createSession(res, user.id, req);
       await audit({ userId: user.id, action: "auth.login", result: "success", req });
       res.json({
         user: {
           id: user.id,
           email: user.email,
+          code: user.code,
           firstName: user.firstName,
           lastName: user.lastName,
           mustChangePassword: user.mustChangePassword,
         },
       });
     } catch (err) {
-      await audit({ action: "auth.login", result: "failure", req, metadata: { email } });
+      await audit({ action: "auth.login", result: "failure", req, metadata: { code } });
       throw err;
     }
   })

@@ -38,8 +38,13 @@ export const AREAS = [
   "TALLER TRITURACION DEL NORTE",
   "TALLER DE MANTENIMIENTO DE M&V",
   "CONTRATISTA",
+  "GESTION DE SEGURIDAD INDUSTRIAL Y SALUD OCUPACIONAL",
   "N/A",
 ];
+
+// Categoría de personal — usada para asignar capacitaciones por categoría
+// además de empresa/área/cargo.
+export const CATEGORIES = ["ADM", "OPERATIVO"];
 
 export const POSITIONS = [
   "SUPERVISOR DE CONSTRUCCION",

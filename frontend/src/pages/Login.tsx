@@ -9,7 +9,7 @@ export function LoginPage() {
   const { login, user } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -23,7 +23,7 @@ export function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      await login(email, password);
+      await login(code, password);
       navigate("/portal", { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? t(err.message) : t("No fue posible iniciar sesión."));
@@ -47,14 +47,15 @@ export function LoginPage() {
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="field">
-            <label htmlFor="email">{t("Correo electrónico")}</label>
+            <label htmlFor="code">{t("Código de trabajador")}</label>
             <input
-              id="email"
-              type="email"
+              id="code"
+              type="text"
+              inputMode="numeric"
               autoComplete="username"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
             />
           </div>
           <div className="field">
@@ -83,7 +84,7 @@ export function LoginPage() {
         </div>
 
         <p className="field-hint mt-16">
-          {t("Acceso DEMO: admin@example.com / usuario1@example.com — contraseña Demo#2026Sst")}
+          {t("Acceso DEMO: código DEMO-ADMIN / DEMO-USER1 — contraseña Demo#2026Sst")}
         </p>
       </div>
     </AuthLayout>

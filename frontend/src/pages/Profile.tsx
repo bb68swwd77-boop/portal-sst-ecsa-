@@ -5,12 +5,14 @@ import { useLanguage } from "../context/LanguageContext";
 
 interface Profile {
   email: string;
+  code: string | null;
   firstName: string;
   lastName: string;
   documentId: string | null;
   company: string | null;
   area: string | null;
   position: string | null;
+  category: string | null;
   lastLoginAt: string | null;
 }
 
@@ -55,7 +57,7 @@ export function ProfilePage() {
             {profile.firstName} {profile.lastName}
           </strong>
           <br />
-          {profile.email}
+          {profile.code ? `${t("Código de trabajador:")} ${profile.code}` : profile.email}
           <br />
           {profile.company && (
             <>
@@ -72,6 +74,12 @@ export function ProfilePage() {
           {profile.position && (
             <>
               {t("Cargo:")} {profile.position}
+              <br />
+            </>
+          )}
+          {profile.category && (
+            <>
+              {t("Categoría:")} {profile.category}
               <br />
             </>
           )}

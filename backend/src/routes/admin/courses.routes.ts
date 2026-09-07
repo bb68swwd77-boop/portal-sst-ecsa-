@@ -238,7 +238,7 @@ adminCoursesRouter.post(
     if (data.targetType === "USER" && !data.userId) {
       throw new HttpError(400, "Debe indicar el usuario a asignar.");
     }
-    if (["COMPANY", "AREA", "POSITION"].includes(data.targetType) && !data.targetValue) {
+    if (["COMPANY", "AREA", "POSITION", "CATEGORY"].includes(data.targetType) && !data.targetValue) {
       throw new HttpError(400, "Debe indicar el valor de segmentación (empresa/área/cargo).");
     }
     const assignment = await prisma.courseAssignment.create({

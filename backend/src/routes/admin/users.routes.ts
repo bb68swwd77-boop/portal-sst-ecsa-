@@ -22,6 +22,7 @@ adminUsersRouter.get(
       ? {
           OR: [
             { email: { contains: search, mode: "insensitive" as const } },
+            { code: { contains: search, mode: "insensitive" as const } },
             { firstName: { contains: search, mode: "insensitive" as const } },
             { lastName: { contains: search, mode: "insensitive" as const } },
             { company: { contains: search, mode: "insensitive" as const } },
@@ -47,12 +48,14 @@ adminUsersRouter.get(
       users: users.map((u) => ({
         id: u.id,
         email: u.email,
+        code: u.code,
         firstName: u.firstName,
         lastName: u.lastName,
         documentId: u.documentId,
         company: u.company,
         area: u.area,
         position: u.position,
+        category: u.category,
         role: u.role.key,
         isActive: u.isActive,
         isDemo: u.isDemo,
@@ -70,8 +73,10 @@ adminUsersRouter.post(
   asyncHandler(async (req, res) => {
     const data = req.body as z.infer<typeof createUserSchema>;
     const role = await prisma.role.findUniqueOrThrow({ where: { key: data.roleKey } });
-    const existing = await prisma.user.findUnique({ where: { email: data.email } });
-    if (existing) throw new HttpError(409, "Ya existe un usuario con ese correo.");
+    const existingEmail = await prisma.user.findUnique({ where: { email: data.email } });
+    if (existingEmail) throw new HttpError(409, "Ya existe un usuario con ese correo.");
+    const existingCode = await prisma.user.findUnique({ where: { code: data.code } });
+    if (existingCode) throw new HttpError(409, "Ya existe un usuario con ese código.");
 
     // Contraseña temporal aleatoria: el usuario debe restablecerla en su primer acceso.
     const tempPassword = crypto.randomBytes(12).toString("base64url");
@@ -80,12 +85,14 @@ adminUsersRouter.post(
     const user = await prisma.user.create({
       data: {
         email: data.email,
+        code: data.code,
         firstName: data.firstName,
         lastName: data.lastName,
         documentId: data.documentId,
         company: data.company,
         area: data.area,
         position: data.position,
+        category: data.category,
         roleId: role.id,
         passwordHash,
         mustChangePassword: true,
@@ -95,7 +102,7 @@ adminUsersRouter.post(
     await audit({ userId: req.currentUser!.id, action: "user.create", resource: `User:${user.id}`, result: "success", req });
 
     res.status(201).json({
-      user: { id: user.id, email: user.email },
+      user: { id: user.id, email: user.email, code: user.code },
       // Se expone solo en respuesta directa al admin que lo crea (no queda en logs ni en BD en texto plano).
       temporaryPassword: tempPassword,
     });

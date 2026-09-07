@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({
-  email: z.string().trim().toLowerCase().email("Correo inválido").max(255),
+  code: z.string().trim().min(1, "El código es obligatorio").max(50),
   password: z.string().min(1, "La contraseña es obligatoria").max(200),
 });
 

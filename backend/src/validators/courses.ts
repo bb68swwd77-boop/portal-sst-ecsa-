@@ -39,7 +39,7 @@ export const lessonSchema = z.object({
 });
 
 export const assignmentSchema = z.object({
-  targetType: z.enum(["USER", "COMPANY", "AREA", "POSITION", "ALL"]),
+  targetType: z.enum(["USER", "COMPANY", "AREA", "POSITION", "CATEGORY", "ALL"]),
   userId: z.string().cuid().optional(),
   targetValue: z.string().trim().max(200).optional(),
   mandatory: z.boolean().default(true),

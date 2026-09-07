@@ -44,16 +44,27 @@ npm run dev              # http://localhost:5173
 
 ## Credenciales DEMO
 
-Generadas por `npm run seed`, **solo para entornos de desarrollo**:
+El acceso es por **código de trabajador**, no por correo. Generadas por
+`npm run seed`, **solo para entornos de desarrollo**:
 
-| Rol | Correo | Contraseña |
+| Rol | Código | Contraseña |
 |---|---|---|
-| Administrador | admin@example.com | Demo#2026Sst |
-| Capacitado | usuario1@example.com | Demo#2026Sst |
-| Capacitado | usuario2@example.com | Demo#2026Sst |
+| Administrador | DEMO-ADMIN | Demo#2026Sst |
+| Capacitado | DEMO-USER1 | Demo#2026Sst |
+| Capacitado | DEMO-USER2 | Demo#2026Sst |
 
 Cambia estas contraseñas o elimina los usuarios DEMO (`isDemo: true`) antes de
 usar el sistema con datos reales.
+
+### Usuarios piloto ECSA
+
+El seed también crea el lote de la prueba piloto (ver `prisma/seed.ts`,
+`PILOT_USERS`): cada trabajador ingresa con el código de la columna `ID.` del
+archivo fuente y la misma contraseña compartida `Demo#2026Sst`; al ingresar se
+les exige crear una contraseña propia (`mustChangePassword: true`). La cuenta
+administrativa del piloto usa el código `1000001`. Randy Alvarez (código
+1003460 en el archivo fuente) se excluye deliberadamente de este lote — se
+crea manualmente como administrador aparte.
 
 ## Seguridad — resumen
 

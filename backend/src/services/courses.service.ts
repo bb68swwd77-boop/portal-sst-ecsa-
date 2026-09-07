@@ -7,6 +7,7 @@ interface UserForAssignment {
   company: string | null;
   area: string | null;
   position: string | null;
+  category: string | null;
 }
 
 export async function getAssignedCourseIdsForUser(user: UserForAssignment): Promise<Set<string>> {
@@ -18,6 +19,7 @@ export async function getAssignedCourseIdsForUser(user: UserForAssignment): Prom
         user.company ? { targetType: "COMPANY", targetValue: user.company } : undefined,
         user.area ? { targetType: "AREA", targetValue: user.area } : undefined,
         user.position ? { targetType: "POSITION", targetValue: user.position } : undefined,
+        user.category ? { targetType: "CATEGORY", targetValue: user.category } : undefined,
       ].filter(Boolean) as any,
     },
     select: { courseId: true },

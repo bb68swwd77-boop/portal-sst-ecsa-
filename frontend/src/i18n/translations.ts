@@ -37,14 +37,24 @@ export const translations: Record<string, string> = {
   // --- Auth: login / recuperar / restablecer / verificar --------------
   "No fue posible iniciar sesión.": "无法登录。",
   "Portal de Capacitación SST": "职业健康安全培训门户",
+  "Código de trabajador": "员工代码",
+  "Código o contraseña incorrectos.": "代码或密码错误。",
   "Correo electrónico": "电子邮箱",
   Contraseña: "密码",
   "Ingresando…": "登录中…",
   "Iniciar sesión": "登录",
   "¿Olvidó su contraseña?": "忘记密码？",
   "Verificar certificado": "验证证书",
-  "Acceso DEMO: admin@example.com / usuario1@example.com — contraseña Demo#2026Sst":
-    "演示账号：admin@example.com / usuario1@example.com — 密码 Demo#2026Sst",
+  "Acceso DEMO: código DEMO-ADMIN / DEMO-USER1 — contraseña Demo#2026Sst":
+    "演示账号：代码 DEMO-ADMIN / DEMO-USER1 — 密码 Demo#2026Sst",
+
+  // --- Auth: cambio de contraseña obligatorio (primer acceso) ---------
+  "Cree su nueva contraseña": "创建您的新密码",
+  "Por seguridad, debe cambiar la contraseña temporal antes de continuar.":
+    "出于安全考虑，您必须先更改临时密码才能继续。",
+  "Contraseña temporal": "临时密码",
+  "Mínimo 10 caracteres, con mayúscula, minúscula y número.": "至少10个字符，包含大写字母、小写字母和数字。",
+  "Guardar y continuar": "保存并继续",
   "No fue posible procesar la solicitud.": "无法处理该请求。",
   "Recuperar contraseña": "找回密码",
   "Modo DEMO (sin correo configurado):": "演示模式（未配置邮件服务）：",
@@ -147,6 +157,8 @@ export const translations: Record<string, string> = {
   "No fue posible cambiar la contraseña.": "无法修改密码。",
   "Área:": "部门：",
   "Cargo:": "职位：",
+  "Categoría:": "类别：",
+  "Código de trabajador:": "员工代码：",
   "Identificación:": "证件号码：",
   "Último acceso:": "上次登录：",
   "Cambiar contraseña": "修改密码",
@@ -174,7 +186,7 @@ export const translations: Record<string, string> = {
   "No fue posible actualizar el usuario.": "无法更新用户信息。",
   "Gestión de trabajadores, contratistas y administradores.": "管理员工、承包商和管理员账户。",
   "Nuevo usuario": "新建用户",
-  "Buscar por nombre, correo o empresa": "按姓名、邮箱或公司搜索",
+  "Buscar por nombre, código, correo o empresa": "按姓名、代码、邮箱或公司搜索",
   Buscar: "搜索",
   Nombre: "姓名",
   Correo: "邮箱",

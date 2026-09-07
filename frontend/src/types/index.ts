@@ -1,10 +1,12 @@
 export interface CurrentUser {
   id: string;
   email: string;
+  code: string | null;
   firstName: string;
   lastName: string;
   roleKey: "admin" | "user";
   permissions: string[];
+  mustChangePassword: boolean;
 }
 
 export interface DashboardCourse {

@@ -1137,6 +1137,7 @@ function AssignmentsSection({
             <option value="COMPANY">{t("Empresa")}</option>
             <option value="AREA">{t("Área")}</option>
             <option value="POSITION">{t("Cargo")}</option>
+            <option value="CATEGORY">{t("Categoría")}</option>
             <option value="ALL">{t("Todos los usuarios")}</option>
           </select>
         </div>

@@ -5,10 +5,13 @@ import { getValidSession, SESSION_COOKIE } from "../lib/session";
 export interface AuthenticatedUser {
   id: string;
   email: string;
+  code: string | null;
   firstName: string;
   lastName: string;
+  category: string | null;
   roleKey: string;
   permissions: Set<string>;
+  mustChangePassword: boolean;
 }
 
 declare global {
@@ -45,10 +48,13 @@ export async function loadSession(req: Request, res: Response, next: NextFunctio
   req.currentUser = {
     id: user.id,
     email: user.email,
+    code: user.code,
     firstName: user.firstName,
     lastName: user.lastName,
+    category: user.category,
     roleKey: user.role.key,
     permissions: new Set(user.role.permissions.map((rp) => rp.permission.key)),
+    mustChangePassword: user.mustChangePassword,
   };
   next();
 }

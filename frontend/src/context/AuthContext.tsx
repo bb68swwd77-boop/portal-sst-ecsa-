@@ -5,7 +5,7 @@ import type { CurrentUser } from "../types";
 interface AuthContextValue {
   user: CurrentUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (code: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   hasPermission: (key: string) => boolean;
   refresh: () => Promise<void>;
@@ -17,10 +17,12 @@ interface MePayload {
   user: {
     id: string;
     email: string;
+    code: string | null;
     firstName: string;
     lastName: string;
     roleKey: "admin" | "user";
     permissions: string[] | Set<string>;
+    mustChangePassword: boolean;
   };
 }
 
@@ -57,8 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refresh();
   }, [refresh]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    await api.post("/auth/login", { email, password });
+  const login = useCallback(async (code: string, password: string) => {
+    await api.post("/auth/login", { code, password });
     await refresh();
   }, [refresh]);
 

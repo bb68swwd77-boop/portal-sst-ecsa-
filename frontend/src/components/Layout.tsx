@@ -92,7 +92,7 @@ export function Layout() {
           <div className="sidebar-user mt-8">
             {user?.firstName} {user?.lastName}
             <br />
-            <span className="text-muted">{user?.email}</span>
+            <span className="text-muted">{user?.code ?? user?.email}</span>
           </div>
           <button className="btn btn-secondary btn-sm" onClick={handleLogout} style={{ width: "100%" }}>
             {t("Cerrar sesión")}

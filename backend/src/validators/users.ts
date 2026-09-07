@@ -2,12 +2,14 @@ import { z } from "zod";
 
 export const createUserSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(255),
+  code: z.string().trim().min(1, "El código es obligatorio").max(50),
   firstName: z.string().trim().min(1).max(100),
   lastName: z.string().trim().min(1).max(100),
   documentId: z.string().trim().max(50).optional(),
   company: z.string().trim().max(150).optional(),
   area: z.string().trim().max(150).optional(),
   position: z.string().trim().max(150).optional(),
+  category: z.string().trim().max(100).optional(),
   roleKey: z.enum(["admin", "user"]).default("user"),
 });
 

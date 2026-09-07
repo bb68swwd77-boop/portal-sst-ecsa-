@@ -4,17 +4,19 @@ import { Modal } from "../../components/Modal";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
-import { AREAS, COMPANIES, POSITIONS } from "../../constants/organization";
+import { AREAS, CATEGORIES, COMPANIES, POSITIONS } from "../../constants/organization";
 
 interface AdminUser {
   id: string;
   email: string;
+  code: string | null;
   firstName: string;
   lastName: string;
   documentId: string | null;
   company: string | null;
   area: string | null;
   position: string | null;
+  category: string | null;
   role: "admin" | "user";
   isActive: boolean;
   isDemo: boolean;
@@ -23,12 +25,14 @@ interface AdminUser {
 
 const emptyForm = {
   email: "",
+  code: "",
   firstName: "",
   lastName: "",
   documentId: "",
   company: "",
   area: "",
   position: "",
+  category: "",
   roleKey: "user" as "admin" | "user",
 };
 
@@ -97,12 +101,14 @@ export function AdminUsersPage() {
     setEditError(null);
     setEditForm({
       email: u.email,
+      code: u.code ?? "",
       firstName: u.firstName,
       lastName: u.lastName,
       documentId: u.documentId ?? "",
       company: u.company ?? "",
       area: u.area ?? "",
       position: u.position ?? "",
+      category: u.category ?? "",
       roleKey: u.role,
     });
   }
@@ -134,7 +140,7 @@ export function AdminUsersPage() {
       </div>
 
       <form onSubmit={handleSearch} className="flex gap-8 mt-16" style={{ maxWidth: 400 }}>
-        <input placeholder={t("Buscar por nombre, correo o empresa")} value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input placeholder={t("Buscar por nombre, código, correo o empresa")} value={search} onChange={(e) => setSearch(e.target.value)} />
         <button className="btn btn-secondary" type="submit">
           {t("Buscar")}
         </button>
@@ -145,9 +151,10 @@ export function AdminUsersPage() {
           <thead>
             <tr>
               <th>{t("Nombre")}</th>
-              <th>{t("Correo")}</th>
+              <th>{t("Código")}</th>
               <th>{t("Empresa")}</th>
               <th>{t("Área")}</th>
+              <th>{t("Categoría")}</th>
               <th>{t("Rol")}</th>
               <th>{t("Estado")}</th>
               <th>{t("Último acceso")}</th>
@@ -160,9 +167,10 @@ export function AdminUsersPage() {
                 <td>
                   {u.firstName} {u.lastName}
                 </td>
-                <td>{u.email}</td>
+                <td>{u.code ?? "—"}</td>
                 <td>{u.company ?? "—"}</td>
                 <td>{u.area ?? "—"}</td>
+                <td>{u.category ?? "—"}</td>
                 <td>{u.role === "admin" ? t("Administrador") : t("Capacitado")}</td>
                 <td>
                   <span className={`badge badge-status-${u.isActive ? "completed" : "overdue"}`}>
@@ -233,9 +241,15 @@ export function AdminUsersPage() {
                   <input required value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
                 </div>
               </div>
-              <div className="field">
-                <label>{t("Correo electrónico")}</label>
-                <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <div className="form-row">
+                <div className="field">
+                  <label>{t("Código de trabajador")}</label>
+                  <input required value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />
+                </div>
+                <div className="field">
+                  <label>{t("Correo electrónico")}</label>
+                  <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                </div>
               </div>
               <div className="form-row">
                 <div className="field">
@@ -274,12 +288,23 @@ export function AdminUsersPage() {
                   </select>
                 </div>
                 <div className="field">
-                  <label>{t("Rol")}</label>
-                  <select value={form.roleKey} onChange={(e) => setForm({ ...form, roleKey: e.target.value as "admin" | "user" })}>
-                    <option value="user">{t("Capacitado / Contratista")}</option>
-                    <option value="admin">{t("Administrador")}</option>
+                  <label>{t("Categoría")}</label>
+                  <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                    <option value="">{t("Seleccionar…")}</option>
+                    {CATEGORIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
                   </select>
                 </div>
+              </div>
+              <div className="field">
+                <label>{t("Rol")}</label>
+                <select value={form.roleKey} onChange={(e) => setForm({ ...form, roleKey: e.target.value as "admin" | "user" })}>
+                  <option value="user">{t("Capacitado / Contratista")}</option>
+                  <option value="admin">{t("Administrador")}</option>
+                </select>
               </div>
               <button className="btn btn-primary" type="submit">
                 {t("Crear usuario")}
@@ -303,9 +328,15 @@ export function AdminUsersPage() {
                 <input required value={editForm.lastName} onChange={(e) => setEditForm({ ...editForm, lastName: e.target.value })} />
               </div>
             </div>
-            <div className="field">
-              <label>{t("Correo electrónico")}</label>
-              <input type="email" required value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+            <div className="form-row">
+              <div className="field">
+                <label>{t("Código de trabajador")}</label>
+                <input required value={editForm.code} onChange={(e) => setEditForm({ ...editForm, code: e.target.value })} />
+              </div>
+              <div className="field">
+                <label>{t("Correo electrónico")}</label>
+                <input type="email" required value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+              </div>
             </div>
             <div className="field">
               <label>{t("Identificación")}</label>
@@ -348,17 +379,28 @@ export function AdminUsersPage() {
                 </select>
               </div>
               <div className="field">
-                <label>{t("Rol")}</label>
-                <select
-                  value={editForm.roleKey}
-                  disabled={editingUser.id === currentUser?.id}
-                  onChange={(e) => setEditForm({ ...editForm, roleKey: e.target.value as "admin" | "user" })}
-                >
-                  <option value="user">{t("Capacitado / Contratista")}</option>
-                  <option value="admin">{t("Administrador")}</option>
+                <label>{t("Categoría")}</label>
+                <select value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}>
+                  <option value="">{t("Seleccionar…")}</option>
+                  {CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
                 </select>
-                {editingUser.id === currentUser?.id && <div className="field-hint">{t("No puede cambiar su propio rol.")}</div>}
               </div>
+            </div>
+            <div className="field">
+              <label>{t("Rol")}</label>
+              <select
+                value={editForm.roleKey}
+                disabled={editingUser.id === currentUser?.id}
+                onChange={(e) => setEditForm({ ...editForm, roleKey: e.target.value as "admin" | "user" })}
+              >
+                <option value="user">{t("Capacitado / Contratista")}</option>
+                <option value="admin">{t("Administrador")}</option>
+              </select>
+              {editingUser.id === currentUser?.id && <div className="field-hint">{t("No puede cambiar su propio rol.")}</div>}
             </div>
             <button className="btn btn-primary" type="submit">
               {t("Guardar cambios")}
