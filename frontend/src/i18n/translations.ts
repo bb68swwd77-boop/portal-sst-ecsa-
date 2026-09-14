@@ -15,7 +15,6 @@ export const translations: Record<string, string> = {
   Reportes: "报表",
   Auditoría: "审计日志",
   "Capacitaciones de Seguridad y Salud en el Trabajo ECSA": "ECSA 职业健康与安全培训",
-  "Seguridad y Salud Ocupacional": "职业健康与安全",
   "Ir al portal del capacitado": "前往学员门户",
   "Cerrar sesión": "退出登录",
   "Sesión cerrada por inactividad.": "由于长时间无操作，登录已自动退出。",
@@ -23,7 +22,6 @@ export const translations: Record<string, string> = {
   "Ocultar menú": "隐藏菜单",
   "Abrir menú": "打开菜单",
   "Capacitación SST": "职业健康与安全培训",
-  "Módulos, evaluaciones y certificados verificables en un solo portal.": "模块、考核和可验证证书，尽在一个门户网站。",
 
   // --- Auth: bienvenida / inducción de visitantes ----------------------
   "Seleccione una opción para continuar.": "请选择一个选项以继续。",

@@ -588,91 +588,49 @@ h4 {
 /* ---------- Auth screens ---------- */
 
 .auth-shell {
+  position: relative;
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr;
-  background: var(--color-bg);
-}
-
-.auth-hero {
-  position: relative;
-  overflow: hidden;
-  display: none;
-}
-
-.auth-hero img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  /* La foto trae el isotipo de ECSA en la esquina superior derecha: se
-     ancla el recorte a la derecha/arriba para que quede visible. */
-  object-position: 88% 12%;
-}
-
-.auth-hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(10, 22, 40, 0.15) 0%, rgba(10, 22, 40, 0.55) 55%, rgba(10, 22, 40, 0.92) 100%),
-    linear-gradient(90deg, rgba(10, 22, 40, 0.35) 0%, transparent 40%);
-}
-
-.auth-hero-caption {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 40px;
-  z-index: 1;
-  /* Este panel se apoya sobre una foto con degradado oscuro (arriba), no
-     sobre el fondo de la app, así que su texto se mantiene claro sin
-     importar el tema activo. */
-  color: #eef2f7;
-}
-
-.auth-hero-caption .mark {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #7fd6d6;
-}
-
-.auth-hero-caption h2 {
-  font-size: 26px;
-  margin: 8px 0 6px;
-  max-width: 560px;
-  color: #eef2f7;
-}
-
-.auth-hero-caption p {
-  color: #c3cddb;
-  max-width: 380px;
-  margin: 0;
-}
-
-.auth-panel {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: radial-gradient(circle at top, #ffffff 0%, #eef1f6 65%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #0a1628; /* evita destello blanco mientras carga la imagen */
 }
 
 .auth-lang {
   position: absolute;
   top: 20px;
   right: 20px;
+  z-index: 2;
 }
 
-@media (min-width: 900px) {
-  .auth-shell {
-    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
-  }
-  .auth-hero {
-    display: block;
+.auth-panel {
+  /* Centrada sobre el punto medio del recuadro azul dibujado en el banner de
+     fondo — se ancla por el centro (no por altura fija) para que una
+     tarjeta más alta (ej. login con más campos) crezca simétricamente sin
+     desalinearse del recuadro. */
+  position: absolute;
+  top: 55%;
+  left: 78%;
+  width: 38%;
+  max-width: 460px;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+@media (max-width: 900px) {
+  .auth-panel {
+    position: static;
+    top: auto;
+    left: auto;
+    width: 100%;
+    max-width: none;
+    min-height: 100vh;
+    transform: none;
+    padding: 24px;
+    background: linear-gradient(180deg, rgba(10, 22, 40, 0.2) 0%, rgba(10, 22, 40, 0.78) 55%, rgba(10, 22, 40, 0.94) 100%);
   }
 }
 

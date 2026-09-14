@@ -1,24 +1,15 @@
 import type { ReactNode } from "react";
-import coverMineria from "../assets/cover-mineria.jpg";
-import { useLanguage } from "../context/LanguageContext";
+import heroBanner from "../assets/hero-banner.png";
 import { LanguageToggle } from "./LanguageToggle";
 
+// El banner ya trae el logo, el mensaje y el mascote ECSA integrados a la
+// imagen — el recuadro azul reservado en el diseño es donde se superpone la
+// tarjeta de acceso (ver .auth-panel en theme.css).
 export function AuthLayout({ children }: { children: ReactNode }) {
-  const { t } = useLanguage();
   return (
-    <div className="auth-shell">
-      <div className="auth-hero" role="presentation">
-        <img src={coverMineria} alt="" />
-        <div className="auth-hero-caption">
-          <span className="mark">ECSA · Mina Mirador</span>
-          <h2>{t("Seguridad y Salud Ocupacional")}</h2>
-          <p>{t("Módulos, evaluaciones y certificados verificables en un solo portal.")}</p>
-        </div>
-      </div>
-      <div className="auth-panel">
-        <LanguageToggle className="auth-lang" />
-        {children}
-      </div>
+    <div className="auth-shell" style={{ backgroundImage: `url(${heroBanner})` }}>
+      <LanguageToggle className="auth-lang" />
+      <div className="auth-panel">{children}</div>
     </div>
   );
 }
