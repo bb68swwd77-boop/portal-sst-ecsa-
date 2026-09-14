@@ -607,12 +607,14 @@ h4 {
   /* Centrada sobre el punto medio del recuadro azul dibujado en el banner de
      fondo — se ancla por el centro (no por altura fija) para que una
      tarjeta más alta (ej. login con más campos) crezca simétricamente sin
-     desalinearse del recuadro. */
+     desalinearse del recuadro. El ancho sigue siendo un % del viewport (no
+     un máximo fijo bajo) para que escale junto con el recuadro, que también
+     crece con el viewport por el background-size:cover. */
   position: absolute;
   top: 55%;
   left: 78%;
-  width: 38%;
-  max-width: 460px;
+  width: 36%;
+  max-width: 620px;
   transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
@@ -636,7 +638,7 @@ h4 {
 
 .auth-card {
   width: 100%;
-  max-width: 400px;
+  max-width: 560px;
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
