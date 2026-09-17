@@ -87,9 +87,6 @@ export const translations: Record<string, string> = {
   Pendiente: "待处理",
   Completado: "已完成",
   Vencido: "已逾期",
-  Bloqueado: "已锁定",
-  "Complete el módulo anterior para desbloquear.": "请先完成上一个模块以解锁。",
-  "Debe completar el módulo anterior antes de continuar.": "请先完成上一个模块才能继续。",
 
   // --- Dashboard --------------------------------------------------------
   "Capacitaciones asignadas": "已分配的培训",
@@ -242,6 +239,7 @@ export const translations: Record<string, string> = {
   "¿Eliminar esta lección?": "确定删除该课时吗？",
   "¿Eliminar esta pregunta?": "确定删除该题目吗？",
   "Información general": "基本信息",
+  "Imagen referencial (URL)": "参考图片（URL）",
   Lección: "课时",
   Tipo: "类型",
   Eliminar: "删除",

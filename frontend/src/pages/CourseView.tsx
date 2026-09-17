@@ -4,6 +4,7 @@ import { api, apiUrl, ApiError } from "../api/client";
 import { useToast } from "../context/ToastContext";
 import { useLanguage } from "../context/LanguageContext";
 import { extractYouTubeId, YouTubePlayer } from "../components/YouTubePlayer";
+import { ProgressBar } from "../components/ProgressBar";
 import type { CourseDetail } from "../types";
 
 export function CourseViewPage() {
@@ -84,22 +85,20 @@ export function CourseViewPage() {
       </div>
       <h2 className="page-title">{course.title}</h2>
       <p className="page-subtitle">{course.description}</p>
+      <ProgressBar percent={course.percent} label={`${course.percent}% ${t("completado")}`} />
 
-      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 24 }} className="course-layout">
+      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 24, marginTop: 16 }} className="course-layout">
         <div className="card" style={{ alignSelf: "start" }}>
           {course.modules.map((m) => (
-            <div key={m.id} className="mt-16" style={m.locked ? { opacity: 0.55 } : undefined}>
+            <div key={m.id} className="mt-16">
               <div className="text-secondary" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                {m.locked && "🔒 "}
                 {t("Módulo")} {m.order} · {m.title}
               </div>
               {m.lessons.map((l) => (
                 <button
                   key={l.id}
                   className="module-item"
-                  onClick={() => !m.locked && setActiveLessonId(l.id)}
-                  disabled={m.locked}
-                  title={m.locked ? t("Complete el módulo anterior para desbloquear.") : undefined}
+                  onClick={() => setActiveLessonId(l.id)}
                   style={{
                     display: "block",
                     width: "100%",
@@ -110,15 +109,13 @@ export function CourseViewPage() {
                     background: activeLessonId === l.id ? "var(--color-bg-subtle)" : "transparent",
                     border: activeLessonId === l.id ? "1px solid var(--color-cyan)" : "1px solid transparent",
                     color: "inherit",
-                    cursor: m.locked ? "not-allowed" : "pointer",
+                    cursor: "pointer",
                   }}
                 >
                   <div style={{ fontSize: 13 }}>{l.title}</div>
                   <div style={{ fontSize: 11 }} className={l.completed ? "" : "text-muted"}>
                     {l.completed ? (
                       <span style={{ color: "var(--color-success)" }}>✓ {t("Completado")}</span>
-                    ) : m.locked ? (
-                      t("Bloqueado")
                     ) : (
                       t("Pendiente")
                     )}
@@ -132,9 +129,7 @@ export function CourseViewPage() {
                     {t("Intentos:")} {m.evaluation.attemptsUsed}/{m.evaluation.maxAttempts}
                     {m.evaluation.lastScore !== null && ` · ${t("Último puntaje:")} ${m.evaluation.lastScore}%`}
                   </div>
-                  {m.locked ? (
-                    <span className="badge badge-status-pending mt-8">🔒 {t("Bloqueado")}</span>
-                  ) : m.evaluation.lastPassed ? (
+                  {m.evaluation.lastPassed ? (
                     <span className="badge badge-status-completed mt-8">{t("Aprobado")}</span>
                   ) : m.evaluation.canAttempt ? (
                     <Link to={`/curso/${course.id}/evaluacion/${m.evaluation.id}`} className="btn btn-primary btn-sm mt-8">

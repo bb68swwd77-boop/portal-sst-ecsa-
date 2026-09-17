@@ -59,26 +59,31 @@ export function DashboardPage() {
       <div className="card-grid">
         {items?.map((course) => (
           <div key={course.id} className="card course-card">
-            <div className="flex-between">
-              <StatusBadge status={course.status} />
-              <span className="text-muted" style={{ fontSize: 12 }}>
-                {course.moduleCount} {t(course.moduleCount !== 1 ? "módulos" : "módulo")}
-              </span>
+            <div className="course-thumb" style={course.imageUrl ? { backgroundImage: `url(${course.imageUrl})` } : undefined}>
+              {!course.imageUrl && <span className="course-thumb-fallback">🛡️</span>}
             </div>
-            <div className="course-title">{course.title}</div>
-            <div className="course-desc">{course.description}</div>
-            <div className="course-meta">
-              <span>⏱ {course.durationMin} min</span>
-              {course.dueAt && (
-                <span>
-                  {t("Vence:")} {new Date(course.dueAt).toLocaleDateString("es-EC")}
+            <div className="course-card-body">
+              <div className="flex-between">
+                <StatusBadge status={course.status} />
+                <span className="text-muted" style={{ fontSize: 12 }}>
+                  {course.moduleCount} {t(course.moduleCount !== 1 ? "módulos" : "módulo")}
                 </span>
-              )}
+              </div>
+              <div className="course-title">{course.title}</div>
+              <div className="course-desc">{course.description}</div>
+              <div className="course-meta">
+                <span>⏱ {course.durationMin} min</span>
+                {course.dueAt && (
+                  <span>
+                    {t("Vence:")} {new Date(course.dueAt).toLocaleDateString("es-EC")}
+                  </span>
+                )}
+              </div>
+              <ProgressBar percent={course.percent} label={`${course.percent}% ${t("completado")}`} />
+              <Link to={`/curso/${course.id}`} className="btn btn-primary mt-8">
+                {course.status === "completed" ? t("Revisar curso") : course.percent > 0 ? t("Continuar") : t("Comenzar")}
+              </Link>
             </div>
-            <ProgressBar percent={course.percent} label={`${course.percent}% ${t("completado")}`} />
-            <Link to={`/curso/${course.id}`} className="btn btn-primary mt-8">
-              {course.status === "completed" ? t("Revisar curso") : course.percent > 0 ? t("Continuar") : t("Comenzar")}
-            </Link>
           </div>
         ))}
       </div>

@@ -117,65 +117,6 @@ export async function getDashboardForUser(userId: string) {
   return { items, stats };
 }
 
-interface ModuleCompletionInfo {
-  order: number;
-  complete: boolean;
-}
-
-// Completitud de cada módulo de un curso para un usuario: todas sus lecciones
-// vistas Y (si tiene evaluación) aprobada. Base tanto para exponer el estado
-// "locked" al frontend como para bloquear los endpoints de escritura.
-async function getModuleCompletionMap(userId: string, courseId: string): Promise<Map<string, ModuleCompletionInfo>> {
-  const modules = await prisma.module.findMany({
-    where: { courseId },
-    orderBy: { order: "asc" },
-    select: {
-      id: true,
-      order: true,
-      lessons: { select: { id: true } },
-      evaluation: { select: { id: true } },
-    },
-  });
-
-  const lessonIds = modules.flatMap((m) => m.lessons.map((l) => l.id));
-  const progressRows = lessonIds.length
-    ? await prisma.lessonProgress.findMany({ where: { userId, lessonId: { in: lessonIds } } })
-    : [];
-  const completedLessonIds = new Set(progressRows.filter((p) => p.completedAt).map((p) => p.lessonId));
-
-  const evaluationIds = modules.filter((m) => m.evaluation).map((m) => m.evaluation!.id);
-  const passedAttempts = evaluationIds.length
-    ? await prisma.evaluationAttempt.findMany({
-        where: { userId, evaluationId: { in: evaluationIds }, passed: true },
-        select: { evaluationId: true },
-      })
-    : [];
-  const passedEvaluationIds = new Set(passedAttempts.map((a) => a.evaluationId));
-
-  const map = new Map<string, ModuleCompletionInfo>();
-  for (const m of modules) {
-    const lessonsComplete = m.lessons.every((l) => completedLessonIds.has(l.id));
-    const evalComplete = !m.evaluation || passedEvaluationIds.has(m.evaluation.id);
-    map.set(m.id, { order: m.order, complete: lessonsComplete && evalComplete });
-  }
-  return map;
-}
-
-// Un módulo está desbloqueado si es el primero del curso o si TODOS los
-// módulos con order menor ya están completos para este usuario.
-export async function isModuleUnlocked(userId: string, courseId: string, moduleId: string): Promise<boolean> {
-  const map = await getModuleCompletionMap(userId, courseId);
-  const target = map.get(moduleId);
-  if (!target) return true; // módulo inexistente — que falle en otro lado, no aquí
-  return [...map.values()].filter((m) => m.order < target.order).every((m) => m.complete);
-}
-
-export async function assertModuleUnlocked(userId: string, courseId: string, moduleId: string) {
-  if (!(await isModuleUnlocked(userId, courseId, moduleId))) {
-    throw new HttpError(403, "Debe completar el módulo anterior antes de continuar.");
-  }
-}
-
 export async function getCourseDetailForUser(userId: string, courseId: string) {
   const course = await prisma.course.findUnique({
     where: { id: courseId },
@@ -211,33 +152,23 @@ export async function getCourseDetailForUser(userId: string, courseId: string) {
     orderBy: { attemptNumber: "desc" },
   });
 
-  const moduleCompletion = await getModuleCompletionMap(userId, courseId);
-
+  // Todos los módulos están disponibles desde el inicio — la metodología ya
+  // no exige completar un módulo para desbloquear el siguiente.
   const modules = course.modules.map((m) => {
-    const completionInfo = moduleCompletion.get(m.id);
-    // Bloqueado si algún módulo anterior (order menor) todavía no está completo.
-    const locked = completionInfo
-      ? [...moduleCompletion.values()].some((x) => x.order < completionInfo.order && !x.complete)
-      : false;
-
     const lessons = m.lessons.map((l) => ({
       id: l.id,
       title: l.title,
       order: l.order,
       contentType: l.contentType,
-      // El contenido real nunca se envía para un módulo bloqueado — no basta
-      // con ocultarlo en la UI, ya que el JSON sería inspeccionable igual.
-      bodyHtml: locked ? null : l.bodyHtml,
-      externalUrl: locked ? null : l.externalUrl,
-      file: !locked && l.file ? { id: l.file.id, filename: l.file.filename, mimeType: l.file.mimeType, sizeBytes: l.file.sizeBytes } : null,
-      files: locked
-        ? []
-        : l.files.map((lf) => ({
-            id: lf.file.id,
-            filename: lf.file.filename,
-            mimeType: lf.file.mimeType,
-            sizeBytes: lf.file.sizeBytes,
-          })),
+      bodyHtml: l.bodyHtml,
+      externalUrl: l.externalUrl,
+      file: l.file ? { id: l.file.id, filename: l.file.filename, mimeType: l.file.mimeType, sizeBytes: l.file.sizeBytes } : null,
+      files: l.files.map((lf) => ({
+        id: lf.file.id,
+        filename: lf.file.filename,
+        mimeType: lf.file.mimeType,
+        sizeBytes: lf.file.sizeBytes,
+      })),
       normReference: l.normReference,
       normCode: l.normCode,
       normArticle: l.normArticle,
@@ -257,7 +188,6 @@ export async function getCourseDetailForUser(userId: string, courseId: string) {
       id: m.id,
       title: m.title,
       order: m.order,
-      locked,
       lessons,
       evaluation: m.evaluation
         ? {
@@ -265,11 +195,21 @@ export async function getCourseDetailForUser(userId: string, courseId: string) {
             attemptsUsed,
             lastScore: bestAttempt?.score ?? null,
             lastPassed: bestAttempt?.passed ?? null,
-            canAttempt: !locked && attemptsUsed < m.evaluation.maxAttempts && !bestAttempt?.passed,
+            canAttempt: attemptsUsed < m.evaluation.maxAttempts && !bestAttempt?.passed,
           }
         : null,
     };
   });
+
+  const totalLessons = course.modules.reduce((acc, m) => acc + m.lessons.length, 0);
+  const completedLessons = course.modules.reduce(
+    (acc, m) => acc + m.lessons.filter((l) => completedLessonIds.has(l.id)).length,
+    0
+  );
+  const evaluationIds = course.modules.filter((m) => m.evaluation).map((m) => m.evaluation!.id);
+  const passedEvaluations = evaluationIds.filter((evalId) => attempts.some((a) => a.evaluationId === evalId && a.passed));
+  const totalUnits = totalLessons + evaluationIds.length;
+  const percent = totalUnits === 0 ? 0 : Math.round(((completedLessons + passedEvaluations.length) / totalUnits) * 100);
 
   return {
     id: course.id,
@@ -279,14 +219,14 @@ export async function getCourseDetailForUser(userId: string, courseId: string) {
     objective: course.objective,
     durationMin: course.durationMin,
     passingScore: course.passingScore,
+    percent,
     modules,
   };
 }
 
 export async function markLessonComplete(userId: string, lessonId: string) {
-  const lesson = await prisma.lesson.findUnique({ where: { id: lessonId }, include: { module: { select: { id: true, courseId: true } } } });
+  const lesson = await prisma.lesson.findUnique({ where: { id: lessonId } });
   if (!lesson) throw new HttpError(404, "Lección no encontrada.");
-  await assertModuleUnlocked(userId, lesson.module.courseId, lesson.module.id);
 
   await prisma.lessonProgress.upsert({
     where: { userId_lessonId: { userId, lessonId } },
@@ -311,12 +251,11 @@ const VIDEO_COMPLETION_THRESHOLD = 95;
  * nunca hay un endpoint que acepte completed=true directo desde el cliente.
  */
 export async function recordVideoProgress(userId: string, lessonId: string, rawPercent: number) {
-  const lesson = await prisma.lesson.findUnique({ where: { id: lessonId }, include: { module: { select: { id: true, courseId: true } } } });
+  const lesson = await prisma.lesson.findUnique({ where: { id: lessonId } });
   if (!lesson) throw new HttpError(404, "Lección no encontrada.");
   if (lesson.contentType !== "VIDEO") {
     throw new HttpError(400, "Esta lección no es de tipo video.");
   }
-  await assertModuleUnlocked(userId, lesson.module.courseId, lesson.module.id);
 
   const clamped = Math.max(0, Math.min(100, Math.round(rawPercent)));
   const existing = await prisma.lessonProgress.findUnique({ where: { userId_lessonId: { userId, lessonId } } });

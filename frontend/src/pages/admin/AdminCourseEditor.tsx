@@ -65,6 +65,7 @@ interface CourseAdmin {
   code: string;
   title: string;
   description: string;
+  imageUrl: string | null;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
   durationMin: number;
   passingScore: number;
@@ -163,6 +164,21 @@ export function AdminCourseEditorPage() {
             defaultValue={course.description}
             onBlur={(e) => e.target.value !== course.description && saveCourseField("description", e.target.value)}
           />
+        </div>
+        <div className="field">
+          <label>{t("Imagen referencial (URL)")}</label>
+          <input
+            defaultValue={course.imageUrl ?? ""}
+            placeholder="https://..."
+            onBlur={(e) => e.target.value.trim() !== (course.imageUrl ?? "") && saveCourseField("imageUrl", e.target.value.trim())}
+          />
+          {course.imageUrl && (
+            <img
+              src={course.imageUrl}
+              alt=""
+              className="course-image-preview mt-8"
+            />
+          )}
         </div>
         <div className="form-row">
           <div className="field">
