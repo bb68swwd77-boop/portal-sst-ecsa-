@@ -52,6 +52,10 @@ export function Layout() {
 
   return (
     <div className="app-shell">
+      {/* Fijo en la esquina superior derecha de la ventana, no del sidebar,
+          para que siga visible aunque el panel esté contraído o el drawer
+          móvil cerrado. */}
+      <LanguageToggle className="app-lang-toggle" />
       <div className={`sidebar-scrim ${drawerOpen ? "open" : ""}`} onClick={() => setDrawerOpen(false)} />
 
       <button
@@ -88,8 +92,7 @@ export function Layout() {
           )}
         </nav>
         <div className="sidebar-footer">
-          <LanguageToggle className="mt-8" />
-          <div className="sidebar-user mt-8">
+          <div className="sidebar-user">
             {user?.firstName} {user?.lastName}
             <br />
             <span className="text-muted">{user?.code ?? user?.email}</span>
@@ -107,7 +110,6 @@ export function Layout() {
           </button>
           <img src={logoEcsa} alt="ECSA" className="topbar-logo" />
           <strong>{t("Capacitación SST")}</strong>
-          <LanguageToggle className="topbar-lang" />
         </div>
         <div className="main-content">
           <Outlet />
