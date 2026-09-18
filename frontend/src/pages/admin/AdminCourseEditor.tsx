@@ -4,7 +4,7 @@ import { api, apiUrl, ApiError, uploadFile } from "../../api/client";
 import { Modal } from "../../components/Modal";
 import { useToast } from "../../context/ToastContext";
 import { useLanguage } from "../../context/LanguageContext";
-import { CATEGORIES } from "../../constants/organization";
+import { CATEGORIES, COMPANIES, AREAS, POSITIONS } from "../../constants/organization";
 
 interface AnswerOption {
   id: string;
@@ -1180,7 +1180,13 @@ function AssignmentsSection({
         {error && <div className="alert alert-danger" style={{ width: "100%" }}>{error}</div>}
         <div className="field" style={{ marginBottom: 0 }}>
           <label>{t("Asignar por")}</label>
-          <select value={targetType} onChange={(e) => setTargetType(e.target.value)}>
+          <select
+            value={targetType}
+            onChange={(e) => {
+              setTargetType(e.target.value);
+              setTargetValue("");
+            }}
+          >
             <option value="COMPANY">{t("Empresa")}</option>
             <option value="AREA">{t("Área")}</option>
             <option value="POSITION">{t("Cargo")}</option>
@@ -1188,25 +1194,20 @@ function AssignmentsSection({
             <option value="ALL">{t("Todos los usuarios")}</option>
           </select>
         </div>
-        {targetType === "CATEGORY" ? (
+        {targetType !== "ALL" && (
           <div className="field" style={{ marginBottom: 0 }}>
             <label>{t("Valor")}</label>
             <select required value={targetValue} onChange={(e) => setTargetValue(e.target.value)}>
               <option value="">{t("Seleccionar…")}</option>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
+              {(targetType === "COMPANY" ? COMPANIES : targetType === "AREA" ? AREAS : targetType === "POSITION" ? POSITIONS : CATEGORIES).map(
+                (v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                )
+              )}
             </select>
           </div>
-        ) : (
-          targetType !== "ALL" && (
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label>{t("Valor")}</label>
-              <input required value={targetValue} onChange={(e) => setTargetValue(e.target.value)} />
-            </div>
-          )
         )}
         <div className="field" style={{ marginBottom: 0 }}>
           <label>{t("Restringir a módulo")}</label>
