@@ -31,10 +31,19 @@ filesRouter.get(
             include: { lesson: { include: { module: { select: { courseId: true } } } } },
           })
         )?.lesson;
-      if (!lesson) {
-        throw new HttpError(404, "Archivo no encontrado.");
+
+      if (lesson) {
+        await assertCourseAccess(req.currentUser!, lesson.module.courseId);
+      } else {
+        // No es el archivo de una lección — puede ser la miniatura de una
+        // capacitación (Course.imageUrl apunta a esta misma ruta /files/:id).
+        const course = await prisma.course.findFirst({
+          where: { imageUrl: { endsWith: `/files/${file.id}` } },
+          select: { id: true },
+        });
+        if (!course) throw new HttpError(404, "Archivo no encontrado.");
+        await assertCourseAccess(req.currentUser!, course.id);
       }
-      await assertCourseAccess(req.currentUser!, lesson.module.courseId);
     }
 
     res.setHeader("Content-Type", file.mimeType);

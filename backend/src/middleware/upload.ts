@@ -19,3 +19,20 @@ export const uploadPdf = multer({
     cb(null, true);
   },
 }).single("file");
+
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+const ALLOWED_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+
+// Imagen referencial de una capacitación (miniatura mostrada en las tarjetas
+// del portal) — misma estrategia de carga en memoria que uploadPdf.
+export const uploadImage = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_IMAGE_SIZE_BYTES },
+  fileFilter: (_req, file, cb) => {
+    if (!ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype)) {
+      cb(new Error("Solo se permiten imágenes JPG, PNG, WEBP o GIF."));
+      return;
+    }
+    cb(null, true);
+  },
+}).single("file");

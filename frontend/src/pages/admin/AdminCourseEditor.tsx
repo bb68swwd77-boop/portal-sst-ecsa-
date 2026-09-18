@@ -1,6 +1,6 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, ApiError, uploadFile } from "../../api/client";
+import { api, apiUrl, ApiError, uploadFile } from "../../api/client";
 import { Modal } from "../../components/Modal";
 import { useToast } from "../../context/ToastContext";
 import { useLanguage } from "../../context/LanguageContext";
@@ -89,6 +89,7 @@ export function AdminCourseEditorPage() {
   const [editEvalModal, setEditEvalModal] = useState<Evaluation | null>(null);
   const [editLessonModal, setEditLessonModal] = useState<Lesson | null>(null);
   const [editQuestionModal, setEditQuestionModal] = useState<Question | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
 
   async function load() {
     const res = await api.get<{ course: CourseAdmin }>(`/admin/courses/${courseId}`);
@@ -104,6 +105,21 @@ export function AdminCourseEditorPage() {
     await api.put(`/admin/courses/${courseId}`, { [field]: value });
     notify(t("Capacitación actualizada."), "success");
     await load();
+  }
+
+  async function handleImageUpload(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setImageUploading(true);
+    try {
+      const res = await uploadFile<{ file: { id: string } }>("/admin/files/upload-image", file);
+      await saveCourseField("imageUrl", apiUrl(`/files/${res.file.id}`));
+    } catch (err) {
+      notify(err instanceof ApiError ? t(err.message) : t("No fue posible subir el archivo."), "danger");
+    } finally {
+      setImageUploading(false);
+    }
   }
 
   async function deleteLesson(lessonId: string) {
@@ -166,19 +182,11 @@ export function AdminCourseEditorPage() {
           />
         </div>
         <div className="field">
-          <label>{t("Imagen referencial (URL)")}</label>
-          <input
-            defaultValue={course.imageUrl ?? ""}
-            placeholder="https://..."
-            onBlur={(e) => e.target.value.trim() !== (course.imageUrl ?? "") && saveCourseField("imageUrl", e.target.value.trim())}
-          />
-          {course.imageUrl && (
-            <img
-              src={course.imageUrl}
-              alt=""
-              className="course-image-preview mt-8"
-            />
-          )}
+          <label>{t("Imagen referencial")}</label>
+          {course.imageUrl && <img src={course.imageUrl} alt="" className="course-image-preview" />}
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleImageUpload} className="mt-8" />
+          {imageUploading && <div className="field-hint">{t("Subiendo…")}</div>}
+          <div className="field-hint">{t("Máximo 5 MB — JPG, PNG, WEBP o GIF.")}</div>
         </div>
         <div className="form-row">
           <div className="field">

@@ -14,13 +14,28 @@ export function CourseViewPage() {
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Módulos desplegados en el acordeón — por defecto solo el que contiene la
+  // lección activa, para no ocupar todo el espacio vertical del panel.
+  const [expandedModuleIds, setExpandedModuleIds] = useState<Set<string>>(new Set());
+
+  function toggleModule(moduleId: string) {
+    setExpandedModuleIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(moduleId)) next.delete(moduleId);
+      else next.add(moduleId);
+      return next;
+    });
+  }
 
   async function load() {
     try {
       const res = await api.get<{ course: CourseDetail }>(`/courses/${courseId}`);
       setCourse(res.course);
       const firstIncomplete = res.course.modules.flatMap((m) => m.lessons).find((l) => !l.completed);
-      setActiveLessonId(firstIncomplete?.id ?? res.course.modules[0]?.lessons[0]?.id ?? null);
+      const nextActiveLessonId = firstIncomplete?.id ?? res.course.modules[0]?.lessons[0]?.id ?? null;
+      setActiveLessonId(nextActiveLessonId);
+      const activeModule = res.course.modules.find((m) => m.lessons.some((l) => l.id === nextActiveLessonId));
+      setExpandedModuleIds(activeModule ? new Set([activeModule.id]) : new Set());
     } catch (err) {
       setError(err instanceof ApiError ? t(err.message) : t("No fue posible cargar la capacitación."));
     }
@@ -89,59 +104,91 @@ export function CourseViewPage() {
 
       <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 24, marginTop: 16 }} className="course-layout">
         <div className="card" style={{ alignSelf: "start" }}>
-          {course.modules.map((m) => (
-            <div key={m.id} className="mt-16">
-              <div className="text-secondary" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                {t("Módulo")} {m.order} · {m.title}
-              </div>
-              {m.lessons.map((l) => (
+          {course.modules.map((m) => {
+            const expanded = expandedModuleIds.has(m.id);
+            return (
+              <div key={m.id} className="mt-16">
                 <button
-                  key={l.id}
-                  className="module-item"
-                  onClick={() => setActiveLessonId(l.id)}
+                  type="button"
+                  className="module-header"
+                  onClick={() => toggleModule(m.id)}
+                  aria-expanded={expanded}
                   style={{
-                    display: "block",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
                     width: "100%",
-                    textAlign: "left",
-                    padding: 10,
-                    borderRadius: 8,
-                    marginTop: 6,
-                    background: activeLessonId === l.id ? "var(--color-bg-subtle)" : "transparent",
-                    border: activeLessonId === l.id ? "1px solid var(--color-cyan)" : "1px solid transparent",
-                    color: "inherit",
+                    background: "none",
+                    border: "none",
+                    padding: 0,
                     cursor: "pointer",
+                    color: "inherit",
+                    textAlign: "left",
                   }}
                 >
-                  <div style={{ fontSize: 13 }}>{l.title}</div>
-                  <div style={{ fontSize: 11 }} className={l.completed ? "" : "text-muted"}>
-                    {l.completed ? (
-                      <span style={{ color: "var(--color-success)" }}>✓ {t("Completado")}</span>
-                    ) : (
-                      t("Pendiente")
+                  <span
+                    className="text-secondary"
+                    style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.04em" }}
+                  >
+                    {t("Módulo")} {m.order} · {m.title}
+                  </span>
+                  <span className="text-muted" style={{ fontSize: 11 }}>
+                    {expanded ? "▲" : "▼"}
+                  </span>
+                </button>
+                {expanded && (
+                  <div className="mt-8">
+                    {m.lessons.map((l) => (
+                      <button
+                        key={l.id}
+                        className="module-item"
+                        onClick={() => setActiveLessonId(l.id)}
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          textAlign: "left",
+                          padding: 10,
+                          borderRadius: 8,
+                          marginTop: 6,
+                          background: activeLessonId === l.id ? "var(--color-bg-subtle)" : "transparent",
+                          border: activeLessonId === l.id ? "1px solid var(--color-cyan)" : "1px solid transparent",
+                          color: "inherit",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <div style={{ fontSize: 13 }}>{l.title}</div>
+                        <div style={{ fontSize: 11 }} className={l.completed ? "" : "text-muted"}>
+                          {l.completed ? (
+                            <span style={{ color: "var(--color-success)" }}>✓ {t("Completado")}</span>
+                          ) : (
+                            t("Pendiente")
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                    {m.evaluation && (
+                      <div className="card mt-8" style={{ padding: 12 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>{m.evaluation.title}</div>
+                        <div className="text-muted" style={{ fontSize: 11 }}>
+                          {t("Intentos:")} {m.evaluation.attemptsUsed}/{m.evaluation.maxAttempts}
+                          {m.evaluation.lastScore !== null && ` · ${t("Último puntaje:")} ${m.evaluation.lastScore}%`}
+                        </div>
+                        {m.evaluation.lastPassed ? (
+                          <span className="badge badge-status-completed mt-8">{t("Aprobado")}</span>
+                        ) : m.evaluation.canAttempt ? (
+                          <Link to={`/curso/${course.id}/evaluacion/${m.evaluation.id}`} className="btn btn-primary btn-sm mt-8">
+                            {t("Iniciar evaluación")}
+                          </Link>
+                        ) : (
+                          <span className="badge badge-status-overdue mt-8">{t("Sin intentos disponibles")}</span>
+                        )}
+                      </div>
                     )}
                   </div>
-                </button>
-              ))}
-              {m.evaluation && (
-                <div className="card mt-8" style={{ padding: 12 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{m.evaluation.title}</div>
-                  <div className="text-muted" style={{ fontSize: 11 }}>
-                    {t("Intentos:")} {m.evaluation.attemptsUsed}/{m.evaluation.maxAttempts}
-                    {m.evaluation.lastScore !== null && ` · ${t("Último puntaje:")} ${m.evaluation.lastScore}%`}
-                  </div>
-                  {m.evaluation.lastPassed ? (
-                    <span className="badge badge-status-completed mt-8">{t("Aprobado")}</span>
-                  ) : m.evaluation.canAttempt ? (
-                    <Link to={`/curso/${course.id}/evaluacion/${m.evaluation.id}`} className="btn btn-primary btn-sm mt-8">
-                      {t("Iniciar evaluación")}
-                    </Link>
-                  ) : (
-                    <span className="badge badge-status-overdue mt-8">{t("Sin intentos disponibles")}</span>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <div className="card">
