@@ -42,6 +42,9 @@ export const assignmentSchema = z.object({
   targetType: z.enum(["USER", "COMPANY", "AREA", "POSITION", "CATEGORY", "ALL"]),
   userId: z.string().cuid().optional(),
   targetValue: z.string().trim().max(200).optional(),
+  // Si se omite, la asignación cubre todo el curso; si se indica, restringe
+  // el acceso del grupo/usuario objetivo a ese único módulo.
+  moduleId: z.string().cuid().optional(),
   mandatory: z.boolean().default(true),
   dueAt: z.coerce.date().optional(),
 });

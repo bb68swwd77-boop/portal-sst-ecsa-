@@ -57,6 +57,9 @@ interface Assignment {
   targetType: string;
   targetValue: string | null;
   userId: string | null;
+  // Si es null, la asignación cubre todo el curso; si no, restringe el
+  // acceso del grupo/usuario objetivo a ese único módulo.
+  moduleId: string | null;
   mandatory: boolean;
   dueAt: string | null;
 }
@@ -311,7 +314,13 @@ export function AdminCourseEditorPage() {
         </div>
       ))}
 
-      <AssignmentsSection courseId={course.id} assignments={course.assignments} onChange={load} onDelete={deleteAssignment} />
+      <AssignmentsSection
+        courseId={course.id}
+        assignments={course.assignments}
+        modules={course.modules}
+        onChange={load}
+        onDelete={deleteAssignment}
+      />
 
       {moduleModal && (
         <ModuleFormModal
@@ -1093,19 +1102,28 @@ function EditQuestionModal({ question, onClose, onSaved }: { question: Question;
 function AssignmentsSection({
   courseId,
   assignments,
+  modules,
   onChange,
   onDelete,
 }: {
   courseId: string;
   assignments: Assignment[];
+  modules: Module[];
   onChange: () => void;
   onDelete: (id: string) => void;
 }) {
   const { t } = useLanguage();
   const [targetType, setTargetType] = useState("COMPANY");
   const [targetValue, setTargetValue] = useState("");
+  const [moduleId, setModuleId] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  function moduleLabel(id: string | null) {
+    if (!id) return t("Todos los módulos");
+    const m = modules.find((mod) => mod.id === id);
+    return m ? `${t("Módulo")} ${m.order} · ${m.title}` : id;
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -1114,10 +1132,12 @@ function AssignmentsSection({
       await api.post(`/admin/courses/${courseId}/assignments`, {
         targetType,
         targetValue: targetType === "ALL" ? undefined : targetValue,
+        moduleId: moduleId || undefined,
         mandatory: true,
         dueAt: dueAt || undefined,
       });
       setTargetValue("");
+      setModuleId("");
       onChange();
     } catch (err) {
       setError(err instanceof ApiError ? t(err.message) : t("No fue posible crear la asignación."));
@@ -1133,6 +1153,7 @@ function AssignmentsSection({
             <tr>
               <th>{t("Tipo")}</th>
               <th>{t("Valor")}</th>
+              <th>{t("Módulo")}</th>
               <th>{t("Fecha límite")}</th>
               <th></th>
             </tr>
@@ -1142,6 +1163,7 @@ function AssignmentsSection({
               <tr key={a.id}>
                 <td>{a.targetType}</td>
                 <td>{a.targetValue ?? a.userId ?? t("Todos")}</td>
+                <td>{moduleLabel(a.moduleId)}</td>
                 <td>{a.dueAt ? new Date(a.dueAt).toLocaleDateString("es-EC") : "—"}</td>
                 <td>
                   <button className="btn-link" onClick={() => onDelete(a.id)}>
@@ -1186,6 +1208,17 @@ function AssignmentsSection({
             </div>
           )
         )}
+        <div className="field" style={{ marginBottom: 0 }}>
+          <label>{t("Restringir a módulo")}</label>
+          <select value={moduleId} onChange={(e) => setModuleId(e.target.value)}>
+            <option value="">{t("Todos los módulos")}</option>
+            {modules.map((m) => (
+              <option key={m.id} value={m.id}>
+                {t("Módulo")} {m.order} · {m.title}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="field" style={{ marginBottom: 0 }}>
           <label>{t("Fecha límite")}</label>
           <input type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />

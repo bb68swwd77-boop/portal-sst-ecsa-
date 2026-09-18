@@ -10,21 +10,39 @@ interface UserForAssignment {
   category: string | null;
 }
 
+// Condiciones OR que identifican las asignaciones (de curso o de módulo
+// puntual) que le corresponden a este usuario, por cualquiera de sus
+// segmentaciones (usuario directo, empresa, área, cargo, categoría o "todos").
+function buildAssignmentMatchFilter(user: UserForAssignment) {
+  return [
+    { targetType: "ALL" },
+    { targetType: "USER", userId: user.id },
+    user.company ? { targetType: "COMPANY", targetValue: user.company } : undefined,
+    user.area ? { targetType: "AREA", targetValue: user.area } : undefined,
+    user.position ? { targetType: "POSITION", targetValue: user.position } : undefined,
+    user.category ? { targetType: "CATEGORY", targetValue: user.category } : undefined,
+  ].filter(Boolean) as any;
+}
+
 export async function getAssignedCourseIdsForUser(user: UserForAssignment): Promise<Set<string>> {
   const assignments = await prisma.courseAssignment.findMany({
-    where: {
-      OR: [
-        { targetType: "ALL" },
-        { targetType: "USER", userId: user.id },
-        user.company ? { targetType: "COMPANY", targetValue: user.company } : undefined,
-        user.area ? { targetType: "AREA", targetValue: user.area } : undefined,
-        user.position ? { targetType: "POSITION", targetValue: user.position } : undefined,
-        user.category ? { targetType: "CATEGORY", targetValue: user.category } : undefined,
-      ].filter(Boolean) as any,
-    },
+    where: { OR: buildAssignmentMatchFilter(user) },
     select: { courseId: true },
   });
   return new Set(assignments.map((a) => a.courseId));
+}
+
+// Devuelve null si el usuario tiene acceso a TODOS los módulos del curso
+// (alguna de sus asignaciones para este curso no está acotada a un módulo
+// puntual), o el conjunto de ids de módulo a los que sí tiene acceso cuando
+// todas sus asignaciones para este curso están acotadas a módulos específicos.
+async function getAccessibleModuleIds(user: UserForAssignment, courseId: string): Promise<Set<string> | null> {
+  const assignments = await prisma.courseAssignment.findMany({
+    where: { courseId, OR: buildAssignmentMatchFilter(user) },
+    select: { moduleId: true },
+  });
+  if (assignments.some((a) => a.moduleId === null)) return null;
+  return new Set(assignments.map((a) => a.moduleId as string));
 }
 
 export async function assertCourseAccess(currentUser: AuthenticatedUser, courseId: string) {
@@ -37,7 +55,19 @@ export async function assertCourseAccess(currentUser: AuthenticatedUser, courseI
   }
 }
 
-export async function getDashboardForUser(userId: string) {
+export async function assertModuleAccess(currentUser: AuthenticatedUser, courseId: string, moduleId: string) {
+  if (currentUser.permissions.has("courses:view")) return; // admin ve todo
+  const fullUser = await prisma.user.findUnique({ where: { id: currentUser.id } });
+  if (!fullUser) throw new HttpError(404, "Usuario no encontrado.");
+  const accessible = await getAccessibleModuleIds(fullUser, courseId);
+  if (accessible !== null && !accessible.has(moduleId)) {
+    throw new HttpError(403, "No tiene acceso a este módulo.");
+  }
+}
+
+export async function getDashboardForUser(currentUser: AuthenticatedUser) {
+  const isAdmin = currentUser.permissions.has("courses:view");
+  const userId = currentUser.id;
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   const assignedIds = await getAssignedCourseIdsForUser(user);
 
@@ -65,43 +95,52 @@ export async function getDashboardForUser(userId: string) {
   const certificates = await prisma.certificate.findMany({ where: { userId } });
   const certByCourse = new Map(certificates.map((c) => [c.courseId, c]));
 
-  const items = courses.map((course) => {
-    const totalLessons = course.modules.reduce((acc, m) => acc + m.lessons.length, 0);
-    const completedLessons = course.modules.reduce(
-      (acc, m) => acc + m.lessons.filter((l) => completedLessonIds.has(l.id)).length,
-      0
-    );
-    const evaluationIds = course.modules.filter((m) => m.evaluation).map((m) => m.evaluation!.id);
-    const passedEvaluations = evaluationIds.filter((evalId) =>
-      attempts.some((a) => a.evaluationId === evalId && a.passed)
-    );
+  const items = await Promise.all(
+    courses.map(async (course) => {
+      // Solo se cuentan/muestran los módulos a los que el usuario tiene
+      // acceso — un área con una asignación acotada a un módulo puntual no
+      // debe ver el resto del curso reflejado en su avance ni conteo.
+      const accessibleModuleIds = isAdmin ? null : await getAccessibleModuleIds(user, course.id);
+      const visibleModules =
+        accessibleModuleIds === null ? course.modules : course.modules.filter((m) => accessibleModuleIds.has(m.id));
 
-    const totalUnits = totalLessons + evaluationIds.length;
-    const completedUnits = completedLessons + passedEvaluations.length;
-    const percent = totalUnits === 0 ? 0 : Math.round((completedUnits / totalUnits) * 100);
-    const certificate = certByCourse.get(course.id);
+      const totalLessons = visibleModules.reduce((acc, m) => acc + m.lessons.length, 0);
+      const completedLessons = visibleModules.reduce(
+        (acc, m) => acc + m.lessons.filter((l) => completedLessonIds.has(l.id)).length,
+        0
+      );
+      const evaluationIds = visibleModules.filter((m) => m.evaluation).map((m) => m.evaluation!.id);
+      const passedEvaluations = evaluationIds.filter((evalId) =>
+        attempts.some((a) => a.evaluationId === evalId && a.passed)
+      );
 
-    const assignment = assignments.find((a) => a.courseId === course.id);
+      const totalUnits = totalLessons + evaluationIds.length;
+      const completedUnits = completedLessons + passedEvaluations.length;
+      const percent = totalUnits === 0 ? 0 : Math.round((completedUnits / totalUnits) * 100);
+      const certificate = certByCourse.get(course.id);
 
-    let status: "pending" | "in_progress" | "completed" | "overdue" = "pending";
-    if (certificate) status = "completed";
-    else if (completedUnits > 0) status = "in_progress";
-    if (assignment?.dueAt && assignment.dueAt < new Date() && status !== "completed") status = "overdue";
+      const assignment = assignments.find((a) => a.courseId === course.id);
 
-    return {
-      id: course.id,
-      code: course.code,
-      title: course.title,
-      description: course.description,
-      imageUrl: course.imageUrl,
-      durationMin: course.durationMin,
-      moduleCount: course.modules.length,
-      percent,
-      status,
-      dueAt: assignment?.dueAt ?? null,
-      certificateCode: certificate?.code ?? null,
-    };
-  });
+      let status: "pending" | "in_progress" | "completed" | "overdue" = "pending";
+      if (certificate) status = "completed";
+      else if (completedUnits > 0) status = "in_progress";
+      if (assignment?.dueAt && assignment.dueAt < new Date() && status !== "completed") status = "overdue";
+
+      return {
+        id: course.id,
+        code: course.code,
+        title: course.title,
+        description: course.description,
+        imageUrl: course.imageUrl,
+        durationMin: course.durationMin,
+        moduleCount: visibleModules.length,
+        percent,
+        status,
+        dueAt: assignment?.dueAt ?? null,
+        certificateCode: certificate?.code ?? null,
+      };
+    })
+  );
 
   const stats = {
     totalAssigned: items.length,
@@ -117,7 +156,9 @@ export async function getDashboardForUser(userId: string) {
   return { items, stats };
 }
 
-export async function getCourseDetailForUser(userId: string, courseId: string) {
+export async function getCourseDetailForUser(currentUser: AuthenticatedUser, courseId: string) {
+  const isAdmin = currentUser.permissions.has("courses:view");
+  const userId = currentUser.id;
   const course = await prisma.course.findUnique({
     where: { id: courseId },
     include: {
@@ -141,6 +182,15 @@ export async function getCourseDetailForUser(userId: string, courseId: string) {
   });
   if (!course) throw new HttpError(404, "Capacitación no encontrada.");
 
+  // Un módulo puede estar restringido a un grupo específico (ver
+  // CourseAssignment.moduleId) — el resto de los módulos del curso ni
+  // siquiera se incluyen en la respuesta para quien no tiene acceso.
+  const accessibleModuleIds = isAdmin
+    ? null
+    : await getAccessibleModuleIds(await prisma.user.findUniqueOrThrow({ where: { id: userId } }), courseId);
+  const visibleModules =
+    accessibleModuleIds === null ? course.modules : course.modules.filter((m) => accessibleModuleIds.has(m.id));
+
   const progressRows = await prisma.lessonProgress.findMany({
     where: { userId, lesson: { module: { courseId } } },
   });
@@ -152,9 +202,10 @@ export async function getCourseDetailForUser(userId: string, courseId: string) {
     orderBy: { attemptNumber: "desc" },
   });
 
-  // Todos los módulos están disponibles desde el inicio — la metodología ya
-  // no exige completar un módulo para desbloquear el siguiente.
-  const modules = course.modules.map((m) => {
+  // Dentro de los módulos a los que tiene acceso, todos están disponibles
+  // desde el inicio — la metodología ya no exige completar uno para
+  // desbloquear el siguiente.
+  const modules = visibleModules.map((m) => {
     const lessons = m.lessons.map((l) => ({
       id: l.id,
       title: l.title,
@@ -201,12 +252,12 @@ export async function getCourseDetailForUser(userId: string, courseId: string) {
     };
   });
 
-  const totalLessons = course.modules.reduce((acc, m) => acc + m.lessons.length, 0);
-  const completedLessons = course.modules.reduce(
+  const totalLessons = visibleModules.reduce((acc, m) => acc + m.lessons.length, 0);
+  const completedLessons = visibleModules.reduce(
     (acc, m) => acc + m.lessons.filter((l) => completedLessonIds.has(l.id)).length,
     0
   );
-  const evaluationIds = course.modules.filter((m) => m.evaluation).map((m) => m.evaluation!.id);
+  const evaluationIds = visibleModules.filter((m) => m.evaluation).map((m) => m.evaluation!.id);
   const passedEvaluations = evaluationIds.filter((evalId) => attempts.some((a) => a.evaluationId === evalId && a.passed));
   const totalUnits = totalLessons + evaluationIds.length;
   const percent = totalUnits === 0 ? 0 : Math.round(((completedLessons + passedEvaluations.length) / totalUnits) * 100);
@@ -224,10 +275,12 @@ export async function getCourseDetailForUser(userId: string, courseId: string) {
   };
 }
 
-export async function markLessonComplete(userId: string, lessonId: string) {
-  const lesson = await prisma.lesson.findUnique({ where: { id: lessonId } });
+export async function markLessonComplete(currentUser: AuthenticatedUser, lessonId: string) {
+  const lesson = await prisma.lesson.findUnique({ where: { id: lessonId }, include: { module: { select: { id: true, courseId: true } } } });
   if (!lesson) throw new HttpError(404, "Lección no encontrada.");
+  await assertModuleAccess(currentUser, lesson.module.courseId, lesson.module.id);
 
+  const userId = currentUser.id;
   await prisma.lessonProgress.upsert({
     where: { userId_lessonId: { userId, lessonId } },
     update: { completedAt: new Date() },
@@ -250,13 +303,15 @@ const VIDEO_COMPLETION_THRESHOLD = 95;
  * El único lugar donde completedAt se escribe para un video es aquí —
  * nunca hay un endpoint que acepte completed=true directo desde el cliente.
  */
-export async function recordVideoProgress(userId: string, lessonId: string, rawPercent: number) {
-  const lesson = await prisma.lesson.findUnique({ where: { id: lessonId } });
+export async function recordVideoProgress(currentUser: AuthenticatedUser, lessonId: string, rawPercent: number) {
+  const lesson = await prisma.lesson.findUnique({ where: { id: lessonId }, include: { module: { select: { id: true, courseId: true } } } });
   if (!lesson) throw new HttpError(404, "Lección no encontrada.");
   if (lesson.contentType !== "VIDEO") {
     throw new HttpError(400, "Esta lección no es de tipo video.");
   }
+  await assertModuleAccess(currentUser, lesson.module.courseId, lesson.module.id);
 
+  const userId = currentUser.id;
   const clamped = Math.max(0, Math.min(100, Math.round(rawPercent)));
   const existing = await prisma.lessonProgress.findUnique({ where: { userId_lessonId: { userId, lessonId } } });
 

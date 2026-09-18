@@ -310,6 +310,8 @@ export const translations: Record<string, string> = {
   Quitar: "移除",
   "Asignar por": "分配依据",
   "Todos los usuarios": "所有用户",
+  "Restringir a módulo": "限制到模块",
+  "Todos los módulos": "所有模块",
   Asignar: "分配",
 
   // --- Admin: reportes -------------------------------------------------

@@ -150,8 +150,9 @@ model Module {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  lessons    Lesson[]
-  evaluation Evaluation?
+  lessons     Lesson[]
+  evaluation  Evaluation?
+  assignments CourseAssignment[]
 
   @@index([courseId])
   @@unique([courseId, order])
@@ -259,6 +260,11 @@ model CourseAssignment {
   id           String               @id @default(cuid())
   courseId     String
   course       Course               @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  // Si es null, la asignación cubre TODOS los módulos del curso. Si apunta a
+  // un módulo puntual, el grupo/usuario objetivo solo tiene acceso a ese
+  // módulo dentro del curso (ver getAccessibleModuleIds en courses.service).
+  moduleId     String?
+  module       Module?              @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   targetType   AssignmentTargetType
   userId       String?
   user         User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -270,6 +276,7 @@ model CourseAssignment {
 
   @@index([courseId])
   @@index([userId])
+  @@index([moduleId])
 }
 
 // ---------------------------------------------------------------------------

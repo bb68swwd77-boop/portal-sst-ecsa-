@@ -241,6 +241,12 @@ adminCoursesRouter.post(
     if (["COMPANY", "AREA", "POSITION", "CATEGORY"].includes(data.targetType) && !data.targetValue) {
       throw new HttpError(400, "Debe indicar el valor de segmentación (empresa/área/cargo).");
     }
+    if (data.moduleId) {
+      const module = await prisma.module.findUnique({ where: { id: data.moduleId }, select: { courseId: true } });
+      if (!module || module.courseId !== req.params.id) {
+        throw new HttpError(400, "El módulo indicado no pertenece a esta capacitación.");
+      }
+    }
     const assignment = await prisma.courseAssignment.create({
       data: { ...data, courseId: req.params.id, createdBy: req.currentUser!.id },
     });

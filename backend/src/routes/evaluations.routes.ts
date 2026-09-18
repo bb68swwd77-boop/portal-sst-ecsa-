@@ -5,7 +5,7 @@ import { asyncHandler, HttpError } from "../middleware/errorHandler";
 import { validateBody } from "../middleware/validate";
 import { submitAttemptSchema } from "../validators/evaluations";
 import { startAttempt, submitAttempt } from "../services/evaluations.service";
-import { assertCourseAccess } from "../services/courses.service";
+import { assertCourseAccess, assertModuleAccess } from "../services/courses.service";
 import { prisma } from "../lib/prisma";
 
 export const evaluationsRouter = Router();
@@ -21,6 +21,7 @@ evaluationsRouter.post(
     });
     if (!evaluation) throw new HttpError(404, "Evaluación no encontrada.");
     await assertCourseAccess(req.currentUser!, evaluation.module.courseId);
+    await assertModuleAccess(req.currentUser!, evaluation.module.courseId, evaluation.module.id);
 
     const attempt = await startAttempt(req.currentUser!.id, req.params.id);
     res.json({ attempt });

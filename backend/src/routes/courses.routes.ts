@@ -15,7 +15,7 @@ coursesRouter.get(
   "/:id",
   asyncHandler(async (req, res) => {
     await assertCourseAccess(req.currentUser!, req.params.id);
-    const course = await getCourseDetailForUser(req.currentUser!.id, req.params.id);
+    const course = await getCourseDetailForUser(req.currentUser!, req.params.id);
     res.json({ course });
   })
 );
@@ -24,7 +24,7 @@ coursesRouter.post(
   "/:id/lessons/:lessonId/complete",
   asyncHandler(async (req, res) => {
     await assertCourseAccess(req.currentUser!, req.params.id);
-    await markLessonComplete(req.currentUser!.id, req.params.lessonId);
+    await markLessonComplete(req.currentUser!, req.params.lessonId);
     await audit({
       userId: req.currentUser!.id,
       action: "lesson.completed",
@@ -47,7 +47,7 @@ coursesRouter.post(
   validateBody(videoProgressSchema),
   asyncHandler(async (req, res) => {
     await assertCourseAccess(req.currentUser!, req.params.id);
-    const result = await recordVideoProgress(req.currentUser!.id, req.params.lessonId, req.body.percentWatched);
+    const result = await recordVideoProgress(req.currentUser!, req.params.lessonId, req.body.percentWatched);
     if (result.completed) {
       await audit({
         userId: req.currentUser!.id,

@@ -11,7 +11,7 @@ meRouter.use(requireAuth);
 meRouter.get(
   "/dashboard",
   asyncHandler(async (req, res) => {
-    const dashboard = await getDashboardForUser(req.currentUser!.id);
+    const dashboard = await getDashboardForUser(req.currentUser!);
     res.json(dashboard);
   })
 );
