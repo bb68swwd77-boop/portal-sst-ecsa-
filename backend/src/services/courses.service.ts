@@ -36,7 +36,7 @@ export async function getAssignedCourseIdsForUser(user: UserForAssignment): Prom
 // (alguna de sus asignaciones para este curso no está acotada a un módulo
 // puntual), o el conjunto de ids de módulo a los que sí tiene acceso cuando
 // todas sus asignaciones para este curso están acotadas a módulos específicos.
-async function getAccessibleModuleIds(user: UserForAssignment, courseId: string): Promise<Set<string> | null> {
+export async function getAccessibleModuleIds(user: UserForAssignment, courseId: string): Promise<Set<string> | null> {
   const assignments = await prisma.courseAssignment.findMany({
     where: { courseId, OR: buildAssignmentMatchFilter(user) },
     select: { moduleId: true },
@@ -117,7 +117,9 @@ export async function getDashboardForUser(currentUser: AuthenticatedUser) {
       const totalUnits = totalLessons + evaluationIds.length;
       const completedUnits = completedLessons + passedEvaluations.length;
       const percent = totalUnits === 0 ? 0 : Math.round((completedUnits / totalUnits) * 100);
-      const certificate = certByCourse.get(course.id);
+      // El certificado solo cuenta cuando el avance de los módulos asignados
+      // llegó al 100 % (ver getCourseCompletion en certificates.service).
+      const certificate = percent === 100 ? certByCourse.get(course.id) : undefined;
 
       const assignment = assignments.find((a) => a.courseId === course.id);
 
@@ -148,7 +150,7 @@ export async function getDashboardForUser(currentUser: AuthenticatedUser) {
     inProgress: items.filter((i) => i.status === "in_progress").length,
     pending: items.filter((i) => i.status === "pending").length,
     overdue: items.filter((i) => i.status === "overdue").length,
-    certificates: certificates.length,
+    certificates: items.filter((i) => i.certificateCode).length,
     overallPercent:
       items.length === 0 ? 0 : Math.round(items.reduce((acc, i) => acc + i.percent, 0) / items.length),
   };

@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma";
 import { HttpError } from "../middleware/errorHandler";
-import { generateCertificateCode } from "../lib/hash";
+import { maybeIssueCertificate } from "./certificates.service";
 import { audit } from "../lib/audit";
 import type { Request } from "express";
 
@@ -185,52 +185,3 @@ export async function submitAttempt(userId: string, attemptId: string, answers: 
   };
 }
 
-async function maybeIssueCertificate(userId: string, courseId: string, req?: Request) {
-  const existing = await prisma.certificate.findFirst({ where: { userId, courseId } });
-  if (existing) return existing;
-
-  const course = await prisma.course.findUniqueOrThrow({
-    where: { id: courseId },
-    include: { modules: { include: { evaluation: true } } },
-  });
-
-  const evaluations = course.modules.filter((m) => m.evaluation).map((m) => m.evaluation!.id);
-  if (evaluations.length === 0) return null;
-
-  const passedAttempts = await prisma.evaluationAttempt.findMany({
-    where: { userId, evaluationId: { in: evaluations }, passed: true },
-    orderBy: { score: "desc" },
-  });
-  const passedEvaluationIds = new Set(passedAttempts.map((a) => a.evaluationId));
-  const allPassed = evaluations.every((id) => passedEvaluationIds.has(id));
-  if (!allPassed) return null;
-
-  const bestByEvaluation = new Map<string, number>();
-  for (const a of passedAttempts) {
-    if (!bestByEvaluation.has(a.evaluationId) || bestByEvaluation.get(a.evaluationId)! < (a.score ?? 0)) {
-      bestByEvaluation.set(a.evaluationId, a.score ?? 0);
-    }
-  }
-  const avgScore = Math.round([...bestByEvaluation.values()].reduce((a, b) => a + b, 0) / bestByEvaluation.size);
-
-  const certificate = await prisma.certificate.create({
-    data: {
-      code: generateCertificateCode(),
-      userId,
-      courseId,
-      score: avgScore,
-      durationMin: course.durationMin,
-    },
-  });
-
-  await audit({
-    userId,
-    action: "certificate.issued",
-    resource: `Certificate:${certificate.id}`,
-    result: "success",
-    req,
-    metadata: { courseId, score: avgScore },
-  });
-
-  return certificate;
-}

@@ -5,6 +5,7 @@ import { requirePermission } from "../middleware/rbac";
 import { asyncHandler } from "../middleware/errorHandler";
 import { validateBody } from "../middleware/validate";
 import { assertCourseAccess, getCourseDetailForUser, markLessonComplete, recordVideoProgress } from "../services/courses.service";
+import { maybeIssueCertificate } from "../services/certificates.service";
 import { audit } from "../lib/audit";
 
 export const coursesRouter = Router();
@@ -25,6 +26,7 @@ coursesRouter.post(
   asyncHandler(async (req, res) => {
     await assertCourseAccess(req.currentUser!, req.params.id);
     await markLessonComplete(req.currentUser!, req.params.lessonId);
+    await maybeIssueCertificate(req.currentUser!.id, req.params.id, req);
     await audit({
       userId: req.currentUser!.id,
       action: "lesson.completed",
@@ -49,6 +51,7 @@ coursesRouter.post(
     await assertCourseAccess(req.currentUser!, req.params.id);
     const result = await recordVideoProgress(req.currentUser!, req.params.lessonId, req.body.percentWatched);
     if (result.completed) {
+      await maybeIssueCertificate(req.currentUser!.id, req.params.id, req);
       await audit({
         userId: req.currentUser!.id,
         action: "lesson.completed",
