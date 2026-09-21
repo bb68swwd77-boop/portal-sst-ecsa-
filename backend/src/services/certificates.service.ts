@@ -4,7 +4,7 @@ import { HttpError } from "../middleware/errorHandler";
 export async function getMyCertificates(userId: string) {
   const certificates = await prisma.certificate.findMany({
     where: { userId, revokedAt: null },
-    include: { course: { select: { title: true, code: true } } },
+    include: { course: { select: { title: true, code: true, imageUrl: true } } },
     orderBy: { issuedAt: "desc" },
   });
   return certificates;

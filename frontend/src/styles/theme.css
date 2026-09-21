@@ -425,6 +425,19 @@ h4 {
   flex-shrink: 0;
 }
 
+.course-thumb {
+  position: relative;
+}
+
+.certificate-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 56px;
+  height: 56px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
 .course-thumb-fallback {
   font-size: 36px;
   opacity: 0.6;

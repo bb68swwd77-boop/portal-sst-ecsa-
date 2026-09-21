@@ -126,5 +126,5 @@ export interface Certificate {
   score: number;
   issuedAt: string;
   durationMin: number;
-  course: { title: string; code: string };
+  course: { title: string; code: string; imageUrl: string | null };
 }
