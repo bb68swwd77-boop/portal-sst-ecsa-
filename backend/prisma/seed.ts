@@ -542,11 +542,21 @@ const PILOT_AREA = "GESTION DE SEGURIDAD INDUSTRIAL Y SALUD OCUPACIONAL";
 const PILOT_ADMIN_CODE = "1000001";
 
 async function seedPilotUsers(adminRoleId: string, userRoleId: string, sharedPasswordHash: string) {
+  // Las cuentas piloto son "solo crear": un redespliegue normal no pisa sus
+  // contraseñas. Con RESET_PILOT_PASSWORDS=true (variable de entorno, usar una
+  // sola vez y quitarla) se restablecen todas a la contraseña compartida, sin
+  // bloqueo y con cambio obligatorio en el próximo ingreso.
+  const resetPilot = process.env.RESET_PILOT_PASSWORDS === "true";
+  const pilotUpdate = resetPilot
+    ? { passwordHash: sharedPasswordHash, failedLoginCount: 0, lockedUntil: null, mustChangePassword: true, isActive: true }
+    : {};
+  if (resetPilot) console.log("RESET_PILOT_PASSWORDS=true: restableciendo contraseñas de cuentas piloto...");
+
   // Cuenta administrativa del piloto — Randy Alvarez (código 1003460, excluido
   // de este lote) se crea aparte manualmente y usará su propia cuenta admin.
   await prisma.user.upsert({
     where: { code: PILOT_ADMIN_CODE },
-    update: {},
+    update: pilotUpdate,
     create: {
       email: `${PILOT_ADMIN_CODE}@ecsa.local`,
       code: PILOT_ADMIN_CODE,
@@ -567,7 +577,7 @@ async function seedPilotUsers(adminRoleId: string, userRoleId: string, sharedPas
     const { firstName, lastName } = splitFullName(row.name);
     await prisma.user.upsert({
       where: { code: row.code },
-      update: {},
+      update: pilotUpdate,
       create: {
         email: `${row.code}@ecsa.local`,
         code: row.code,
