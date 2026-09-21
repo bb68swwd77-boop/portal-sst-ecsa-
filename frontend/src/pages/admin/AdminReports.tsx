@@ -8,9 +8,11 @@ interface ReportRow {
   userName: string;
   email: string;
   company: string | null;
+  area: string | null;
   courseTitle: string;
   status: string;
   percent: number;
+  approvedModules: string[];
   bestScore: number | null;
   certificateCode: string | null;
 }
@@ -82,9 +84,11 @@ export function AdminReportsPage() {
             <tr>
               <th>{t("Usuario")}</th>
               <th>{t("Empresa")}</th>
+              <th>{t("Área")}</th>
               <th>{t("Capacitación")}</th>
               <th>{t("Estado")}</th>
               <th>{t("Progreso")}</th>
+              <th>{t("Módulos aprobados")}</th>
               <th>{t("Mejor puntaje")}</th>
               <th>{t("Certificado")}</th>
             </tr>
@@ -100,11 +104,21 @@ export function AdminReportsPage() {
                   </span>
                 </td>
                 <td>{r.company ?? "—"}</td>
+                <td>{r.area ?? "—"}</td>
                 <td>{r.courseTitle}</td>
                 <td>
                   <StatusBadge status={r.status} />
                 </td>
                 <td>{r.percent}%</td>
+                <td>
+                  {r.approvedModules.length === 0
+                    ? "—"
+                    : r.approvedModules.map((m) => (
+                        <div key={m} style={{ fontSize: 12 }}>
+                          {m}
+                        </div>
+                      ))}
+                </td>
                 <td>{r.bestScore ?? "—"}</td>
                 <td>{r.certificateCode ?? "—"}</td>
               </tr>

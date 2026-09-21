@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma";
-import { getAssignedCourseIdsForUser } from "./courses.service";
+import { getAccessibleModuleIds, getAssignedCourseIdsForUser } from "./courses.service";
 
 export interface ReportFilters {
   courseId?: string;
@@ -18,6 +18,7 @@ export interface ReportRow {
   courseTitle: string;
   status: "pending" | "in_progress" | "completed" | "overdue";
   percent: number;
+  approvedModules: string[];
   bestScore: number | null;
   certificateCode: string | null;
   dueAt: Date | null;
@@ -67,15 +68,23 @@ export async function buildTrainingReport(filters: ReportFilters): Promise<Repor
     const certByCourse = new Map(certificates.map((c) => [c.courseId, c]));
 
     for (const course of relevantCourses) {
-      const totalLessons = course.modules.reduce((a, m) => a + m.lessons.length, 0);
-      const completedLessons = course.modules.reduce((a, m) => a + m.lessons.filter((l) => completedLessonIds.has(l.id)).length, 0);
-      const evaluationIds = course.modules.filter((m) => m.evaluation).map((m) => m.evaluation!.id);
+      // Solo los módulos asignados al usuario (todos, o los de sus asignaciones
+      // por módulo puntual) cuentan para su avance.
+      const accessibleModuleIds = await getAccessibleModuleIds(user, course.id);
+      const visibleModules = accessibleModuleIds === null ? course.modules : course.modules.filter((m) => accessibleModuleIds.has(m.id));
+
+      const totalLessons = visibleModules.reduce((a, m) => a + m.lessons.length, 0);
+      const completedLessons = visibleModules.reduce((a, m) => a + m.lessons.filter((l) => completedLessonIds.has(l.id)).length, 0);
+      const evaluationIds = visibleModules.filter((m) => m.evaluation).map((m) => m.evaluation!.id);
       const courseAttempts = attempts.filter((a) => evaluationIds.includes(a.evaluationId));
       const passedEvals = evaluationIds.filter((id) => courseAttempts.some((a) => a.evaluationId === id && a.passed));
       const totalUnits = totalLessons + evaluationIds.length;
       const completedUnits = completedLessons + passedEvals.length;
       const percent = totalUnits === 0 ? 0 : Math.round((completedUnits / totalUnits) * 100);
-      const cert = certByCourse.get(course.id);
+      const cert = percent === 100 ? certByCourse.get(course.id) : undefined;
+      const approvedModules = visibleModules
+        .filter((m) => m.evaluation && passedEvals.includes(m.evaluation.id))
+        .map((m) => `Módulo ${m.order} · ${m.title}`);
       const assignment = assignments.find((a) => a.courseId === course.id);
       const bestScore = courseAttempts.length ? Math.max(...courseAttempts.map((a) => a.score ?? 0)) : null;
 
@@ -96,6 +105,7 @@ export async function buildTrainingReport(filters: ReportFilters): Promise<Repor
         courseTitle: course.title,
         status,
         percent,
+        approvedModules,
         bestScore,
         certificateCode: cert?.code ?? null,
         dueAt: assignment?.dueAt ?? null,
@@ -116,6 +126,7 @@ export function reportRowsToCsv(rows: ReportRow[]): string {
     "Capacitación",
     "Estado",
     "Progreso (%)",
+    "Módulos aprobados",
     "Mejor puntaje",
     "Código certificado",
     "Fecha límite",
@@ -133,6 +144,7 @@ export function reportRowsToCsv(rows: ReportRow[]): string {
         r.courseTitle,
         r.status,
         r.percent,
+        r.approvedModules.join(" | "),
         r.bestScore ?? "",
         r.certificateCode ?? "",
         r.dueAt ? r.dueAt.toISOString() : "",

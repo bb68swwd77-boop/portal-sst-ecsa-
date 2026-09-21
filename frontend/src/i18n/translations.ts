@@ -317,6 +317,7 @@ export const translations: Record<string, string> = {
   // --- Admin: reportes -------------------------------------------------
   "Estado de capacitación por usuario y curso.": "按用户和课程查看培训状态。",
   "Exportar CSV": "导出CSV",
+  "Módulos aprobados": "已通过模块",
   "Buscar usuario": "搜索用户",
   "Todos los estados": "所有状态",
   Filtrar: "筛选",
