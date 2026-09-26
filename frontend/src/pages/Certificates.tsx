@@ -14,8 +14,10 @@ export function CertificatesPage() {
 
   return (
     <div>
-      <h2 className="page-title">{t("Mis certificados")}</h2>
-      <p className="page-subtitle">{t("Certificados emitidos al aprobar cada capacitación.")}</p>
+      <div className="page-hero">
+        <h2 className="page-title">{t("Mis certificados")}</h2>
+        <p className="page-subtitle">{t("Certificados emitidos al aprobar cada capacitación.")}</p>
+      </div>
 
       {certificates && certificates.length === 0 && (
         <div className="empty-state card">{t("Aún no tiene certificados emitidos.")}</div>

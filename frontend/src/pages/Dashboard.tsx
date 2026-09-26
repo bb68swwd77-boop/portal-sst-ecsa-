@@ -20,9 +20,11 @@ export function DashboardPage() {
 
   return (
     <div>
-      <span className="badge badge-copper">{t("Mi capacitación")}</span>
-      <h2 className="page-title">{t("Capacitaciones asignadas")}</h2>
-      <p className="page-subtitle">{t("Continúa donde quedaste o revisa tu progreso general.")}</p>
+      <div className="page-hero">
+        <span className="badge badge-copper">{t("Mi capacitación")}</span>
+        <h2 className="page-title">{t("Capacitaciones asignadas")}</h2>
+        <p className="page-subtitle">{t("Continúa donde quedaste o revisa tu progreso general.")}</p>
+      </div>
 
       {stats && (
         <div className="stat-grid">
