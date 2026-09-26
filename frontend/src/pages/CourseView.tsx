@@ -102,72 +102,41 @@ export function CourseViewPage() {
       <p className="page-subtitle">{course.description}</p>
       <ProgressBar percent={course.percent} label={`${course.percent}% ${t("completado")}`} />
 
-      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 24, marginTop: 16 }} className="course-layout">
-        <div className="card" style={{ alignSelf: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 24, marginTop: 16 }} className="course-layout">
+        <div className="module-list">
           {course.modules.map((m) => {
             const expanded = expandedModuleIds.has(m.id);
+            const doneCount = m.lessons.filter((l) => l.completed).length;
+            const allDone = m.lessons.length > 0 && doneCount === m.lessons.length && (!m.evaluation || m.evaluation.lastPassed);
             return (
-              <div key={m.id} className="mt-16">
-                <button
-                  type="button"
-                  className="module-header"
-                  onClick={() => toggleModule(m.id)}
-                  aria-expanded={expanded}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    width: "100%",
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    color: "inherit",
-                    textAlign: "left",
-                  }}
-                >
-                  <span
-                    className="text-secondary"
-                    style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.04em" }}
-                  >
-                    {t("Módulo")} {m.order} · {m.title}
+              <div key={m.id} className={`module-card ${expanded ? "expanded" : ""} ${allDone ? "done" : ""}`}>
+                <button type="button" className="module-card-header" onClick={() => toggleModule(m.id)} aria-expanded={expanded}>
+                  <span className="module-number">{allDone ? "✓" : m.order}</span>
+                  <span className="module-card-text">
+                    <span className="module-card-title">{m.title}</span>
+                    <span className="module-card-meta">
+                      {t("Módulo")} {m.order} · {doneCount}/{m.lessons.length} {t("Lecciones")}
+                    </span>
                   </span>
-                  <span className="text-muted" style={{ fontSize: 11 }}>
-                    {expanded ? "▲" : "▼"}
-                  </span>
+                  <span className="module-chevron">{expanded ? "▲" : "▼"}</span>
                 </button>
                 {expanded && (
-                  <div className="mt-8">
+                  <div className="module-card-body">
                     {m.lessons.map((l) => (
                       <button
                         key={l.id}
-                        className="module-item"
+                        className={`module-item ${activeLessonId === l.id ? "active" : ""}`}
                         onClick={() => setActiveLessonId(l.id)}
-                        style={{
-                          display: "block",
-                          width: "100%",
-                          textAlign: "left",
-                          padding: 10,
-                          borderRadius: 8,
-                          marginTop: 6,
-                          background: activeLessonId === l.id ? "var(--color-bg-subtle)" : "transparent",
-                          border: activeLessonId === l.id ? "1px solid var(--color-cyan)" : "1px solid transparent",
-                          color: "inherit",
-                          cursor: "pointer",
-                        }}
                       >
-                        <div style={{ fontSize: 13 }}>{l.title}</div>
-                        <div style={{ fontSize: 11 }} className={l.completed ? "" : "text-muted"}>
-                          {l.completed ? (
-                            <span style={{ color: "var(--color-success)" }}>✓ {t("Completado")}</span>
-                          ) : (
-                            t("Pendiente")
-                          )}
-                        </div>
+                        <span className={`lesson-dot ${l.completed ? "done" : ""}`}>{l.completed ? "✓" : ""}</span>
+                        <span>
+                          <span className="lesson-title">{l.title}</span>
+                          <span className={`lesson-status ${l.completed ? "done" : ""}`}>{l.completed ? t("Completado") : t("Pendiente")}</span>
+                        </span>
                       </button>
                     ))}
                     {m.evaluation && (
-                      <div className="card mt-8" style={{ padding: 12 }}>
+                      <div className="module-eval">
                         <div style={{ fontSize: 13, fontWeight: 600 }}>{m.evaluation.title}</div>
                         <div className="text-muted" style={{ fontSize: 11 }}>
                           {t("Intentos:")} {m.evaluation.attemptsUsed}/{m.evaluation.maxAttempts}
@@ -217,27 +186,27 @@ export function CourseViewPage() {
                 <section className="content" dangerouslySetInnerHTML={{ __html: activeLesson.bodyHtml }} />
               )}
 
-              {activeLesson.file && (
-                <p>
-                  <a href={apiUrl(`/files/${activeLesson.file.id}`)} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm">
-                    📄 {t("Descargar")} {activeLesson.file.filename} ({Math.round(activeLesson.file.sizeBytes / 1024)} KB)
-                  </a>
-                </p>
-              )}
-
-              {activeLesson.files.length > 0 && (
-                <div className="flex gap-8" style={{ flexWrap: "wrap" }}>
-                  {activeLesson.files.map((f) => (
-                    <a
-                      key={f.id}
-                      href={apiUrl(`/files/${f.id}`)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-secondary btn-sm"
-                    >
-                      📄 {t("Descargar")} {f.filename} ({Math.round(f.sizeBytes / 1024)} KB)
-                    </a>
-                  ))}
+              {(activeLesson.file || activeLesson.files.length > 0) && (
+                <div className="doc-section">
+                  <div className="doc-section-title">{t("Documentos para descargar")}</div>
+                  <div className="doc-grid">
+                    {[...(activeLesson.file ? [activeLesson.file] : []), ...activeLesson.files].map((f) => (
+                      <a key={f.id} href={apiUrl(`/files/${f.id}`)} target="_blank" rel="noopener noreferrer" className="doc-tile">
+                        <span className="doc-icon" aria-hidden="true">
+                          <svg viewBox="0 0 40 48" width="34" height="41">
+                            <path d="M4 0h22l14 14v30a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4z" fill="#e5392b" />
+                            <path d="M26 0l14 14H30a4 4 0 0 1-4-4z" fill="#a82015" />
+                            <text x="20" y="38" textAnchor="middle" fontSize="13" fontWeight="800" fill="#fff" fontFamily="Arial, sans-serif">PDF</text>
+                          </svg>
+                        </span>
+                        <span className="doc-info">
+                          <span className="doc-name">{f.filename}</span>
+                          <span className="doc-size">PDF · {Math.round(f.sizeBytes / 1024)} KB</span>
+                        </span>
+                        <span className="doc-download">⬇ {t("Descargar")}</span>
+                      </a>
+                    ))}
+                  </div>
                 </div>
               )}
 

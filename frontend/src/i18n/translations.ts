@@ -121,6 +121,8 @@ export const translations: Record<string, string> = {
   "Última revisión normativa:": "法规最近修订日期：",
   "Fuente:": "来源：",
   Descargar: "下载",
+  Lecciones: "课时",
+  "Documentos para descargar": "可下载文档",
   "Abrir recurso externo": "打开外部资源",
   "Lección completada": "课时已完成",
   "Marcar como completada": "标记为已完成",
