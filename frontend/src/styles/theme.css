@@ -1298,3 +1298,40 @@ h2.page-title {
   padding: 6px 12px;
   border-radius: 999px;
 }
+
+/* ---------- Sidebar contraido: contenido a todo el ancho + marca visible ---------- */
+
+.collapsed-brand {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .main-area.sidebar-collapsed .main-content {
+    max-width: none;
+    padding-left: 56px;
+    padding-right: 56px;
+  }
+
+  .main-area.sidebar-collapsed .collapsed-brand {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 12px 130px 12px 60px;
+    background: linear-gradient(180deg, var(--color-espresso-2) 0%, var(--color-espresso) 100%);
+    border-bottom: 3px solid var(--color-copper);
+  }
+
+  .collapsed-brand-logo {
+    height: 56px;
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .collapsed-brand p {
+    margin: 0;
+    font-size: 13px;
+    color: #c9ad96;
+    line-height: 1.4;
+    max-width: 320px;
+  }
+}

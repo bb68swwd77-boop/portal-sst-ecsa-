@@ -104,6 +104,12 @@ export function Layout() {
       </aside>
 
       <div className={`main-area ${collapsed ? "sidebar-collapsed" : ""}`}>
+        {collapsed && (
+          <div className="collapsed-brand">
+            <img src={logoEcsa} alt="ECSA" className="collapsed-brand-logo" />
+            <p>{t("Capacitaciones de Seguridad y Salud en el Trabajo ECSA")}</p>
+          </div>
+        )}
         <div className="topbar">
           <button className="btn btn-secondary btn-sm" onClick={() => setDrawerOpen((v) => !v)} aria-label={t("Abrir menú")}>
             ☰
