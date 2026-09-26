@@ -108,6 +108,9 @@ export function Layout() {
           <div className="collapsed-brand">
             <img src={logoEcsa} alt="ECSA" className="collapsed-brand-logo" />
             <p>{t("Capacitaciones de Seguridad y Salud en el Trabajo ECSA")}</p>
+            <button className="btn btn-secondary btn-sm collapsed-brand-logout" onClick={handleLogout}>
+              {t("Cerrar sesión")}
+            </button>
           </div>
         )}
         <div className="topbar">

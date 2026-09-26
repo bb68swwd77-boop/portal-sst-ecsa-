@@ -1316,7 +1316,7 @@ h2.page-title {
     display: flex;
     align-items: center;
     gap: 18px;
-    padding: 12px 130px 12px 60px;
+    padding: 12px 150px 12px 60px;
     background: linear-gradient(180deg, var(--color-espresso-2) 0%, var(--color-espresso) 100%);
     border-bottom: 3px solid var(--color-copper);
   }
@@ -1325,6 +1325,18 @@ h2.page-title {
     height: 56px;
     width: auto;
     flex: 0 0 auto;
+  }
+
+  .collapsed-brand-logout {
+    margin-left: auto;
+    color: #f3e4d6;
+    border-color: rgba(238, 159, 107, 0.5);
+    white-space: nowrap;
+  }
+
+  .collapsed-brand-logout:hover:not(:disabled) {
+    background: rgba(238, 159, 107, 0.18);
+    border-color: var(--color-copper-light);
   }
 
   .collapsed-brand p {
