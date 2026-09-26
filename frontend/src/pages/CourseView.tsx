@@ -14,17 +14,12 @@ export function CourseViewPage() {
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // Módulos desplegados en el acordeón — por defecto solo el que contiene la
+  // Módulos desplegados en el acordeón (solo uno a la vez) — por defecto el que contiene la
   // lección activa, para no ocupar todo el espacio vertical del panel.
   const [expandedModuleIds, setExpandedModuleIds] = useState<Set<string>>(new Set());
 
   function toggleModule(moduleId: string) {
-    setExpandedModuleIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(moduleId)) next.delete(moduleId);
-      else next.add(moduleId);
-      return next;
-    });
+    setExpandedModuleIds((prev) => (prev.has(moduleId) ? new Set() : new Set([moduleId])));
   }
 
   async function load() {
