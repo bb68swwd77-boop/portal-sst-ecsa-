@@ -540,6 +540,12 @@ const PILOT_USERS: PilotUserRow[] = [
 const PILOT_COMPANY = "ECSA";
 const PILOT_AREA = "GESTION DE SEGURIDAD INDUSTRIAL Y SALUD OCUPACIONAL";
 const PILOT_ADMIN_CODE = "1000001";
+// Cuenta administrativa personal de Randy Alvarez — antes se creaba a mano
+// desde el panel y no vivía en este seed, así que una base de datos nueva (ej.
+// tras migrar de proveedor) se quedaba sin ella. Ahora se siembra igual que
+// las demás cuentas piloto (solo-crear) para que sobreviva a cualquier
+// redespliegue o cambio de base de datos.
+const RANDY_ADMIN_CODE = "1003460";
 
 async function seedPilotUsers(adminRoleId: string, userRoleId: string, sharedPasswordHash: string) {
   // Las cuentas piloto son "solo crear": un redespliegue normal no pisa sus
@@ -552,8 +558,6 @@ async function seedPilotUsers(adminRoleId: string, userRoleId: string, sharedPas
     : {};
   if (resetPilot) console.log("RESET_PILOT_PASSWORDS=true: restableciendo contraseñas de cuentas piloto...");
 
-  // Cuenta administrativa del piloto — Randy Alvarez (código 1003460, excluido
-  // de este lote) se crea aparte manualmente y usará su propia cuenta admin.
   await prisma.user.upsert({
     where: { code: PILOT_ADMIN_CODE },
     update: pilotUpdate,
@@ -563,6 +567,25 @@ async function seedPilotUsers(adminRoleId: string, userRoleId: string, sharedPas
       passwordHash: sharedPasswordHash,
       firstName: "Administrador",
       lastName: "SST",
+      company: PILOT_COMPANY,
+      area: PILOT_AREA,
+      position: "Administrador del portal",
+      category: "ADM",
+      roleId: adminRoleId,
+      mustChangePassword: true,
+      isDemo: false,
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { code: RANDY_ADMIN_CODE },
+    update: pilotUpdate,
+    create: {
+      email: `${RANDY_ADMIN_CODE}@ecsa.local`,
+      code: RANDY_ADMIN_CODE,
+      passwordHash: sharedPasswordHash,
+      firstName: "Randy Josue",
+      lastName: "Alvarez Ricaurte",
       company: PILOT_COMPANY,
       area: PILOT_AREA,
       position: "Administrador del portal",
