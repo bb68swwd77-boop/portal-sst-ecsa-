@@ -1,12 +1,13 @@
-# Blueprint de despliegue en Render (render.com) — despliega backend, frontend y
-# base de datos con un solo "New Blueprint" apuntando a este repositorio.
+# Blueprint de despliegue en Render (render.com) — despliega backend y frontend
+# con un solo "New Blueprint" apuntando a este repositorio.
 # Ver docs/DEPLOY.md para el paso a paso.
-
-databases:
-  - name: ecsa-sst-db
-    plan: free
-    databaseName: ecsa_sst
-    user: ecsa_sst
+#
+# Base de datos: la Postgres gratuita de Render expira a los 30 días, así que
+# mientras el proyecto está en fase piloto (sin presupuesto aprobado todavía)
+# se usa una base externa gratuita en Neon (neon.tech), que no caduca por
+# tiempo. Por eso ya no hay bloque "databases:" aquí — DATABASE_URL se
+# configura a mano en el dashboard de Render (ver más abajo, "sync: false")
+# para no dejar la contraseña de la base en el repositorio.
 
 services:
   - type: web
@@ -24,9 +25,10 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        fromDatabase:
-          name: ecsa-sst-db
-          property: connectionString
+        # sync: false = Render no la trae del Blueprint ni la borra en un
+        # redeploy; se pega el connection string de Neon a mano en el
+        # dashboard (Environment del servicio) y queda guardada ahí.
+        sync: false
       - key: SESSION_SECRET
         generateValue: true
       - key: COOKIE_SECURE
