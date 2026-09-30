@@ -84,7 +84,7 @@ export function LoginPage() {
         </div>
 
         <p className="field-hint mt-16">
-          {t("Acceso DEMO: código DEMO-ADMIN / DEMO-USER1 — contraseña Demo#2026Sst")}
+          {t("Contraseña genérica: Demo#2026Sst")}
         </p>
       </div>
     </AuthLayout>
