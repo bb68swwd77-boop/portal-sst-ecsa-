@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import heroBanner from "../assets/hero-banner.png";
+import heroBanner from "../assets/hero-banner.webp";
 import { LanguageToggle } from "./LanguageToggle";
 
 // El banner ya trae el logo, el mensaje y el mascote ECSA integrados a la
