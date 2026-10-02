@@ -3,6 +3,7 @@ import { requireAuth } from "../middleware/auth";
 import { asyncHandler } from "../middleware/errorHandler";
 import { getDashboardForUser } from "../services/courses.service";
 import { prisma } from "../lib/prisma";
+import { recordHeartbeat } from "../lib/session";
 
 export const meRouter = Router();
 
@@ -13,6 +14,14 @@ meRouter.get(
   asyncHandler(async (req, res) => {
     const dashboard = await getDashboardForUser(req.currentUser!);
     res.json(dashboard);
+  })
+);
+
+meRouter.post(
+  "/heartbeat",
+  asyncHandler(async (req, res) => {
+    if (req.sessionId) await recordHeartbeat(req.sessionId, req.currentUser!.id);
+    res.json({ ok: true });
   })
 );
 

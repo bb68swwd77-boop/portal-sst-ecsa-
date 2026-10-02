@@ -139,6 +139,16 @@ export function CourseViewPage() {
                         </div>
                         {m.evaluation.lastPassed ? (
                           <span className="badge badge-status-completed mt-8">{t("Aprobado")}</span>
+                        ) : m.evaluation.canAttempt && m.evaluation.pendingLessons > 0 ? (
+                          <>
+                            <button type="button" className="btn btn-primary btn-sm mt-8" disabled>
+                              🔒 {t("Iniciar evaluación")}
+                            </button>
+                            <div className="text-muted mt-8" style={{ fontSize: 11 }}>
+                              {t("Complete todas las lecciones del módulo para habilitar la evaluación.")} ({m.evaluation.pendingLessons}{" "}
+                              {t("pendientes")})
+                            </div>
+                          </>
                         ) : m.evaluation.canAttempt ? (
                           <Link to={`/curso/${course.id}/evaluacion/${m.evaluation.id}`} className="btn btn-primary btn-sm mt-8">
                             {t("Iniciar evaluación")}

@@ -15,6 +15,15 @@ interface ReportRow {
   approvedModules: string[];
   bestScore: number | null;
   certificateCode: string | null;
+  connectionSeconds: number;
+}
+
+function formatConnectionTime(seconds: number) {
+  const totalMinutes = Math.round(seconds / 60);
+  if (totalMinutes < 1) return "—";
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0 ? `${hours} h ${minutes} min` : `${minutes} min`;
 }
 
 export function AdminReportsPage() {
@@ -90,6 +99,7 @@ export function AdminReportsPage() {
               <th>{t("Progreso")}</th>
               <th>{t("Módulos aprobados")}</th>
               <th>{t("Mejor puntaje")}</th>
+              <th>{t("Tiempo de conexión")}</th>
               <th>{t("Certificado")}</th>
             </tr>
           </thead>
@@ -120,6 +130,7 @@ export function AdminReportsPage() {
                       ))}
                 </td>
                 <td>{r.bestScore ?? "—"}</td>
+                <td>{formatConnectionTime(r.connectionSeconds)}</td>
                 <td>{r.certificateCode ?? "—"}</td>
               </tr>
             ))}

@@ -13,6 +13,16 @@ function shuffle<T>(arr: T[]): T[] {
   return copy;
 }
 
+// Lecciones del módulo que el usuario aún no ha completado — la evaluación
+// del módulo solo se habilita cuando este número llega a cero.
+async function countPendingLessons(userId: string, moduleId: string) {
+  const [total, completed] = await Promise.all([
+    prisma.lesson.count({ where: { moduleId } }),
+    prisma.lessonProgress.count({ where: { userId, completedAt: { not: null }, lesson: { moduleId } } }),
+  ]);
+  return Math.max(0, total - completed);
+}
+
 /**
  * Inicia (o reanuda) un intento de evaluación. Devuelve preguntas y opciones
  * SIN el campo isCorrect — el cliente nunca recibe las respuestas correctas.
@@ -23,6 +33,11 @@ export async function startAttempt(userId: string, evaluationId: string) {
     include: { questions: { include: { options: true }, orderBy: { order: "asc" } }, module: { include: { course: true } } },
   });
   if (!evaluation) throw new HttpError(404, "Evaluación no encontrada.");
+
+  const pendingLessons = await countPendingLessons(userId, evaluation.moduleId);
+  if (pendingLessons > 0) {
+    throw new HttpError(403, "Debe completar todas las lecciones del módulo antes de iniciar la evaluación.");
+  }
 
   // Reanuda un intento en progreso si existe.
   let attempt = await prisma.evaluationAttempt.findFirst({

@@ -51,6 +51,23 @@ export async function destroySession(req: Request, res: Response) {
   res.clearCookie(SESSION_COOKIE, { path: "/" });
 }
 
+// El frontend envía un heartbeat cada ~2 min con el portal visible. Se suma
+// el tiempo transcurrido desde el heartbeat anterior de la sesión, con tope,
+// para que una pestaña dormida o un corte de red no inflen la cifra.
+const HEARTBEAT_MAX_GAP_SECONDS = 180;
+
+export async function recordHeartbeat(sessionId: string, userId: string) {
+  const session = await prisma.session.findUnique({ where: { id: sessionId }, select: { lastSeenAt: true } });
+  const now = new Date();
+  const gapSeconds = session?.lastSeenAt ? Math.round((now.getTime() - session.lastSeenAt.getTime()) / 1000) : 0;
+  const added = Math.max(0, Math.min(gapSeconds, HEARTBEAT_MAX_GAP_SECONDS));
+
+  await prisma.$transaction([
+    prisma.session.update({ where: { id: sessionId }, data: { lastSeenAt: now } }),
+    ...(added > 0 ? [prisma.user.update({ where: { id: userId }, data: { connectionSeconds: { increment: added } } })] : []),
+  ]);
+}
+
 export async function getValidSession(sessionId: string | undefined) {
   if (!sessionId) return null;
   const session = await prisma.session.findUnique({ where: { id: sessionId } });

@@ -64,6 +64,9 @@ model User {
   failedLoginCount  Int       @default(0)
   lockedUntil       DateTime?
   lastLoginAt       DateTime?
+  // Tiempo acumulado con el portal abierto (segundos), alimentado por el
+  // heartbeat del frontend — ver recordHeartbeat en lib/session.ts.
+  connectionSeconds Int       @default(0)
   mustChangePassword Boolean  @default(false)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -89,6 +92,8 @@ model Session {
   createdAt DateTime @default(now())
   expiresAt DateTime
   revokedAt DateTime?
+  // Último heartbeat recibido en esta sesión (base para sumar tiempo de conexión).
+  lastSeenAt DateTime?
 
   @@index([userId])
 }

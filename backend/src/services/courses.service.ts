@@ -249,6 +249,8 @@ export async function getCourseDetailForUser(currentUser: AuthenticatedUser, cou
             lastScore: bestAttempt?.score ?? null,
             lastPassed: bestAttempt?.passed ?? null,
             canAttempt: attemptsUsed < m.evaluation.maxAttempts && !bestAttempt?.passed,
+            // La evaluación se habilita solo con todas las lecciones del módulo completadas.
+            pendingLessons: lessons.filter((l) => !l.completed).length,
           }
         : null,
     };

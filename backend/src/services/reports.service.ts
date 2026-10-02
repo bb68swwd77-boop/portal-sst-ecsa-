@@ -23,6 +23,8 @@ export interface ReportRow {
   certificateCode: string | null;
   dueAt: Date | null;
   completedAt: Date | null;
+  // Tiempo total del usuario con el portal abierto (el mismo valor en todas sus filas).
+  connectionSeconds: number;
 }
 
 export async function buildTrainingReport(filters: ReportFilters): Promise<ReportRow[]> {
@@ -110,6 +112,7 @@ export async function buildTrainingReport(filters: ReportFilters): Promise<Repor
         certificateCode: cert?.code ?? null,
         dueAt: assignment?.dueAt ?? null,
         completedAt: cert?.issuedAt ?? null,
+        connectionSeconds: user.connectionSeconds,
       });
     }
   }
@@ -128,6 +131,7 @@ export function reportRowsToCsv(rows: ReportRow[]): string {
     "Progreso (%)",
     "Módulos aprobados",
     "Mejor puntaje",
+    "Tiempo de conexión (min)",
     "Código certificado",
     "Fecha límite",
     "Fecha de aprobación",
@@ -146,6 +150,7 @@ export function reportRowsToCsv(rows: ReportRow[]): string {
         r.percent,
         r.approvedModules.join(" | "),
         r.bestScore ?? "",
+        Math.round(r.connectionSeconds / 60),
         r.certificateCode ?? "",
         r.dueAt ? r.dueAt.toISOString() : "",
         r.completedAt ? r.completedAt.toISOString() : "",

@@ -73,6 +73,8 @@ export interface EvaluationSummary {
   lastScore: number | null;
   lastPassed: boolean | null;
   canAttempt: boolean;
+  // Lecciones del módulo aún sin completar; mientras sea > 0 la evaluación está bloqueada.
+  pendingLessons: number;
 }
 
 export interface ModuleDetail {
