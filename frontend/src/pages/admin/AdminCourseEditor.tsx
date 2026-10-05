@@ -93,6 +93,17 @@ export function AdminCourseEditorPage() {
   const [editLessonModal, setEditLessonModal] = useState<Lesson | null>(null);
   const [editQuestionModal, setEditQuestionModal] = useState<Question | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
+  // Evaluaciones con la lista de preguntas desplegada y preguntas con sus opciones visibles (por defecto todo contraído).
+  const [expandedEvals, setExpandedEvals] = useState<Set<string>>(new Set());
+  const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set());
+
+  function toggleInSet(setter: (updater: (prev: Set<string>) => Set<string>) => void, id: string) {
+    setter((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
 
   async function load() {
     const res = await api.get<{ course: CourseAdmin }>(`/admin/courses/${courseId}`);
@@ -280,30 +291,54 @@ export function AdminCourseEditorPage() {
                   {t("Nota mínima")} {m.evaluation.passingScore}% · {t("Intentos máx.")} {m.evaluation.maxAttempts} ·{" "}
                   {t("Preguntas:")} {m.evaluation.questions.length}
                 </p>
-                {m.evaluation.questions.map((q) => (
-                  <div key={q.id} className="card mt-8" style={{ padding: 12 }}>
-                    <div className="flex-between">
-                      <strong style={{ fontSize: 13 }}>
-                        {q.order}. {q.text}
-                      </strong>
-                      <div className="flex gap-8">
-                        <button className="btn-link" onClick={() => setEditQuestionModal(q)}>
-                          {t("Editar")}
-                        </button>
-                        <button className="btn-link" onClick={() => deleteQuestion(q.id)}>
-                          {t("Eliminar")}
-                        </button>
+                {m.evaluation.questions.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    aria-expanded={expandedEvals.has(m.evaluation.id)}
+                    onClick={() => toggleInSet(setExpandedEvals, m.evaluation!.id)}
+                  >
+                    {expandedEvals.has(m.evaluation.id) ? "▲" : "▼"}{" "}
+                    {expandedEvals.has(m.evaluation.id) ? t("Ocultar preguntas") : t("Ver preguntas")} ({m.evaluation.questions.length})
+                  </button>
+                )}
+                {expandedEvals.has(m.evaluation.id) &&
+                  m.evaluation.questions.map((q) => {
+                    const open = expandedQuestions.has(q.id);
+                    return (
+                      <div key={q.id} className="card mt-8" style={{ padding: 12 }}>
+                        <div className="flex-between">
+                          <button
+                            type="button"
+                            className="btn-link"
+                            style={{ textAlign: "left", fontWeight: 700, fontSize: 13, color: "inherit", textDecoration: "none" }}
+                            aria-expanded={open}
+                            title={open ? t("Ocultar opciones") : t("Mostrar opciones")}
+                            onClick={() => toggleInSet(setExpandedQuestions, q.id)}
+                          >
+                            {open ? "▾" : "▸"} {q.order}. {q.text}
+                          </button>
+                          <div className="flex gap-8">
+                            <button className="btn-link" onClick={() => setEditQuestionModal(q)}>
+                              {t("Editar")}
+                            </button>
+                            <button className="btn-link" onClick={() => deleteQuestion(q.id)}>
+                              {t("Eliminar")}
+                            </button>
+                          </div>
+                        </div>
+                        {open && (
+                          <ul style={{ margin: "8px 0 0", paddingLeft: 18, fontSize: 12 }}>
+                            {q.options.map((o) => (
+                              <li key={o.id} style={{ color: o.isCorrect ? "var(--color-success)" : "var(--color-text-secondary)" }}>
+                                {o.text} {o.isCorrect && "✓"}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
-                    </div>
-                    <ul style={{ margin: "8px 0 0", paddingLeft: 18, fontSize: 12 }}>
-                      {q.options.map((o) => (
-                        <li key={o.id} style={{ color: o.isCorrect ? "var(--color-success)" : "var(--color-text-secondary)" }}>
-                          {o.text} {o.isCorrect && "✓"}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+                    );
+                  })}
               </div>
             ) : (
               <button className="btn btn-secondary btn-sm" onClick={() => setEvalModal({ moduleId: m.id })}>
