@@ -327,6 +327,8 @@ export const translations: Record<string, string> = {
   "Mejor puntaje": "最高分",
   Certificado: "证书",
   "Tiempo de conexión": "在线时长",
+  "Mostrar contraseña": "显示密码",
+  "Ocultar contraseña": "隐藏密码",
   "Complete todas las lecciones del módulo para habilitar la evaluación.": "完成本模块的所有课时后方可开始测评。",
   pendientes: "待完成",
   "Debe completar todas las lecciones del módulo antes de iniciar la evaluación.": "开始测评前，必须完成本模块的所有课时。",

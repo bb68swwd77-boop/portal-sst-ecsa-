@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { ApiError } from "../api/client";
 import { AuthLayout } from "../components/AuthLayout";
+import { PasswordInput } from "../components/PasswordInput";
 
 export function LoginPage() {
   const { login, user } = useAuth();
@@ -60,9 +61,8 @@ export function LoginPage() {
           </div>
           <div className="field">
             <label htmlFor="password">{t("Contraseña")}</label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete="current-password"
               required
               value={password}

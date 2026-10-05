@@ -641,6 +641,39 @@ h4 {
   border-color: var(--color-cyan);
 }
 
+/* Campo de contraseña con botón de mostrar/ocultar a la derecha. */
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 46px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.password-toggle:hover,
+.password-toggle:focus-visible {
+  color: var(--color-copper-deep);
+  background: rgba(238, 159, 107, 0.15);
+}
+
 /* Filas de "opción de respuesta" (radio/checkbox + texto) dentro de un
    .field: sin esto, el radio/checkbox hereda width:100% de la regla
    genérica de arriba y se infla, aplastando el input de texto. */
