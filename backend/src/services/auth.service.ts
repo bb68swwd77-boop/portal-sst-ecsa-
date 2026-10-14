@@ -75,15 +75,25 @@ export async function resetPasswordWithToken(token: string, newPassword: string)
       data: { passwordHash, failedLoginCount: 0, lockedUntil: null, mustChangePassword: false },
     }),
     prisma.passwordReset.update({ where: { id: reset.id }, data: { usedAt: new Date() } }),
+    // Una contraseña restablecida invalida cualquier sesión abierta con la anterior.
+    prisma.session.updateMany({ where: { userId: reset.userId, revokedAt: null }, data: { revokedAt: new Date() } }),
   ]);
 }
 
-export async function changeOwnPassword(userId: string, currentPassword: string, newPassword: string) {
+export async function changeOwnPassword(userId: string, currentPassword: string, newPassword: string, keepSessionId?: string) {
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   const valid = await verifyPassword(user.passwordHash, currentPassword);
   if (!valid) {
     throw new HttpError(400, "La contraseña actual no es correcta.");
   }
   const passwordHash = await hashPassword(newPassword);
-  await prisma.user.update({ where: { id: userId }, data: { passwordHash, mustChangePassword: false } });
+  await prisma.$transaction([
+    prisma.user.update({ where: { id: userId }, data: { passwordHash, mustChangePassword: false } }),
+    // Cierra las demás sesiones del usuario (otros equipos/navegadores) y deja
+    // abierta solo la actual, desde donde se hizo el cambio.
+    prisma.session.updateMany({
+      where: { userId, revokedAt: null, ...(keepSessionId ? { id: { not: keepSessionId } } : {}) },
+      data: { revokedAt: new Date() },
+    }),
+  ]);
 }

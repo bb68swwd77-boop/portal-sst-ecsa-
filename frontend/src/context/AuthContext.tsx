@@ -23,6 +23,8 @@ interface MePayload {
     roleKey: "admin" | "user";
     permissions: string[] | Set<string>;
     mustChangePassword: boolean;
+    policyAccepted: boolean;
+    policyVersion: string;
   };
 }
 

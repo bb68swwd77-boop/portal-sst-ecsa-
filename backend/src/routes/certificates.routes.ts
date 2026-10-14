@@ -51,7 +51,8 @@ certificatesRouter.get(
         score: cert.score,
         issuedAt: cert.issuedAt,
         holderName: `${cert.user.firstName} ${cert.user.lastName}`,
-        holderDocument: cert.user.documentId,
+        // Endpoint público: no se expone el número de identificación (dato
+        // personal) — el nombre y la empresa bastan para validar el certificado.
         holderCompany: cert.user.company,
       },
     });

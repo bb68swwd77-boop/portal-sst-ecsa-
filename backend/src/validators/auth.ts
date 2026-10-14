@@ -24,3 +24,9 @@ export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
   newPassword: resetPasswordSchema.shape.newPassword,
 });
+
+// El cuerpo debe afirmar explícitamente la aceptación: evita registrar una
+// aceptación por una petición vacía o malformada.
+export const acceptPolicySchema = z.object({
+  accepted: z.literal(true),
+});

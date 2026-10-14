@@ -13,6 +13,7 @@ import { LoginPage } from "./pages/Login";
 import { ForgotPasswordPage } from "./pages/ForgotPassword";
 import { ResetPasswordPage } from "./pages/ResetPassword";
 import { VerifyCertificatePage } from "./pages/VerifyCertificate";
+import { PoliciesPage } from "./pages/Policies";
 import { DashboardPage } from "./pages/Dashboard";
 import { CourseViewPage } from "./pages/CourseView";
 import { EvaluationRunnerPage } from "./pages/EvaluationRunner";
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="/recuperar-password" element={<ForgotPasswordPage />} />
             <Route path="/restablecer-password" element={<ResetPasswordPage />} />
             <Route path="/verificar-certificado" element={<VerifyCertificatePage />} />
+            <Route path="/politicas" element={<PoliciesPage />} />
 
             <Route
               element={

@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import { useToast } from "../context/ToastContext";
 import { useLanguage } from "../context/LanguageContext";
@@ -25,8 +26,14 @@ export function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const [consents, setConsents] = useState<{ acceptances: { version: string; acceptedAt: string }[] } | null>(null);
+
   useEffect(() => {
     api.get<{ profile: Profile }>("/me/profile").then((res) => setProfile(res.profile));
+    api
+      .get<{ acceptances: { version: string; acceptedAt: string }[] }>("/me/consents")
+      .then(setConsents)
+      .catch(() => setConsents(null));
   }, []);
 
   async function handlePasswordChange(e: FormEvent) {
@@ -126,6 +133,26 @@ export function ProfilePage() {
             {submitting ? t("Guardando…") : t("Actualizar contraseña")}
           </button>
         </form>
+      </div>
+
+      <div className="card mt-24" style={{ maxWidth: 480 }}>
+        <h3>{t("Protección de datos y cookies")}</h3>
+        {consents && consents.acceptances.length > 0 ? (
+          <ul style={{ fontSize: 14, lineHeight: 1.8, marginLeft: 18 }}>
+            {consents.acceptances.map((a) => (
+              <li key={a.version}>
+                {t("Políticas aceptadas el")} {new Date(a.acceptedAt).toLocaleString("es-EC")} ({t("versión")} {a.version})
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-muted" style={{ fontSize: 14 }}>
+            {t("Aún no hay una aceptación registrada.")}
+          </p>
+        )}
+        <Link to="/politicas" className="btn-link">
+          {t("Leer las políticas")}
+        </Link>
       </div>
     </div>
   );

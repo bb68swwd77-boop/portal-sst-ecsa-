@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { getValidSession, SESSION_COOKIE } from "../lib/session";
+import { CURRENT_POLICY_VERSION } from "../config/policies";
 
 export interface AuthenticatedUser {
   id: string;
@@ -12,6 +13,8 @@ export interface AuthenticatedUser {
   roleKey: string;
   permissions: Set<string>;
   mustChangePassword: boolean;
+  // ¿Ya aceptó la versión vigente de las políticas de datos y cookies?
+  policyAccepted: boolean;
 }
 
 declare global {
@@ -37,7 +40,10 @@ export async function loadSession(req: Request, res: Response, next: NextFunctio
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    include: { role: { include: { permissions: { include: { permission: true } } } } },
+    include: {
+      role: { include: { permissions: { include: { permission: true } } } },
+      policyAcceptances: { where: { version: CURRENT_POLICY_VERSION }, select: { id: true }, take: 1 },
+    },
   });
 
   if (!user || !user.isActive) {
@@ -55,8 +61,27 @@ export async function loadSession(req: Request, res: Response, next: NextFunctio
     roleKey: user.role.key,
     permissions: new Set(user.role.permissions.map((rp) => rp.permission.key)),
     mustChangePassword: user.mustChangePassword,
+    policyAccepted: user.policyAcceptances.length > 0,
   };
   next();
+}
+
+/**
+ * Control de aceptación de políticas (datos personales y cookies): mientras el
+ * usuario autenticado no haya aceptado la versión vigente, la API solo le deja
+ * usar /api/auth/* (ver su sesión, aceptar, cambiar contraseña, cerrar sesión).
+ * Así la aceptación no depende solo de la pantalla del frontend.
+ * Las rutas públicas (sin sesión) no se ven afectadas.
+ */
+export function requirePolicyAcceptance(req: Request, res: Response, next: NextFunction) {
+  const user = req.currentUser;
+  if (!user || user.policyAccepted) return next();
+  // req.path es relativo al punto de montaje ("/api").
+  if (req.path.startsWith("/auth/")) return next();
+  return res.status(403).json({
+    error: "Debe aceptar la política de protección de datos y la política de cookies para continuar.",
+    code: "POLICY_REQUIRED",
+  });
 }
 
 // Exige que exista un usuario autenticado en la sesión.

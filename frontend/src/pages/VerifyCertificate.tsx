@@ -14,7 +14,6 @@ interface VerifyResult {
     score: number;
     issuedAt: string;
     holderName: string;
-    holderDocument: string | null;
     holderCompany: string | null;
   };
   message?: string;

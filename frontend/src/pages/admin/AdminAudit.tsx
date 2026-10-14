@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../../api/client";
 import { useLanguage } from "../../context/LanguageContext";
+import { PolicyAcceptanceRegister } from "./PolicyAcceptanceRegister";
 
 interface AuditLog {
   id: string;
@@ -18,6 +19,7 @@ export function AdminAuditPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [actionFilter, setActionFilter] = useState("");
+  const [view, setView] = useState<"log" | "policies">("log");
   const pageSize = 50;
 
   async function load() {
@@ -39,6 +41,21 @@ export function AdminAuditPage() {
       <p className="page-subtitle">{t("Trazabilidad de eventos sensibles del sistema.")}</p>
 
       <div className="flex gap-8">
+        <button className={`btn btn-sm ${view === "log" ? "btn-primary" : "btn-secondary"}`} onClick={() => setView("log")}>
+          {t("Bitácora de eventos")}
+        </button>
+        <button className={`btn btn-sm ${view === "policies" ? "btn-primary" : "btn-secondary"}`} onClick={() => setView("policies")}>
+          {t("Aceptación de políticas")}
+        </button>
+      </div>
+
+      {view === "policies" ? (
+        <div className="mt-16">
+          <PolicyAcceptanceRegister />
+        </div>
+      ) : (
+      <>
+      <div className="flex gap-8 mt-16">
         <input
           placeholder={t("Filtrar por acción (ej: auth.login)")}
           value={actionFilter}
@@ -99,6 +116,8 @@ export function AdminAuditPage() {
           </button>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }

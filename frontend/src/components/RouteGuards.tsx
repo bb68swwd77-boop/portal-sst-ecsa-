@@ -3,12 +3,17 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { ForceChangePasswordPage } from "../pages/ForceChangePassword";
+import { PolicyConsentPage } from "../pages/PolicyConsent";
 
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const { t } = useLanguage();
   if (loading) return <div className="empty-state">{t("Cargando…")}</div>;
   if (!user) return <Navigate to="/login" replace />;
+  // Primer control: aceptar las políticas de datos y cookies (una sola vez por
+  // versión). Va antes del cambio de contraseña para que sea lo primero que
+  // vea el usuario al ingresar.
+  if (!user.policyAccepted) return <PolicyConsentPage />;
   // Bloquea el acceso a cualquier ruta protegida hasta que cambie la
   // contraseña temporal — sin excepción de ruta, para que no pueda
   // navegar a otra sección desde el menú antes de hacerlo.

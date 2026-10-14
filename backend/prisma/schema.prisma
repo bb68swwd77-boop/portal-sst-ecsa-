@@ -78,6 +78,7 @@ model User {
   auditLogs         AuditLog[]
   passwordResets    PasswordReset[]
   uploadedFiles     FileAsset[]
+  policyAcceptances PolicyAcceptance[]
 
   @@index([roleId])
   @@index([company])
@@ -96,6 +97,22 @@ model Session {
   lastSeenAt DateTime?
 
   @@index([userId])
+}
+
+// Registro de aceptación de las políticas del portal (protección de datos y
+// cookies). Una fila por usuario y versión de políticas: evidencia de quién
+// aceptó, cuándo y desde dónde. Si la versión vigente cambia, se pide de nuevo.
+model PolicyAcceptance {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  version    String
+  acceptedAt DateTime @default(now())
+  ip         String?
+  userAgent  String?
+
+  @@unique([userId, version])
+  @@index([acceptedAt])
 }
 
 model PasswordReset {

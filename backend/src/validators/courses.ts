@@ -27,7 +27,16 @@ export const lessonSchema = z.object({
   order: z.coerce.number().int().min(1).max(1000),
   contentType: z.enum(["RICH_TEXT", "VIDEO", "PDF", "DOCUMENT", "LINK", "IMAGE"]),
   bodyHtml: z.string().max(50000).optional(),
-  externalUrl: z.string().trim().url().max(1000).optional().or(z.literal("")),
+  // Solo http/https: z.url() acepta también "javascript:" y similares, que el
+  // portal mostraría como enlace clicable para los capacitados.
+  externalUrl: z
+    .string()
+    .trim()
+    .url()
+    .max(1000)
+    .refine((v) => /^https?:\/\//i.test(v), "El enlace debe empezar por http:// o https://")
+    .optional()
+    .or(z.literal("")),
   fileId: z.string().cuid().optional(),
   normReference: z.string().trim().max(1000).optional(),
   normCode: z.string().trim().max(100).optional(),

@@ -86,6 +86,12 @@ export function LoginPage() {
         <p className="field-hint mt-16">
           {t("Contraseña genérica: Demo#2026Sst")}
         </p>
+
+        <div className="policy-links">
+          <Link to="/politicas" className="btn-link">
+            {t("Política de protección de datos y uso de cookies")}
+          </Link>
+        </div>
       </div>
     </AuthLayout>
   );

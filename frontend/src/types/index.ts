@@ -7,6 +7,9 @@ export interface CurrentUser {
   roleKey: "admin" | "user";
   permissions: string[];
   mustChangePassword: boolean;
+  // Aceptación de la versión vigente de las políticas de datos y cookies.
+  policyAccepted: boolean;
+  policyVersion: string;
 }
 
 export interface DashboardCourse {

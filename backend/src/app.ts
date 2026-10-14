@@ -4,7 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import compression from "compression";
 import { env } from "./config/env";
-import { loadSession } from "./middleware/auth";
+import { loadSession, requirePolicyAcceptance } from "./middleware/auth";
 import { errorHandler } from "./middleware/errorHandler";
 import { apiRateLimiter } from "./middleware/rateLimit";
 import { issueCsrfCookie, verifyCsrf } from "./middleware/csrf";
@@ -67,6 +67,8 @@ export function createApp() {
 
   // CSRF: se valida a partir de aquí para todo endpoint mutante de la API.
   app.use("/api", verifyCsrf);
+  // Sin aceptar las políticas vigentes solo queda disponible /api/auth/*.
+  app.use("/api", requirePolicyAcceptance);
 
   app.use("/api/auth", authRouter);
   app.use("/api/courses", coursesRouter);
