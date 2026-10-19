@@ -11,7 +11,13 @@ import {
   requestPasswordResetSchema,
   resetPasswordSchema,
 } from "../validators/auth";
-import { authenticate, changeOwnPassword, createPasswordResetToken, resetPasswordWithToken } from "../services/auth.service";
+import {
+  authenticate,
+  changeOwnPassword,
+  createPasswordResetToken,
+  markResetRequestedByCode,
+  resetPasswordWithToken,
+} from "../services/auth.service";
 import { requireAuth } from "../middleware/auth";
 import { createSession, destroySession } from "../lib/session";
 import { csrfTokenHandler } from "../middleware/csrf";
@@ -112,16 +118,31 @@ authRouter.post(
   passwordResetRateLimiter,
   validateBody(requestPasswordResetSchema),
   asyncHandler(async (req, res) => {
-    const result = await createPasswordResetToken(req.body.email);
-    await audit({ action: "auth.password_reset_requested", result: "success", req, metadata: { email: req.body.email } });
-    // TODO(integración de correo): enviar `result.token` por email al usuario.
-    // Nunca se devuelve el token en la respuesta HTTP salvo en DEMO y solo para
-    // cuentas de demostración (isDemo): así se prueba el flujo sin correo, pero
-    // nadie puede tomar una cuenta real conociendo solo su correo.
+    const identifier = req.body.identifier as string;
+    let demoToken: string | undefined;
+
+    if (identifier.includes("@")) {
+      // Por correo (reservado para cuando haya envío de correo): genera el token.
+      const result = await createPasswordResetToken(identifier.toLowerCase());
+      // TODO(integración de correo): enviar `result.token` por email al usuario.
+      // Nunca se devuelve el token en la respuesta HTTP salvo en DEMO y solo para
+      // cuentas de demostración (isDemo): así se prueba el flujo sin correo, pero
+      // nadie puede tomar una cuenta real conociendo solo su correo.
+      if (process.env.DEMO_MODE === "true" && result?.user.isDemo) demoToken = result.token;
+      await audit({ action: "auth.password_reset_requested", result: "success", req, metadata: { email: identifier } });
+    } else {
+      // Por código de trabajador (lo habitual: no tienen correo real). Queda
+      // registrada la solicitud para que el administrador le entregue una clave
+      // temporal desde Usuarios.
+      await markResetRequestedByCode(identifier);
+      await audit({ action: "auth.password_reset_requested", result: "success", req, metadata: { code: identifier } });
+    }
+
+    // Misma respuesta exista o no la cuenta (previene enumeración de usuarios).
     res.json({
       ok: true,
-      message: "Si el correo existe, se enviaron instrucciones de recuperación.",
-      demoToken: process.env.DEMO_MODE === "true" && result?.user.isDemo ? result.token : undefined,
+      message: "Solicitud registrada. El administrador del portal le entregará una clave temporal para que vuelva a ingresar.",
+      demoToken,
     });
   })
 );

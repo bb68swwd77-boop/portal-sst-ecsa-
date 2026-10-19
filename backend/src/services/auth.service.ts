@@ -38,10 +38,20 @@ export async function authenticate(code: string, password: string) {
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { failedLoginCount: 0, lockedUntil: null, lastLoginAt: new Date() },
+    // Si la recordó e ingresó, ya no necesita que el administrador la restablezca.
+    data: { failedLoginCount: 0, lockedUntil: null, lastLoginAt: new Date(), resetRequestedAt: null },
   });
 
   return user;
+}
+
+// Solicitud de restablecimiento hecha por el propio trabajador desde la pantalla
+// "¿Olvidó su contraseña?": solo deja constancia para que el administrador la
+// vea en Usuarios y entregue una clave temporal. No revela si el código existe.
+export async function markResetRequestedByCode(code: string) {
+  const user = await prisma.user.findUnique({ where: { code } });
+  if (!user || !user.isActive) return;
+  await prisma.user.update({ where: { id: user.id }, data: { resetRequestedAt: new Date() } });
 }
 
 export async function createPasswordResetToken(email: string) {
@@ -72,7 +82,7 @@ export async function resetPasswordWithToken(token: string, newPassword: string)
   await prisma.$transaction([
     prisma.user.update({
       where: { id: reset.userId },
-      data: { passwordHash, failedLoginCount: 0, lockedUntil: null, mustChangePassword: false },
+      data: { passwordHash, failedLoginCount: 0, lockedUntil: null, mustChangePassword: false, resetRequestedAt: null },
     }),
     prisma.passwordReset.update({ where: { id: reset.id }, data: { usedAt: new Date() } }),
     // Una contraseña restablecida invalida cualquier sesión abierta con la anterior.

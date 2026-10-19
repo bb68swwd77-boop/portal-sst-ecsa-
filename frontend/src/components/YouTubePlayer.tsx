@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { ACTIVITY_EVENT } from "../hooks/useIdleTimer";
 
 // Extrae el ID de video de las formas comunes de URL de YouTube (incluye
 // videos "no listados", que usan la misma estructura de URL que públicos):
@@ -67,6 +68,10 @@ export function YouTubePlayer({ videoId, onProgress }: YouTubePlayerProps) {
     }
 
     function reportCurrentProgress() {
+      // Mientras el video se reproduce, el usuario está presente aunque no toque
+      // la página (los eventos dentro del iframe no llegan a esta ventana):
+      // evita que el cierre por inactividad lo saque a mitad del video.
+      window.dispatchEvent(new Event(ACTIVITY_EVENT));
       const player = playerRef.current;
       if (!player?.getDuration) return;
       const duration = player.getDuration();
@@ -84,6 +89,7 @@ export function YouTubePlayer({ videoId, onProgress }: YouTubePlayerProps) {
         events: {
           onStateChange: (event: any) => {
             if (event.data === YT.PlayerState.PLAYING) {
+              window.dispatchEvent(new Event(ACTIVITY_EVENT));
               clearProgressInterval();
               intervalRef.current = window.setInterval(reportCurrentProgress, PROGRESS_INTERVAL_MS);
             } else if (event.data === YT.PlayerState.PAUSED) {

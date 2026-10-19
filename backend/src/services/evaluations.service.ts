@@ -13,6 +13,26 @@ function shuffle<T>(arr: T[]): T[] {
   return copy;
 }
 
+// Respuestas guardadas como borrador mientras el capacitado responde.
+export interface DraftAnswer {
+  selectedOptionIds?: string[];
+  shortAnswerText?: string;
+}
+
+// Tolerancia entre el fin del tiempo límite y la llegada del envío (red lenta,
+// envío automático del navegador al llegar a cero).
+const SUBMIT_GRACE_MS = 90 * 1000;
+
+function parseDraft(raw: string | null | undefined): Record<string, DraftAnswer> {
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, DraftAnswer>) : {};
+  } catch {
+    return {};
+  }
+}
+
 // Lecciones del módulo que el usuario aún no ha completado — la evaluación
 // del módulo solo se habilita cuando este número llega a cero.
 async function countPendingLessons(userId: string, moduleId: string) {
@@ -96,11 +116,38 @@ export async function startAttempt(userId: string, evaluationId: string) {
     attemptNumber: attempt.attemptNumber,
     startedAt: attempt.startedAt,
     timeLimitMin: evaluation.timeLimitMin,
+    // Hora del servidor: el contador del navegador se corrige con ella para que
+    // un reloj mal puesto no regale ni quite tiempo.
+    serverNow: new Date().toISOString(),
+    maxAttempts: evaluation.maxAttempts,
     title: evaluation.title,
     description: evaluation.description,
     passingScore: evaluation.passingScore,
     questions,
+    // Respuestas ya guardadas de este intento (si se interrumpió y se reanuda).
+    draftAnswers: parseDraft(attempt.draftAnswers),
   };
+}
+
+/**
+ * Guarda el borrador de respuestas del intento en curso, para que no se pierdan
+ * si se cae la conexión o se cierra la sesión por inactividad.
+ */
+export async function saveDraft(userId: string, attemptId: string, draft: Record<string, DraftAnswer>) {
+  const attempt = await prisma.evaluationAttempt.findUnique({
+    where: { id: attemptId },
+    select: { userId: true, status: true },
+  });
+  if (!attempt || attempt.userId !== userId) {
+    throw new HttpError(404, "Intento de evaluación no encontrado.");
+  }
+  if (attempt.status !== "IN_PROGRESS") {
+    throw new HttpError(400, "Este intento ya fue enviado.");
+  }
+  await prisma.evaluationAttempt.update({
+    where: { id: attemptId },
+    data: { draftAnswers: JSON.stringify(draft) },
+  });
 }
 
 interface SubmitAnswer {
@@ -127,6 +174,18 @@ export async function submitAttempt(userId: string, attemptId: string, answers: 
   }
   if (attempt.status !== "IN_PROGRESS") {
     throw new HttpError(400, "Este intento ya fue enviado.");
+  }
+
+  // Tiempo límite: si el envío llega pasado el plazo (más la tolerancia), solo
+  // cuentan las respuestas que ya estaban guardadas en el borrador — no se gana
+  // tiempo extra enviando respuestas nuevas fuera de plazo.
+  const timeLimitMin = attempt.evaluation.timeLimitMin;
+  if (timeLimitMin && Date.now() - attempt.startedAt.getTime() > timeLimitMin * 60 * 1000 + SUBMIT_GRACE_MS) {
+    answers = Object.entries(parseDraft(attempt.draftAnswers)).map(([questionId, a]) => ({
+      questionId,
+      selectedOptionIds: a.selectedOptionIds,
+      shortAnswerText: a.shortAnswerText,
+    }));
   }
 
   const questionsById = new Map(attempt.evaluation.questions.map((q) => [q.id, q]));
@@ -168,7 +227,7 @@ export async function submitAttempt(userId: string, attemptId: string, answers: 
     prisma.attemptAnswer.createMany({ data: answerRows }),
     prisma.evaluationAttempt.update({
       where: { id: attempt.id },
-      data: { status: "SUBMITTED", submittedAt: new Date(), score, passed },
+      data: { status: "SUBMITTED", submittedAt: new Date(), score, passed, draftAnswers: null },
     }),
   ]);
 

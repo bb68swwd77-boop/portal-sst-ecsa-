@@ -67,6 +67,10 @@ model User {
   // Tiempo acumulado con el portal abierto (segundos), alimentado por el
   // heartbeat del frontend — ver recordHeartbeat en lib/session.ts.
   connectionSeconds Int       @default(0)
+  // Última vez que el propio usuario pidió restablecer su clave desde la pantalla
+  // de recuperación (los trabajadores no tienen correo real). El administrador
+  // lo ve en Usuarios; se limpia al restablecer la clave o al iniciar sesión.
+  resetRequestedAt  DateTime?
   mustChangePassword Boolean  @default(false)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -380,6 +384,9 @@ model EvaluationAttempt {
   score        Int? // porcentaje 0-100
   passed       Boolean?
   questionOrder String?      // JSON con el orden aleatorio servido a este intento
+  // Borrador { [questionId]: { selectedOptionIds?, shortAnswerText? } } guardado
+  // mientras el capacitado responde; se borra al enviar.
+  draftAnswers String?
 
   answers      AttemptAnswer[]
 

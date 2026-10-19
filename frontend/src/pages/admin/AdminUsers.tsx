@@ -21,6 +21,8 @@ interface AdminUser {
   isActive: boolean;
   isDemo: boolean;
   lastLoginAt: string | null;
+  // Fecha en que el propio usuario pidió restablecer su clave (pantalla de recuperación).
+  resetRequestedAt: string | null;
 }
 
 const emptyForm = {
@@ -176,6 +178,15 @@ export function AdminUsersPage() {
                   <span className={`badge badge-status-${u.isActive ? "completed" : "overdue"}`}>
                     {u.isActive ? t("Activo") : t("Inactivo")}
                   </span>
+                  {u.resetRequestedAt && (
+                    <span
+                      className="badge badge-status-in_progress"
+                      style={{ marginLeft: 6 }}
+                      title={new Date(u.resetRequestedAt).toLocaleString("es-EC")}
+                    >
+                      {t("Pidió restablecer clave")}
+                    </span>
+                  )}
                 </td>
                 <td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString("es-EC") : t("Nunca")}</td>
                 <td className="flex gap-8">

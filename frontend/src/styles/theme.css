@@ -1489,3 +1489,44 @@ h2.page-title {
     padding: 20px 16px;
   }
 }
+
+/* ---------- Evaluación: barra de avance y avisos ---------- */
+
+.quiz-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin-top: 12px;
+  padding: 10px 130px 8px 0; /* deja libre el selector de idioma fijo en escritorio */
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.quiz-bar-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.quiz-timer-low {
+  color: var(--color-danger);
+}
+
+.quiz-missing {
+  border-color: var(--color-danger);
+}
+
+.quiz-missing-label {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--color-danger);
+}
+
+@media (max-width: 900px) {
+  .quiz-bar {
+    top: var(--topbar-height);
+    padding-right: 0;
+  }
+}

@@ -6,7 +6,8 @@ export const loginSchema = z.object({
 });
 
 export const requestPasswordResetSchema = z.object({
-  email: z.string().trim().toLowerCase().email("Correo inválido").max(255),
+  // Código de trabajador (lo habitual) o correo.
+  identifier: z.string().trim().min(1, "Ingrese su código de trabajador.").max(255),
 });
 
 export const resetPasswordSchema = z.object({

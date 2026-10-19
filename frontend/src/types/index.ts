@@ -119,10 +119,14 @@ export interface AttemptSession {
   attemptNumber: number;
   startedAt: string;
   timeLimitMin: number | null;
+  serverNow: string;
+  maxAttempts: number;
   title: string;
   description: string | null;
   passingScore: number;
   questions: AttemptQuestion[];
+  // Respuestas ya guardadas de este intento (autoguardado).
+  draftAnswers: Record<string, { selectedOptionIds?: string[]; shortAnswerText?: string }>;
 }
 
 export interface Certificate {

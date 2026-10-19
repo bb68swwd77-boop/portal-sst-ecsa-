@@ -42,6 +42,19 @@ export const questionSchema = z
     }
   });
 
+// Borrador de respuestas que el frontend guarda mientras el capacitado responde.
+export const saveDraftSchema = z.object({
+  answers: z
+    .record(
+      z.string().max(40),
+      z.object({
+        selectedOptionIds: z.array(z.string().max(40)).max(20).optional(),
+        shortAnswerText: z.string().max(2000).optional(),
+      })
+    )
+    .refine((r) => Object.keys(r).length <= 300, "Demasiadas respuestas."),
+});
+
 export const submitAttemptSchema = z.object({
   answers: z
     .array(
