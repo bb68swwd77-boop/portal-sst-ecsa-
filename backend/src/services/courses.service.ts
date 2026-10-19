@@ -199,6 +199,11 @@ export async function getCourseDetailForUser(currentUser: AuthenticatedUser, cou
   const completedLessonIds = new Set(progressRows.filter((p) => p.completedAt).map((p) => p.lessonId));
   const progressByLessonId = new Map(progressRows.map((p) => [p.lessonId, p]));
 
+  // Documentos (PDF) que este usuario ya abrió — la lección no se puede marcar
+  // como completada hasta abrir todos los de la lección (ver markLessonComplete).
+  const openedFiles = await prisma.fileOpen.findMany({ where: { userId }, select: { fileId: true } });
+  const openedFileIds = new Set(openedFiles.map((o) => o.fileId));
+
   const attempts = await prisma.evaluationAttempt.findMany({
     where: { userId, evaluation: { module: { courseId } } },
     orderBy: { attemptNumber: "desc" },
@@ -230,6 +235,10 @@ export async function getCourseDetailForUser(currentUser: AuthenticatedUser, cou
       normSource: l.normSource,
       normReviewedAt: l.normReviewedAt,
       completed: completedLessonIds.has(l.id),
+      // Documentos de la lección que el usuario todavía no ha abierto.
+      documentsPending: [...new Set([...(l.file ? [l.file.id] : []), ...l.files.map((lf) => lf.file.id)])].filter(
+        (fileId) => !openedFileIds.has(fileId)
+      ).length,
       // Solo relevante para contentType VIDEO — null para el resto de tipos.
       percentWatched: progressByLessonId.get(l.id)?.percentWatched ?? null,
     }));
@@ -279,12 +288,34 @@ export async function getCourseDetailForUser(currentUser: AuthenticatedUser, cou
   };
 }
 
+// Segundos mínimos entre la primera apertura de un documento y el momento en
+// que se permite marcar la lección como completada.
+const MIN_DOCUMENT_REVIEW_SECONDS = 10;
+
 export async function markLessonComplete(currentUser: AuthenticatedUser, lessonId: string) {
-  const lesson = await prisma.lesson.findUnique({ where: { id: lessonId }, include: { module: { select: { id: true, courseId: true } } } });
+  const lesson = await prisma.lesson.findUnique({
+    where: { id: lessonId },
+    include: { module: { select: { id: true, courseId: true } }, files: { select: { fileId: true } } },
+  });
   if (!lesson) throw new HttpError(404, "Lección no encontrada.");
   await assertModuleAccess(currentUser, lesson.module.courseId, lesson.module.id);
 
   const userId = currentUser.id;
+
+  // Si la lección tiene documentos, el usuario debe haberlos abierto (y haber
+  // dejado pasar unos segundos) antes de marcarla como completada.
+  const documentIds = [...new Set([...(lesson.fileId ? [lesson.fileId] : []), ...lesson.files.map((f) => f.fileId)])];
+  if (documentIds.length > 0) {
+    const opens = await prisma.fileOpen.findMany({ where: { userId, fileId: { in: documentIds } } });
+    if (documentIds.some((id) => !opens.some((o) => o.fileId === id))) {
+      throw new HttpError(400, "Abra y revise los documentos de la lección antes de marcarla como completada.");
+    }
+    const cutoff = Date.now() - MIN_DOCUMENT_REVIEW_SECONDS * 1000;
+    if (opens.some((o) => o.openedAt.getTime() > cutoff)) {
+      throw new HttpError(400, "Dedique unos segundos a revisar el documento antes de marcar la lección como completada.");
+    }
+  }
+
   await prisma.lessonProgress.upsert({
     where: { userId_lessonId: { userId, lessonId } },
     update: { completedAt: new Date() },

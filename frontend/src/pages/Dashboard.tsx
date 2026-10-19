@@ -18,6 +18,30 @@ export function DashboardPage() {
     });
   }, []);
 
+  // Capacitación sugerida para continuar: primero las que ya empezó (la de fecha
+  // límite más próxima), luego las que no ha iniciado; las completadas no cuentan.
+  const nextCourse = [...(items ?? [])]
+    .filter((c) => c.status !== "completed")
+    .sort((a, b) => {
+      const startedA = a.percent > 0 ? 0 : 1;
+      const startedB = b.percent > 0 ? 0 : 1;
+      if (startedA !== startedB) return startedA - startedB;
+      const dueA = a.dueAt ? new Date(a.dueAt).getTime() : Infinity;
+      const dueB = b.dueAt ? new Date(b.dueAt).getTime() : Infinity;
+      return dueA - dueB;
+    })[0];
+
+  let dueLabel = "";
+  if (nextCourse?.dueAt) {
+    const days = Math.ceil((new Date(nextCourse.dueAt).getTime() - Date.now()) / 86400000);
+    dueLabel =
+      days < 0
+        ? `${t("Vencida hace")} ${-days} ${t(-days === 1 ? "día" : "días")}`
+        : days === 0
+          ? t("Vence hoy")
+          : `${t("Vence en")} ${days} ${t(days === 1 ? "día" : "días")}`;
+  }
+
   return (
     <div>
       <div className="page-hero">
@@ -25,6 +49,23 @@ export function DashboardPage() {
         <h2 className="page-title">{t("Capacitaciones asignadas")}</h2>
         <p className="page-subtitle">{t("Continúa donde quedaste o revisa tu progreso general.")}</p>
       </div>
+
+      {nextCourse && (
+        <div className="card continue-card">
+          <div>
+            <span className="badge badge-copper">{t("Continúa donde quedaste")}</span>
+            <div className="course-title mt-8">{nextCourse.title}</div>
+            <div className="text-muted" style={{ fontSize: 13 }}>
+              {nextCourse.percent}% {t("completado")}
+              {dueLabel && ` · ${dueLabel}`}
+            </div>
+            <ProgressBar percent={nextCourse.percent} />
+          </div>
+          <Link to={`/curso/${nextCourse.id}`} className="btn btn-primary">
+            {nextCourse.percent > 0 ? t("Continuar") : t("Comenzar")} →
+          </Link>
+        </div>
+      )}
 
       {stats && (
         <div className="stat-grid">

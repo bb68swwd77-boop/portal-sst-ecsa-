@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, apiUrl, ApiError } from "../api/client";
 import { useToast } from "../context/ToastContext";
@@ -6,6 +6,10 @@ import { useLanguage } from "../context/LanguageContext";
 import { extractYouTubeId, YouTubePlayer } from "../components/YouTubePlayer";
 import { ProgressBar } from "../components/ProgressBar";
 import type { CourseDetail } from "../types";
+
+// Segundos que se pide dejar pasar tras abrir un documento antes de poder marcar
+// la lección como completada (el servidor exige 10; aquí 15 para tener margen).
+const DOCUMENT_REVIEW_SECONDS = 15;
 
 export function CourseViewPage() {
   const { courseId } = useParams();
@@ -18,21 +22,32 @@ export function CourseViewPage() {
   // lección activa, para no ocupar todo el espacio vertical del panel.
   const [expandedModuleIds, setExpandedModuleIds] = useState<Set<string>>(new Set());
 
+  // Momento (ms) en que se hizo clic en cada documento durante esta visita: el
+  // botón "Marcar como completada" espera unos segundos después de abrirlo.
+  const [openedAt, setOpenedAt] = useState<Record<string, number>>({});
+  const [, setClockTick] = useState(0);
+  const lessonCardRef = useRef<HTMLDivElement>(null);
+
   function toggleModule(moduleId: string) {
     setExpandedModuleIds((prev) => (prev.has(moduleId) ? new Set() : new Set([moduleId])));
   }
 
-  async function load() {
+  // keepActive: recarga el progreso sin mover al usuario de la lección que está viendo.
+  async function load(keepActive = false): Promise<CourseDetail | null> {
     try {
       const res = await api.get<{ course: CourseDetail }>(`/courses/${courseId}`);
       setCourse(res.course);
-      const firstIncomplete = res.course.modules.flatMap((m) => m.lessons).find((l) => !l.completed);
+      const lessons = res.course.modules.flatMap((m) => m.lessons);
+      if (keepActive && activeLessonId && lessons.some((l) => l.id === activeLessonId)) return res.course;
+      const firstIncomplete = lessons.find((l) => !l.completed);
       const nextActiveLessonId = firstIncomplete?.id ?? res.course.modules[0]?.lessons[0]?.id ?? null;
       setActiveLessonId(nextActiveLessonId);
       const activeModule = res.course.modules.find((m) => m.lessons.some((l) => l.id === nextActiveLessonId));
       setExpandedModuleIds(activeModule ? new Set([activeModule.id]) : new Set());
+      return res.course;
     } catch (err) {
       setError(err instanceof ApiError ? t(err.message) : t("No fue posible cargar la capacitación."));
+      return null;
     }
   }
 
@@ -41,11 +56,59 @@ export function CourseViewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
 
+  // Mientras corre la espera mínima tras abrir un documento, refresca la pantalla
+  // cada segundo (cuenta regresiva del botón) y se detiene al terminar.
+  useEffect(() => {
+    if (Object.keys(openedAt).length === 0) return;
+    const interval = window.setInterval(() => setClockTick((x) => x + 1), 1000);
+    const stop = window.setTimeout(() => window.clearInterval(interval), (DOCUMENT_REVIEW_SECONDS + 1) * 1000);
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(stop);
+    };
+  }, [openedAt]);
+
   async function completeLesson(lessonId: string) {
     if (!courseId) return;
-    await api.post(`/courses/${courseId}/lessons/${lessonId}/complete`);
-    notify(t("Lección marcada como completada."), "success");
-    await load();
+    try {
+      await api.post(`/courses/${courseId}/lessons/${lessonId}/complete`);
+      notify(t("Lección marcada como completada."), "success");
+      const fresh = await load(true);
+      if (!fresh) return;
+      // Avanza a la siguiente lección, salvo que esta haya sido la última del
+      // módulo y la evaluación ya esté disponible: ahí se queda para mostrar el
+      // aviso con el botón "Iniciar evaluación".
+      const flat = fresh.modules.flatMap((m) => m.lessons);
+      const idx = flat.findIndex((l) => l.id === lessonId);
+      const ev = fresh.modules.find((m) => m.lessons.some((l) => l.id === lessonId))?.evaluation;
+      const evaluationNowReady = Boolean(ev && ev.canAttempt && !ev.lastPassed && ev.pendingLessons === 0);
+      const next = idx >= 0 ? flat[idx + 1] : undefined;
+      if (!evaluationNowReady && next) focusLesson(next.id, fresh);
+    } catch (err) {
+      notify(err instanceof ApiError ? t(err.message) : t("No fue posible completar la lección."), "danger");
+    }
+  }
+
+  // Muestra una lección y, en pantallas angostas, lleva la vista al contenido: el
+  // menú queda arriba y la lección debajo. `from` permite usar datos recién cargados.
+  function focusLesson(lessonId: string, from: CourseDetail | null = course) {
+    setActiveLessonId(lessonId);
+    const owner = from?.modules.find((m) => m.lessons.some((l) => l.id === lessonId));
+    if (owner) setExpandedModuleIds(new Set([owner.id]));
+    if (window.innerWidth <= 900) {
+      window.setTimeout(() => lessonCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    }
+  }
+
+  function selectLesson(lessonId: string) {
+    focusLesson(lessonId);
+  }
+
+  // El servidor registra la apertura del documento al servirlo; aquí se marca el
+  // clic para la espera mínima y se refresca el progreso sin cambiar de lección.
+  function handleDocumentOpened(fileId: string) {
+    setOpenedAt((prev) => ({ ...prev, [fileId]: Date.now() }));
+    window.setTimeout(() => void load(true), 2500);
   }
 
   // Heartbeat de video (cada ~10s y al terminar) — actualiza el estado local
@@ -63,7 +126,9 @@ export function CourseViewPage() {
       // el siguiente módulo — recargamos el curso completo para reflejar ese
       // cambio (el video ya terminó, así que no hay reproducción que cortar).
       if (res.completed && !wasCompleted) {
-        await load();
+        // Sin mover de lección: así ve "Lección completada" y, si corresponde, el
+        // aviso de la evaluación; avanza con el botón "Siguiente".
+        await load(true);
         return;
       }
       setCourse((prev) => {
@@ -86,7 +151,25 @@ export function CourseViewPage() {
   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!course) return <div className="empty-state">{t("Cargando…")}</div>;
 
-  const activeLesson = course.modules.flatMap((m) => m.lessons).find((l) => l.id === activeLessonId);
+  const allLessons = course.modules.flatMap((m) => m.lessons);
+  const activeLesson = allLessons.find((l) => l.id === activeLessonId);
+  const activeIndex = allLessons.findIndex((l) => l.id === activeLessonId);
+  const prevLesson = activeIndex > 0 ? allLessons[activeIndex - 1] : null;
+  const nextLesson = activeIndex >= 0 && activeIndex < allLessons.length - 1 ? allLessons[activeIndex + 1] : null;
+  const activeModule = course.modules.find((m) => m.lessons.some((l) => l.id === activeLessonId));
+  const activeFiles = activeLesson ? [...(activeLesson.file ? [activeLesson.file] : []), ...activeLesson.files] : [];
+  const lastOpenedAt = Math.max(0, ...activeFiles.map((f) => openedAt[f.id] ?? 0));
+  const reviewSecondsLeft = lastOpenedAt
+    ? Math.max(0, DOCUMENT_REVIEW_SECONDS - Math.floor((Date.now() - lastOpenedAt) / 1000))
+    : 0;
+  const documentsPending = activeLesson?.documentsPending ?? 0;
+  // La evaluación del módulo ya se puede rendir (todas las lecciones completas).
+  const evaluationReady = Boolean(
+    activeModule?.evaluation &&
+      activeModule.evaluation.canAttempt &&
+      !activeModule.evaluation.lastPassed &&
+      activeModule.evaluation.pendingLessons === 0
+  );
 
   return (
     <div>
@@ -121,7 +204,7 @@ export function CourseViewPage() {
                       <button
                         key={l.id}
                         className={`module-item ${activeLessonId === l.id ? "active" : ""}`}
-                        onClick={() => setActiveLessonId(l.id)}
+                        onClick={() => selectLesson(l.id)}
                       >
                         <span className={`lesson-dot ${l.completed ? "done" : ""}`}>{l.completed ? "✓" : ""}</span>
                         <span>
@@ -165,7 +248,7 @@ export function CourseViewPage() {
           })}
         </div>
 
-        <div className="card">
+        <div className="card" ref={lessonCardRef}>
           {!activeLesson && <div className="empty-state">{t("Seleccione una lección para comenzar.")}</div>}
           {activeLesson && (
             <>
@@ -195,8 +278,15 @@ export function CourseViewPage() {
                 <div className="doc-section">
                   <div className="doc-section-title">{t("Documentos para descargar")}</div>
                   <div className="doc-grid">
-                    {[...(activeLesson.file ? [activeLesson.file] : []), ...activeLesson.files].map((f) => (
-                      <a key={f.id} href={apiUrl(`/files/${f.id}`)} target="_blank" rel="noopener noreferrer" className="doc-tile">
+                    {activeFiles.map((f) => (
+                      <a
+                        key={f.id}
+                        href={apiUrl(`/files/${f.id}`)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="doc-tile"
+                        onClick={() => handleDocumentOpened(f.id)}
+                      >
                         <span className="doc-icon" aria-hidden="true">
                           <svg viewBox="0 0 40 48" width="34" height="41">
                             <path d="M4 0h22l14 14v30a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4z" fill="#e5392b" />
@@ -240,10 +330,51 @@ export function CourseViewPage() {
                     {t("Se marca como completada automáticamente al terminar de ver el video.")}
                   </p>
                 ) : (
-                  <button className="btn btn-primary" onClick={() => completeLesson(activeLesson.id)}>
-                    {t("Marcar como completada")}
-                  </button>
+                  <>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => completeLesson(activeLesson.id)}
+                      disabled={documentsPending > 0 || reviewSecondsLeft > 0}
+                    >
+                      {documentsPending > 0 || reviewSecondsLeft > 0 ? "🔒 " : ""}
+                      {t("Marcar como completada")}
+                    </button>
+                    {documentsPending > 0 && (
+                      <p className="text-muted mt-8" style={{ fontSize: 13 }}>
+                        {t("Abra y revise los documentos de la lección para poder completarla.")} ({documentsPending}{" "}
+                        {t("pendientes")})
+                      </p>
+                    )}
+                    {documentsPending === 0 && reviewSecondsLeft > 0 && (
+                      <p className="text-muted mt-8" style={{ fontSize: 13 }}>
+                        {t("Revise el documento: podrá marcar la lección como completada en")} {reviewSecondsLeft} {t("segundos")}.
+                      </p>
+                    )}
+                  </>
                 )}
+              </div>
+
+              {activeLesson.completed && evaluationReady && activeModule?.evaluation && (
+                <div className="alert alert-success mt-16">
+                  <strong>{t("¡Terminó las lecciones de este módulo!")}</strong> {t("Ya puede rendir la evaluación.")}
+                  <div className="mt-8">
+                    <Link to={`/curso/${course.id}/evaluacion/${activeModule.evaluation.id}`} className="btn btn-primary btn-sm">
+                      {t("Iniciar evaluación")}
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              <div className="lesson-nav mt-24">
+                <button type="button" className="btn btn-secondary btn-sm" disabled={!prevLesson} onClick={() => prevLesson && selectLesson(prevLesson.id)}>
+                  ← {t("Anterior")}
+                </button>
+                <span className="text-muted" style={{ fontSize: 12 }}>
+                  {t("Lección")} {activeIndex + 1} {t("de")} {allLessons.length}
+                </span>
+                <button type="button" className="btn btn-secondary btn-sm" disabled={!nextLesson} onClick={() => nextLesson && selectLesson(nextLesson.id)}>
+                  {t("Siguiente")} →
+                </button>
               </div>
             </>
           )}

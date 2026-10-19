@@ -1530,3 +1530,51 @@ h2.page-title {
     padding-right: 0;
   }
 }
+
+/* ---------- Continuar donde quedaste / navegación de lecciones ---------- */
+
+.continue-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+  border-left: 4px solid var(--color-copper);
+}
+
+.continue-card > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.lesson-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 600px) {
+  .continue-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* ---------- Requisitos de contraseña ---------- */
+
+.pw-rules {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.pw-rules li.ok {
+  color: var(--color-success);
+}

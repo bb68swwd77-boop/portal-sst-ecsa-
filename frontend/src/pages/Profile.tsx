@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import { useToast } from "../context/ToastContext";
 import { useLanguage } from "../context/LanguageContext";
+import { PasswordInput } from "../components/PasswordInput";
+import { PasswordRequirements, passwordMeetsRules } from "../components/PasswordRequirements";
 
 interface Profile {
   email: string;
@@ -110,9 +112,9 @@ export function ProfilePage() {
         <form onSubmit={handlePasswordChange} noValidate>
           <div className="field">
             <label htmlFor="currentPassword">{t("Contraseña actual")}</label>
-            <input
+            <PasswordInput
               id="currentPassword"
-              type="password"
+              autoComplete="current-password"
               required
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
@@ -120,16 +122,21 @@ export function ProfilePage() {
           </div>
           <div className="field">
             <label htmlFor="newPassword">{t("Nueva contraseña")}</label>
-            <input
+            <PasswordInput
               id="newPassword"
-              type="password"
+              autoComplete="new-password"
               required
               minLength={10}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
             />
+            <PasswordRequirements value={newPassword} />
           </div>
-          <button className="btn btn-primary" type="submit" disabled={submitting}>
+          <button
+            className="btn btn-primary"
+            type="submit"
+            disabled={submitting || !currentPassword || !passwordMeetsRules(newPassword)}
+          >
             {submitting ? t("Guardando…") : t("Actualizar contraseña")}
           </button>
         </form>

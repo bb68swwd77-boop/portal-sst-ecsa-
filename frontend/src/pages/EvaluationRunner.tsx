@@ -258,8 +258,13 @@ export function EvaluationRunnerPage() {
               </button>
             )}
             <Link to={`/curso/${courseId}`} className={`btn ${canRetry ? "btn-secondary" : "btn-primary"}`}>
-              {t("Volver a la capacitación")}
+              {result.passed ? t("Continuar con la capacitación") : t("Volver a la capacitación")}
             </Link>
+            {result.certificateIssued && (
+              <Link to="/certificados" className="btn btn-secondary">
+                {t("Ver mi certificado")}
+              </Link>
+            )}
           </div>
         </div>
 

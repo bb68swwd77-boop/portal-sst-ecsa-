@@ -63,6 +63,8 @@ export interface LessonDetail {
   normSource: string | null;
   normReviewedAt: string | null;
   completed: boolean;
+  // Documentos (PDF) de la lección que el usuario aún no ha abierto.
+  documentsPending: number;
 }
 
 export interface EvaluationSummary {

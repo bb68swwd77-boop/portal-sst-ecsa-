@@ -3,6 +3,8 @@ import { api, ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { AuthLayout } from "../components/AuthLayout";
+import { PasswordInput } from "../components/PasswordInput";
+import { PasswordRequirements, passwordMeetsRules } from "../components/PasswordRequirements";
 
 // Pantalla obligatoria de primer acceso: se muestra en lugar de cualquier
 // otra ruta protegida mientras user.mustChangePassword sea true (ver
@@ -46,9 +48,8 @@ export function ForceChangePasswordPage() {
         <form onSubmit={handleSubmit} noValidate>
           <div className="field">
             <label htmlFor="currentPassword">{t("Contraseña temporal")}</label>
-            <input
+            <PasswordInput
               id="currentPassword"
-              type="password"
               autoComplete="current-password"
               required
               value={currentPassword}
@@ -57,18 +58,22 @@ export function ForceChangePasswordPage() {
           </div>
           <div className="field">
             <label htmlFor="newPassword">{t("Nueva contraseña")}</label>
-            <input
+            <PasswordInput
               id="newPassword"
-              type="password"
               autoComplete="new-password"
               required
               minLength={10}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
             />
-            <div className="field-hint">{t("Mínimo 10 caracteres, con mayúscula, minúscula y número.")}</div>
+            <PasswordRequirements value={newPassword} />
           </div>
-          <button className="btn btn-primary" type="submit" disabled={submitting} style={{ width: "100%" }}>
+          <button
+            className="btn btn-primary"
+            type="submit"
+            disabled={submitting || !currentPassword || !passwordMeetsRules(newPassword)}
+            style={{ width: "100%" }}
+          >
             {submitting ? t("Guardando…") : t("Guardar y continuar")}
           </button>
         </form>

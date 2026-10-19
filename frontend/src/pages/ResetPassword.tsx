@@ -2,6 +2,8 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api, ApiError } from "../api/client";
 import { AuthLayout } from "../components/AuthLayout";
+import { PasswordInput } from "../components/PasswordInput";
+import { PasswordRequirements, passwordMeetsRules } from "../components/PasswordRequirements";
 import { useLanguage } from "../context/LanguageContext";
 
 export function ResetPasswordPage() {
@@ -49,21 +51,27 @@ export function ResetPasswordPage() {
           </div>
           <div className="field">
             <label htmlFor="newPassword">{t("Nueva contraseña")}</label>
-            <input
+            <PasswordInput
               id="newPassword"
-              type="password"
+              autoComplete="new-password"
               required
               minLength={10}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
             />
-            <div className="field-hint">{t("Mínimo 10 caracteres, con mayúscula, minúscula y número.")}</div>
+            <PasswordRequirements value={newPassword} />
           </div>
           <div className="field">
             <label htmlFor="confirm">{t("Confirmar contraseña")}</label>
-            <input id="confirm" type="password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+            <PasswordInput id="confirm" autoComplete="new-password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+            {confirm && confirm !== newPassword && <div className="field-hint">{t("Las contraseñas no coinciden.")}</div>}
           </div>
-          <button className="btn btn-primary" type="submit" disabled={submitting} style={{ width: "100%" }}>
+          <button
+            className="btn btn-primary"
+            type="submit"
+            disabled={submitting || !passwordMeetsRules(newPassword) || confirm !== newPassword}
+            style={{ width: "100%" }}
+          >
             {submitting ? t("Guardando…") : t("Restablecer contraseña")}
           </button>
         </form>

@@ -46,6 +46,15 @@ filesRouter.get(
       }
     }
 
+    // Constancia de que este usuario abrió el documento: la lección no se puede
+    // marcar como completada sin haberlo abierto (ver markLessonComplete). Solo
+    // PDF — las miniaturas de capacitaciones también pasan por esta ruta.
+    if (file.mimeType === "application/pdf") {
+      await prisma.fileOpen
+        .createMany({ data: [{ userId: req.currentUser!.id, fileId: file.id }], skipDuplicates: true })
+        .catch((err) => console.error("No fue posible registrar la apertura del archivo", err));
+    }
+
     res.setHeader("Content-Type", file.mimeType);
     res.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(file.filename)}"`);
     res.setHeader("Cache-Control", "private, max-age=3600");

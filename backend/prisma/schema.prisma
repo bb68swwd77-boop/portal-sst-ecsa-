@@ -83,6 +83,7 @@ model User {
   passwordResets    PasswordReset[]
   uploadedFiles     FileAsset[]
   policyAcceptances PolicyAcceptance[]
+  fileOpens         FileOpen[]
 
   @@index([roleId])
   @@index([company])
@@ -117,6 +118,20 @@ model PolicyAcceptance {
 
   @@unique([userId, version])
   @@index([acceptedAt])
+}
+
+// Constancia de que un usuario abrió un documento (PDF) de una lección: el
+// servidor la exige antes de dejar marcar la lección como completada. Una fila
+// por usuario y archivo; openedAt es la PRIMERA vez que lo abrió.
+model FileOpen {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileId   String
+  openedAt DateTime @default(now())
+
+  @@unique([userId, fileId])
+  @@index([fileId])
 }
 
 model PasswordReset {
