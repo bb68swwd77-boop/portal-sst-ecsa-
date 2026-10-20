@@ -24,7 +24,7 @@
   --color-danger: #c0392b;
   --color-danger-bg: rgba(192, 57, 43, 0.09);
   --color-border: #e8dccf;
-  --gradient-copper: linear-gradient(135deg, #d67d47 0%, #b8622f 55%, #8a4520 100%);
+  --gradient-copper: linear-gradient(135deg, #b35e2b 0%, #a45626 55%, #8a4520 100%); /* contraste AA con texto blanco */
   --gradient-green: linear-gradient(90deg, #1e9e4a 0%, #4cc26f 100%);
   --shadow-sm: 0 1px 2px rgba(36, 20, 11, 0.06), 0 2px 8px rgba(36, 20, 11, 0.05);
   --shadow-lg: 0 14px 34px rgba(36, 20, 11, 0.16);
@@ -1681,4 +1681,110 @@ h2.page-title {
 
 .onboarding-dots span.active {
   background: var(--color-copper);
+}
+
+/* ---------- Accesibilidad ---------- */
+
+/* Enlace "Saltar al contenido": invisible hasta que recibe el foco con teclado. */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-espresso);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+.main-content:focus {
+  outline: none;
+}
+
+/* Foco bien visible también sobre fondos oscuros y botones de cobre. */
+:focus-visible {
+  outline: 3px solid var(--color-cyan);
+  outline-offset: 2px;
+}
+
+.btn-primary:focus-visible,
+.sidebar-link:focus-visible {
+  outline-color: #fff;
+  box-shadow: 0 0 0 5px var(--color-espresso);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Resultado de la evaluación (refuerzo) ---------- */
+
+.result-hero {
+  text-align: center;
+  padding: 8px 0 4px;
+}
+
+.result-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 38px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.result-hero.passed .result-icon {
+  background: var(--color-success);
+}
+
+.result-hero.failed .result-icon {
+  background: var(--color-warning);
+}
+
+.result-hero h2 {
+  margin: 0;
+}
+
+.result-sub {
+  margin: 4px 0 8px;
+  color: var(--color-text-secondary);
+}
+
+.result-score {
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--color-text-primary);
+}
+
+.result-encourage {
+  margin: 8px 0 0;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.result-next {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+}
+
+.result-next p {
+  margin: 10px 0 0;
 }

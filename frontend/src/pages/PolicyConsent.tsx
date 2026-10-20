@@ -57,7 +57,7 @@ export function PolicyConsentPage() {
 
         <PolicyDocuments scrollable />
 
-        {error && <div className="alert alert-danger mt-16">{error}</div>}
+        {error && <div className="alert alert-danger mt-16" role="alert">{error}</div>}
 
         <form onSubmit={handleSubmit} noValidate className="mt-16">
           <label className="consent-check">

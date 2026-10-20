@@ -42,7 +42,7 @@ export function ForgotPasswordPage() {
           <h2>{t("Recuperar contraseña")}</h2>
         </div>
 
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
         {message && <div className="alert alert-success">{t(message)}</div>}
         {demoLink && (
           <div className="alert alert-info">

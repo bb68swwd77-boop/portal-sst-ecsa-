@@ -44,7 +44,7 @@ export function LoginPage() {
           <h2>{t("Portal de Capacitación SST")}</h2>
         </div>
 
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="field">

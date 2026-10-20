@@ -4,7 +4,7 @@ import { api, ApiError } from "../api/client";
 import { useLanguage } from "../context/LanguageContext";
 import { Modal } from "../components/Modal";
 import { ProgressBar } from "../components/ProgressBar";
-import type { AttemptQuestion, AttemptSession } from "../types";
+import type { AttemptQuestion, AttemptSession, CourseDetail } from "../types";
 
 interface AnswerState {
   selectedOptionIds?: string[];
@@ -27,6 +27,18 @@ function isAnswered(q: AttemptQuestion, a: AnswerState | undefined) {
   return (a?.selectedOptionIds?.length ?? 0) > 0;
 }
 
+// Qué sigue después de aprobar: la primera lección pendiente del curso (igual que "Continuar"),
+// o la evaluación pendiente de algún módulo, o nada si ya terminó todo.
+function nextStepAfterPass(course: CourseDetail, t: (text: string) => string): { done: boolean; label: string } {
+  for (const m of course.modules) {
+    const lesson = m.lessons.find((l) => !l.completed);
+    if (lesson) return { done: false, label: `${t("Módulo")} ${m.order} · ${lesson.title}` };
+  }
+  const pendingEval = course.modules.find((m) => m.evaluation && m.evaluation.canAttempt && !m.evaluation.lastPassed);
+  if (pendingEval) return { done: false, label: `${t("Evaluación")} · ${t("Módulo")} ${pendingEval.order}` };
+  return { done: true, label: "" };
+}
+
 function formatClock(totalSeconds: number) {
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
@@ -45,6 +57,8 @@ export function EvaluationRunnerPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [showMissing, setShowMissing] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  // Curso con el avance ya actualizado, para mostrar qué sigue tras aprobar.
+  const [courseAfter, setCourseAfter] = useState<CourseDetail | null>(null);
 
   // Refs: los temporizadores y los manejadores de eventos del navegador necesitan
   // ver siempre el valor más reciente sin volver a registrarse en cada cambio.
@@ -158,6 +172,17 @@ export function EvaluationRunnerPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, result]);
 
+  useEffect(() => {
+    if (!result?.passed || !courseId) {
+      setCourseAfter(null);
+      return;
+    }
+    api
+      .get<{ course: CourseDetail }>(`/courses/${courseId}`)
+      .then((res) => setCourseAfter(res.course))
+      .catch(() => setCourseAfter(null));
+  }, [result?.passed, courseId]);
+
   function selectSingle(questionId: string, optionId: string) {
     setAnswers((prev) => ({ ...prev, [questionId]: { selectedOptionIds: [optionId] } }));
   }
@@ -215,7 +240,7 @@ export function EvaluationRunnerPage() {
   if (error && !session) {
     return (
       <div>
-        <div className="alert alert-danger">{error}</div>
+        <div className="alert alert-danger" role="alert">{error}</div>
         <Link to={`/curso/${courseId}`} className="btn btn-secondary">
           {t("Volver a la capacitación")}
         </Link>
@@ -227,18 +252,47 @@ export function EvaluationRunnerPage() {
   if (result) {
     const attemptsLeft = Math.max(0, session.maxAttempts - session.attemptNumber);
     const canRetry = !result.passed && attemptsLeft > 0;
+    const nextStep = courseAfter ? nextStepAfterPass(courseAfter, t) : null;
     return (
       <div style={{ maxWidth: 720, margin: "0 auto" }}>
         <div className="card">
-          <span className={`badge badge-status-${result.passed ? "completed" : "overdue"}`}>
-            {result.passed ? t("APROBADO") : t("NO APROBADO")}
-          </span>
-          <h2 className="mt-8">
-            {t("Puntaje:")} {result.score}%
-          </h2>
-          <p className="text-muted" style={{ fontSize: 14 }}>
-            {t("Nota mínima de aprobación:")} {session.passingScore}%
-          </p>
+          <div className={`result-hero ${result.passed ? "passed" : "failed"}`}>
+            <div className="result-icon" aria-hidden="true">
+              {result.passed ? "✓" : "↻"}
+            </div>
+            <h2>{result.passed ? t("¡Aprobado!") : t("Aún no alcanza la nota mínima")}</h2>
+            <p className="result-sub">{session.title}</p>
+            <div className="result-score">{result.score}%</div>
+            <p className="text-muted">
+              {t("Nota mínima de aprobación:")} {session.passingScore}%
+            </p>
+            {!result.passed && (
+              <p className="result-encourage">
+                {session.passingScore - result.score <= 15
+                  ? `${t("Estuvo cerca: le faltaron")} ${session.passingScore - result.score} ${t("puntos para aprobar.")}`
+                  : t("Repase el material con calma: puede lograrlo.")}
+              </p>
+            )}
+          </div>
+          {result.passed && courseAfter && (
+            <div className="result-next">
+              <ProgressBar
+                percent={courseAfter.percent}
+                label={`${courseAfter.percent}% ${t("de la capacitación completado")}`}
+              />
+              {nextStep?.done ? (
+                <p>
+                  <strong>{t("¡Completó todos los módulos de esta capacitación!")}</strong>
+                </p>
+              ) : (
+                nextStep && (
+                  <p>
+                    <span className="text-muted">{t("Siguiente:")}</span> <strong>{nextStep.label}</strong>
+                  </p>
+                )
+              )}
+            </div>
+          )}
           {result.certificateIssued && (
             <div className="alert alert-success mt-16">
               {t("¡Felicidades! Completó todos los requisitos y se emitió su certificado")} ({result.certificateCode}).
@@ -355,41 +409,50 @@ export function EvaluationRunnerPage() {
         </div>
       </div>
 
-      {error && <div className="alert alert-danger mt-16">{error}</div>}
+      {error && <div className="alert alert-danger mt-16" role="alert">{error}</div>}
 
       {session.questions.map((q, idx) => {
         const missing = showMissing && !isAnswered(q, answers[q.id]);
         return (
           <div className={`quiz card mt-16 ${missing ? "quiz-missing" : ""}`} key={q.id} id={`q-${q.id}`}>
-            <h3>
+            <h3 id={`qh-${q.id}`}>
               {idx + 1}. {q.text}
             </h3>
-            {missing && <p className="quiz-missing-label">{t("Pregunta sin responder")}</p>}
+            {missing && (
+              <p className="quiz-missing-label" role="alert">
+                {t("Pregunta sin responder")}
+              </p>
+            )}
             {q.type === "SHORT_ANSWER" ? (
               <div className="field">
                 <input
+                  aria-labelledby={`qh-${q.id}`}
                   value={answers[q.id]?.shortAnswerText ?? ""}
                   onChange={(e) => setShortAnswer(q.id, e.target.value)}
                   placeholder={t("Escriba su respuesta")}
                 />
               </div>
             ) : (
-              q.options.map((opt) => {
-                const selected = answers[q.id]?.selectedOptionIds?.includes(opt.id);
-                return (
-                  <button
-                    type="button"
-                    key={opt.id}
-                    className={`quiz-option ${selected ? "selected" : ""}`}
-                    aria-pressed={Boolean(selected)}
-                    onClick={() =>
-                      q.type === "MULTIPLE_CHOICE" ? toggleMultiple(q.id, opt.id) : selectSingle(q.id, opt.id)
-                    }
-                  >
-                    {opt.text}
-                  </button>
-                );
-              })
+              // Un lector de pantalla anuncia "opción 2 de 4, seleccionada" en vez de "botón".
+              <div role={q.type === "MULTIPLE_CHOICE" ? "group" : "radiogroup"} aria-labelledby={`qh-${q.id}`}>
+                {q.options.map((opt) => {
+                  const selected = Boolean(answers[q.id]?.selectedOptionIds?.includes(opt.id));
+                  return (
+                    <button
+                      type="button"
+                      key={opt.id}
+                      role={q.type === "MULTIPLE_CHOICE" ? "checkbox" : "radio"}
+                      aria-checked={selected}
+                      className={`quiz-option ${selected ? "selected" : ""}`}
+                      onClick={() =>
+                        q.type === "MULTIPLE_CHOICE" ? toggleMultiple(q.id, opt.id) : selectSingle(q.id, opt.id)
+                      }
+                    >
+                      {opt.text}
+                    </button>
+                  );
+                })}
+              </div>
             )}
           </div>
         );

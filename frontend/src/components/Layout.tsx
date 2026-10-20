@@ -53,6 +53,10 @@ export function Layout() {
 
   return (
     <div className="app-shell">
+      {/* Para quien navega con teclado o lector de pantalla: salta el menú lateral. */}
+      <a href="#contenido-principal" className="skip-link">
+        {t("Saltar al contenido")}
+      </a>
       {/* Fijo en la esquina superior derecha de la ventana, no del sidebar,
           para que siga visible aunque el panel esté contraído o el drawer
           móvil cerrado. */}
@@ -121,9 +125,9 @@ export function Layout() {
           <img src={logoEcsa} alt="ECSA" className="topbar-logo" />
           <strong>{t("Capacitación SST")}</strong>
         </div>
-        <div className="main-content">
+        <main className="main-content" id="contenido-principal" tabIndex={-1}>
           <Outlet />
-        </div>
+        </main>
       </div>
     </div>
   );

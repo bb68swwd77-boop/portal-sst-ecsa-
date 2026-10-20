@@ -28,6 +28,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(readInitialLang);
 
   useEffect(() => {
+    // Los lectores de pantalla eligen la voz según el idioma declarado en <html>.
+    document.documentElement.lang = lang === "zh" ? "zh-CN" : "es";
     try {
       localStorage.setItem(STORAGE_KEY, lang);
     } catch {

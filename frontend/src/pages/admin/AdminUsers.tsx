@@ -241,7 +241,7 @@ export function AdminUsersPage() {
             </div>
           ) : (
             <form onSubmit={handleCreate} noValidate>
-              {error && <div className="alert alert-danger">{error}</div>}
+              {error && <div className="alert alert-danger" role="alert">{error}</div>}
               <div className="form-row">
                 <div className="field">
                   <label>{t("Nombres")}</label>
@@ -328,7 +328,7 @@ export function AdminUsersPage() {
       {editingUser && (
         <Modal title={`${t("Editar usuario")} — ${editingUser.firstName} ${editingUser.lastName}`} onClose={() => setEditingUser(null)}>
           <form onSubmit={handleEdit} noValidate>
-            {editError && <div className="alert alert-danger">{editError}</div>}
+            {editError && <div className="alert alert-danger" role="alert">{editError}</div>}
             <div className="form-row">
               <div className="field">
                 <label>{t("Nombres")}</label>

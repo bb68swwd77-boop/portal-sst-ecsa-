@@ -148,7 +148,7 @@ export function CourseViewPage() {
     }
   }
 
-  if (error) return <div className="alert alert-danger">{error}</div>;
+  if (error) return <div className="alert alert-danger" role="alert">{error}</div>;
   if (!course) return <div className="empty-state">{t("Cargando…")}</div>;
 
   const allLessons = course.modules.flatMap((m) => m.lessons);
@@ -204,6 +204,7 @@ export function CourseViewPage() {
                       <button
                         key={l.id}
                         className={`module-item ${activeLessonId === l.id ? "active" : ""}`}
+                        aria-current={activeLessonId === l.id ? "true" : undefined}
                         onClick={() => selectLesson(l.id)}
                       >
                         <span className={`lesson-dot ${l.completed ? "done" : ""}`}>{l.completed ? "✓" : ""}</span>

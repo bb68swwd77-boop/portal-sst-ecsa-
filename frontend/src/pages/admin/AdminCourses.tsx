@@ -134,7 +134,7 @@ export function AdminCoursesPage() {
       {showCreate && (
         <Modal title={t("Nueva capacitación")} onClose={() => setShowCreate(false)}>
           <form onSubmit={handleCreate} noValidate>
-            {error && <div className="alert alert-danger">{error}</div>}
+            {error && <div className="alert alert-danger" role="alert">{error}</div>}
             <div className="form-row">
               <div className="field">
                 <label>{t("Código")}</label>

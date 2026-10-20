@@ -472,4 +472,15 @@ export const translations: Record<string, string> = {
   "Sus evaluaciones, lecciones completadas y tiempo en el portal.": "您的测评、已完成课时和在线时长。",
   "Tiempo en el portal": "在门户的时长",
   "Último paso antes de entrar al portal.": "这是进入门户前的最后一步。",
+
+  // --- Accesibilidad y refuerzo al aprobar --------------------------
+  "Aún no alcanza la nota mínima": "尚未达到及格分数",
+  "Estuvo cerca: le faltaron": "差一点：还差",
+  "Repase el material con calma: puede lograrlo.": "请耐心复习资料，您一定可以做到。",
+  "Saltar al contenido": "跳到主要内容",
+  "Siguiente:": "下一步：",
+  "de la capacitación completado": "培训已完成",
+  "puntos para aprobar.": "分才能通过。",
+  "¡Aprobado!": "通过！",
+  "¡Completó todos los módulos de esta capacitación!": "您已完成本培训的所有模块！",
 };

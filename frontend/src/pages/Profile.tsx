@@ -108,7 +108,7 @@ export function ProfilePage() {
 
       <div className="card mt-24" style={{ maxWidth: 480 }}>
         <h3>{t("Cambiar contraseña")}</h3>
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
         <form onSubmit={handlePasswordChange} noValidate>
           <div className="field">
             <label htmlFor="currentPassword">{t("Contraseña actual")}</label>

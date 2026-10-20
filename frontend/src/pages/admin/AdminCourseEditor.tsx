@@ -413,7 +413,7 @@ function ModuleFormModal({ courseId, nextOrder, onClose, onSaved }: { courseId: 
   return (
     <Modal title={t("Nuevo módulo")} onClose={onClose}>
       <form onSubmit={handleSubmit} noValidate>
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
         <div className="field">
           <label>{t("Título")}</label>
           <input required value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -450,7 +450,7 @@ function EditModuleModal({ module, onClose, onSaved }: { module: Module; onClose
   return (
     <Modal title={t("Editar módulo")} onClose={onClose}>
       <form onSubmit={handleSubmit} noValidate>
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
         <div className="field">
           <label>{t("Título")}</label>
           <input required value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -520,7 +520,7 @@ function LessonFormModal({ moduleId, nextOrder, onClose, onSaved }: { moduleId: 
   return (
     <Modal title={t("Nueva lección")} onClose={onClose}>
       <form onSubmit={handleSubmit} noValidate>
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
         <div className="field">
           <label>{t("Título")}</label>
           <input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
@@ -679,7 +679,7 @@ function EditLessonModal({ lesson, onClose, onSaved }: { lesson: Lesson; onClose
   return (
     <Modal title={t("Editar lección")} onClose={onClose}>
       <form onSubmit={handleSubmit} noValidate>
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
         <div className="field">
           <label>{t("Título")}</label>
           <input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
@@ -723,7 +723,7 @@ function EditLessonModal({ lesson, onClose, onSaved }: { lesson: Lesson; onClose
         {needsFile && (
           <div className="field">
             <label>{t("Archivos adicionales (PDF)")}</label>
-            {attachError && <div className="alert alert-danger">{attachError}</div>}
+            {attachError && <div className="alert alert-danger" role="alert">{attachError}</div>}
             {attachments.length > 0 && (
               <ul style={{ margin: "0 0 8px", paddingLeft: 0, listStyle: "none", fontSize: 13 }}>
                 {attachments.map((a) => (
@@ -794,7 +794,7 @@ function EvaluationFormModal({ moduleId, onClose, onSaved }: { moduleId: string;
   return (
     <Modal title={t("Nueva evaluación")} onClose={onClose}>
       <form onSubmit={handleSubmit} noValidate>
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
         <div className="field">
           <label>{t("Título")}</label>
           <input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
@@ -858,7 +858,7 @@ function EditEvaluationModal({
   return (
     <Modal title={t("Editar evaluación")} onClose={onClose}>
       <form onSubmit={handleSubmit} noValidate>
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
         <div className="field">
           <label>{t("Título")}</label>
           <input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
@@ -940,7 +940,7 @@ function QuestionFormModal({ evaluationId, onClose, onSaved }: { evaluationId: s
   return (
     <Modal title={t("Nueva pregunta")} onClose={onClose}>
       <form onSubmit={handleSubmit} noValidate>
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
         <div className="form-row">
           <div className="field">
             <label>{t("Tipo")}</label>
@@ -1059,7 +1059,7 @@ function EditQuestionModal({ question, onClose, onSaved }: { question: Question;
   return (
     <Modal title={t("Editar pregunta")} onClose={onClose}>
       <form onSubmit={handleSubmit} noValidate>
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
         <div className="form-row">
           <div className="field">
             <label>{t("Tipo")}</label>

@@ -58,7 +58,7 @@ export function VerifyCertificatePage() {
         </form>
 
         {result && !result.valid && (
-          <div className="alert alert-danger mt-16">{t(result.message ?? "Certificado no válido.")}</div>
+          <div className="alert alert-danger mt-16" role="alert">{t(result.message ?? "Certificado no válido.")}</div>
         )}
 
         {result?.valid && result.certificate && (

@@ -55,7 +55,7 @@ export function HistoryPage() {
       .catch(() => setFailed(true));
   }, []);
 
-  if (failed) return <div className="alert alert-danger">{t("No fue posible cargar su historial.")}</div>;
+  if (failed) return <div className="alert alert-danger" role="alert">{t("No fue posible cargar su historial.")}</div>;
   if (!data) return <div className="empty-state">{t("Cargando…")}</div>;
 
   return (

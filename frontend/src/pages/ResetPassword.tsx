@@ -42,7 +42,7 @@ export function ResetPasswordPage() {
           <h2>{t("Restablecer contraseña")}</h2>
         </div>
 
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="field">

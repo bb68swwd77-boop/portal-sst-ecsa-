@@ -47,7 +47,7 @@ export function ForceChangePasswordPage() {
           {t("Último paso antes de entrar al portal.")}
         </p>
 
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="field">
