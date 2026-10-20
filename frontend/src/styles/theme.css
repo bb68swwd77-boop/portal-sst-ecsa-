@@ -46,10 +46,16 @@ body,
   height: 100%;
 }
 
+html {
+  background: var(--color-bg);
+}
+
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background: radial-gradient(1200px 500px at 85% -10%, rgba(238, 159, 107, 0.18), transparent 60%), var(--color-bg);
+  /* Un solo tono claro: el degradado anterior se repetía al pasar la altura de la
+     ventana y dejaba una franja de dos tonos al hacer scroll. */
+  background: var(--color-bg);
   color: var(--color-text-primary);
   -webkit-font-smoothing: antialiased;
 }
