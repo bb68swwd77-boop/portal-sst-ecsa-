@@ -77,7 +77,7 @@ export function ForgotPasswordPage() {
         )}
 
         {message && (
-          <p className="text-muted" style={{ fontSize: 13 }}>
+          <p className="text-muted" style={{ fontSize: 14 }}>
             {t("Con la clave temporal podrá ingresar y se le pedirá crear una contraseña nueva.")}
           </p>
         )}

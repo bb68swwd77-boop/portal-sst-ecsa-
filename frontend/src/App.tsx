@@ -19,6 +19,7 @@ import { CourseViewPage } from "./pages/CourseView";
 import { EvaluationRunnerPage } from "./pages/EvaluationRunner";
 import { CertificatesPage } from "./pages/Certificates";
 import { ProfilePage } from "./pages/Profile";
+import { HistoryPage } from "./pages/History";
 
 import { AdminDashboardPage } from "./pages/admin/AdminDashboard";
 import { AdminUsersPage } from "./pages/admin/AdminUsers";
@@ -56,6 +57,7 @@ export default function App() {
               <Route path="/curso/:courseId/evaluacion/:evaluationId" element={<EvaluationRunnerPage />} />
               <Route path="/certificados" element={<CertificatesPage />} />
               <Route path="/perfil" element={<ProfilePage />} />
+              <Route path="/historial" element={<HistoryPage />} />
 
               <Route
                 path="/admin"

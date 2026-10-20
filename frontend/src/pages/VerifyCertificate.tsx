@@ -65,7 +65,7 @@ export function VerifyCertificatePage() {
           <div className="card mt-16">
             <div className="badge badge-status-completed mt-8">{t("Certificado válido")}</div>
             <h3 className="mt-8">{result.certificate.courseTitle}</h3>
-            <p className="text-secondary" style={{ fontSize: 13, lineHeight: 1.7 }}>
+            <p className="text-secondary" style={{ fontSize: 14, lineHeight: 1.7 }}>
               <strong>{t("Titular:")}</strong> {result.certificate.holderName}
               <br />
               {result.certificate.holderCompany && (

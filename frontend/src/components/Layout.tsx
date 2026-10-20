@@ -8,6 +8,7 @@ import logoEcsa from "../assets/logo-ecsa.png";
 const USER_LINKS = [
   { to: "/portal", label: "Mi capacitación", end: true },
   { to: "/certificados", label: "Mis certificados" },
+  { to: "/historial", label: "Mi historial" },
   { to: "/perfil", label: "Mi perfil" },
 ];
 

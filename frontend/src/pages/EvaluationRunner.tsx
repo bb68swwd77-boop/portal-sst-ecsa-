@@ -236,7 +236,7 @@ export function EvaluationRunnerPage() {
           <h2 className="mt-8">
             {t("Puntaje:")} {result.score}%
           </h2>
-          <p className="text-muted" style={{ fontSize: 13 }}>
+          <p className="text-muted" style={{ fontSize: 14 }}>
             {t("Nota mínima de aprobación:")} {session.passingScore}%
           </p>
           {result.certificateIssued && (
@@ -301,7 +301,7 @@ export function EvaluationRunnerPage() {
                           </div>
                         );
                       })}
-                      <p className="text-muted" style={{ fontSize: 12 }}>
+                      <p className="text-muted" style={{ fontSize: 13 }}>
                         {ok ? t("Respuesta correcta") : t("Respuesta incorrecta")}
                       </p>
                     </>
@@ -334,7 +334,7 @@ export function EvaluationRunnerPage() {
       </div>
       <h2 className="page-title">{session.title}</h2>
       {session.description && <p className="page-subtitle">{session.description}</p>}
-      <p className="text-muted" style={{ fontSize: 12 }}>
+      <p className="text-muted" style={{ fontSize: 13 }}>
         {t("Nota mínima de aprobación:")} {session.passingScore}%
         {session.timeLimitMin && ` · ${t("Tiempo límite:")} ${session.timeLimitMin} min`}
         {` · ${t("Intento")} ${session.attemptNumber}/${session.maxAttempts}`}
@@ -343,7 +343,7 @@ export function EvaluationRunnerPage() {
       <div className="quiz-bar">
         <ProgressBar
           percent={totalQuestions === 0 ? 0 : Math.round((answeredCount / totalQuestions) * 100)}
-          label={`${t("Respondidas")} ${answeredCount} ${t("de")} ${totalQuestions}`}
+          label={`${t("Respondidas")} ${answeredCount}/${totalQuestions}`}
         />
         <div className="quiz-bar-meta">
           {secondsLeft !== null && (

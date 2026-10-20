@@ -455,4 +455,21 @@ export const translations: Record<string, string> = {
   "día": "天",
   "días": "天",
   "¡Terminó las lecciones de este módulo!": "您已完成本模块的所有课时！",
+
+  // --- Mi historial y pasos del primer ingreso ---------------------
+  "Aún no ha completado lecciones.": "您还没有完成任何课时。",
+  "Aún no ha rendido evaluaciones.": "您还没有参加过测评。",
+  "Después deberá crear su propia contraseña.": "之后您需要创建自己的密码。",
+  "Evaluaciones": "测评",
+  "Evaluaciones aprobadas": "已通过测评",
+  "Intentos realizados": "已测评次数",
+  "Lecciones completadas": "已完成课时",
+  "Mi historial": "我的记录",
+  "No aprobado": "未通过",
+  "No fue posible cargar su historial.": "无法加载您的记录。",
+  "Paso": "第",
+  "Puntaje": "成绩",
+  "Sus evaluaciones, lecciones completadas y tiempo en el portal.": "您的测评、已完成课时和在线时长。",
+  "Tiempo en el portal": "在门户的时长",
+  "Último paso antes de entrar al portal.": "这是进入门户前的最后一步。",
 };

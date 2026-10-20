@@ -55,7 +55,7 @@ export function DashboardPage() {
           <div>
             <span className="badge badge-copper">{t("Continúa donde quedaste")}</span>
             <div className="course-title mt-8">{nextCourse.title}</div>
-            <div className="text-muted" style={{ fontSize: 13 }}>
+            <div className="text-muted" style={{ fontSize: 14 }}>
               {nextCourse.percent}% {t("completado")}
               {dueLabel && ` · ${dueLabel}`}
             </div>
@@ -108,7 +108,7 @@ export function DashboardPage() {
             <div className="course-card-body">
               <div className="flex-between">
                 <StatusBadge status={course.status} />
-                <span className="text-muted" style={{ fontSize: 12 }}>
+                <span className="text-muted" style={{ fontSize: 13 }}>
                   {course.moduleCount} {t(course.moduleCount !== 1 ? "módulos" : "módulo")}
                 </span>
               </div>

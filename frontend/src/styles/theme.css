@@ -16,7 +16,7 @@
   --color-espresso-2: #3a2114;
   --color-text-primary: #24170f;
   --color-text-secondary: #5c4a3d;
-  --color-text-muted: #8f7d6e;
+  --color-text-muted: #6f5f52; /* oscurecido: el gris anterior no cumplía contraste legible en pantalla de campo */
   --color-success: #1e9e4a;
   --color-success-bg: rgba(30, 158, 74, 0.12);
   --color-warning: #b3730f;
@@ -1577,4 +1577,108 @@ h2.page-title {
 
 .pw-rules li.ok {
   color: var(--color-success);
+}
+
+/* ---------- Legibilidad en campo (celular, sol, guantes) ---------- */
+/* Tamaños mínimos de lectura ~13-14 px y zonas de toque de ~44 px. No se tocan
+   las tablas de administración, que son densas a propósito. */
+
+.sidebar-brand p,
+.sidebar-footer,
+.lang-toggle button,
+.badge,
+.doc-size {
+  font-size: 13px;
+}
+
+.sidebar-user,
+.breadcrumbs,
+.stat-card .label,
+.course-card .course-desc,
+.course-card .course-meta,
+.btn-link,
+.field label,
+.alert,
+.toast,
+.norma,
+.lesson-title,
+.doc-name,
+.quiz-bar-meta,
+.quiz-missing-label,
+.pw-rules {
+  font-size: 14px;
+}
+
+.progress-label,
+.field-hint,
+.field-error,
+.module-card-meta,
+.module-chevron,
+.lesson-status,
+.doc-section-title,
+.doc-download,
+.policy-updated,
+.auth-logo .mark {
+  font-size: 13px;
+}
+
+.btn {
+  min-height: 44px;
+}
+
+.btn-sm {
+  font-size: 14px;
+  padding: 8px 14px;
+  min-height: 40px;
+}
+
+.btn-link {
+  padding: 6px 4px;
+}
+
+.quiz-option {
+  min-height: 48px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.module-item {
+  min-height: 48px;
+}
+
+.lesson-dot {
+  width: 22px;
+  height: 22px;
+}
+
+/* ---------- Pasos del primer ingreso ---------- */
+
+.onboarding-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.onboarding-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.onboarding-dots span {
+  width: 28px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-border);
+}
+
+.onboarding-dots span.done {
+  background: var(--color-brand-green);
+}
+
+.onboarding-dots span.active {
+  background: var(--color-copper);
 }

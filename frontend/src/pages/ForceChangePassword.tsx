@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { AuthLayout } from "../components/AuthLayout";
 import { PasswordInput } from "../components/PasswordInput";
+import { OnboardingSteps, wasConsentShown } from "../components/OnboardingSteps";
 import { PasswordRequirements, passwordMeetsRules } from "../components/PasswordRequirements";
 
 // Pantalla obligatoria de primer acceso: se muestra en lugar de cualquier
@@ -39,8 +40,11 @@ export function ForceChangePasswordPage() {
           <h2>{t("Cree su nueva contraseña")}</h2>
         </div>
 
+        <OnboardingSteps current={wasConsentShown() ? 2 : 1} total={wasConsentShown() ? 2 : 1} />
+
         <p className="page-subtitle mt-8">
-          {t("Por seguridad, debe cambiar la contraseña temporal antes de continuar.")}
+          {t("Por seguridad, debe cambiar la contraseña temporal antes de continuar.")}{" "}
+          {t("Último paso antes de entrar al portal.")}
         </p>
 
         {error && <div className="alert alert-danger">{error}</div>}

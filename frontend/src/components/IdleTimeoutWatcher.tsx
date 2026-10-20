@@ -68,7 +68,7 @@ export function IdleTimeoutWatcher() {
         </strong>
         .
       </p>
-      <p className="text-muted" style={{ fontSize: 13 }}>
+      <p className="text-muted" style={{ fontSize: 14 }}>
         {t("Si está respondiendo una evaluación, sus respuestas se guardan automáticamente.")}
       </p>
       <button className="btn btn-primary" onClick={stayConnected}>

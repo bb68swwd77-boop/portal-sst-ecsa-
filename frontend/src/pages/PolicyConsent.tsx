@@ -1,9 +1,10 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { api, ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { LanguageToggle } from "../components/LanguageToggle";
 import { PolicyDocuments } from "../components/PolicyDocuments";
+import { OnboardingSteps, markConsentShown } from "../components/OnboardingSteps";
 
 // Pantalla obligatoria de primer ingreso (y de cada nueva versión de las
 // políticas): se muestra en lugar de cualquier ruta protegida mientras
@@ -15,6 +16,12 @@ export function PolicyConsentPage() {
   const [checked, setChecked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Si además tiene clave temporal, después viene el cambio de contraseña.
+  const totalSteps = user?.mustChangePassword ? 2 : 1;
+
+  useEffect(() => {
+    markConsentShown();
+  }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -40,9 +47,12 @@ export function PolicyConsentPage() {
           <h2>{t("Protección de datos y uso de cookies")}</h2>
         </div>
 
+        <OnboardingSteps current={1} total={totalSteps} />
+
         <p className="page-subtitle">
           {user ? `${user.firstName} ${user.lastName}. ` : ""}
           {t("Antes de continuar, lea y acepte las siguientes políticas. Solo se le pedirá una vez.")}
+          {totalSteps > 1 && ` ${t("Después deberá crear su propia contraseña.")}`}
         </p>
 
         <PolicyDocuments scrollable />

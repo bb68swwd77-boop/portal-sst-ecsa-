@@ -215,8 +215,8 @@ export function CourseViewPage() {
                     ))}
                     {m.evaluation && (
                       <div className="module-eval">
-                        <div style={{ fontSize: 13, fontWeight: 600 }}>{m.evaluation.title}</div>
-                        <div className="text-muted" style={{ fontSize: 11 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600 }}>{m.evaluation.title}</div>
+                        <div className="text-muted" style={{ fontSize: 13 }}>
                           {t("Intentos:")} {m.evaluation.attemptsUsed}/{m.evaluation.maxAttempts}
                           {m.evaluation.lastScore !== null && ` · ${t("Último puntaje:")} ${m.evaluation.lastScore}%`}
                         </div>
@@ -227,7 +227,7 @@ export function CourseViewPage() {
                             <button type="button" className="btn btn-primary btn-sm mt-8" disabled>
                               🔒 {t("Iniciar evaluación")}
                             </button>
-                            <div className="text-muted mt-8" style={{ fontSize: 11 }}>
+                            <div className="text-muted mt-8" style={{ fontSize: 13 }}>
                               {t("Complete todas las lecciones del módulo para habilitar la evaluación.")} ({m.evaluation.pendingLessons}{" "}
                               {t("pendientes")})
                             </div>
@@ -262,7 +262,7 @@ export function CourseViewPage() {
                   {activeLesson.normArticle && `, ${activeLesson.normArticle}`}
                   {activeLesson.normCode && ")"}
                   {activeLesson.normReviewedAt && (
-                    <div className="text-muted mt-8" style={{ fontSize: 11 }}>
+                    <div className="text-muted mt-8" style={{ fontSize: 13 }}>
                       {t("Última revisión normativa:")} {new Date(activeLesson.normReviewedAt).toLocaleDateString("es-EC")}
                       {activeLesson.normSource && ` · ${t("Fuente:")} ${activeLesson.normSource}`}
                     </div>
@@ -325,7 +325,7 @@ export function CourseViewPage() {
                 {activeLesson.completed ? (
                   <span className="badge badge-status-completed">✓ {t("Lección completada")}</span>
                 ) : activeLesson.contentType === "VIDEO" ? (
-                  <p className="text-muted" style={{ fontSize: 12 }}>
+                  <p className="text-muted" style={{ fontSize: 13 }}>
                     {activeLesson.percentWatched ? `${activeLesson.percentWatched}% ${t("visto")} · ` : ""}
                     {t("Se marca como completada automáticamente al terminar de ver el video.")}
                   </p>
@@ -340,13 +340,13 @@ export function CourseViewPage() {
                       {t("Marcar como completada")}
                     </button>
                     {documentsPending > 0 && (
-                      <p className="text-muted mt-8" style={{ fontSize: 13 }}>
+                      <p className="text-muted mt-8" style={{ fontSize: 14 }}>
                         {t("Abra y revise los documentos de la lección para poder completarla.")} ({documentsPending}{" "}
                         {t("pendientes")})
                       </p>
                     )}
                     {documentsPending === 0 && reviewSecondsLeft > 0 && (
-                      <p className="text-muted mt-8" style={{ fontSize: 13 }}>
+                      <p className="text-muted mt-8" style={{ fontSize: 14 }}>
                         {t("Revise el documento: podrá marcar la lección como completada en")} {reviewSecondsLeft} {t("segundos")}.
                       </p>
                     )}
@@ -369,8 +369,8 @@ export function CourseViewPage() {
                 <button type="button" className="btn btn-secondary btn-sm" disabled={!prevLesson} onClick={() => prevLesson && selectLesson(prevLesson.id)}>
                   ← {t("Anterior")}
                 </button>
-                <span className="text-muted" style={{ fontSize: 12 }}>
-                  {t("Lección")} {activeIndex + 1} {t("de")} {allLessons.length}
+                <span className="text-muted" style={{ fontSize: 13 }}>
+                  {t("Lección")} {activeIndex + 1}/{allLessons.length}
                 </span>
                 <button type="button" className="btn btn-secondary btn-sm" disabled={!nextLesson} onClick={() => nextLesson && selectLesson(nextLesson.id)}>
                   {t("Siguiente")} →

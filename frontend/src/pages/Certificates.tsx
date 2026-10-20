@@ -35,7 +35,7 @@ export function CertificatesPage() {
                 <span className="badge badge-status-completed">{t("Vigente")}</span>
               </div>
               <h3 className="course-title">{c.course.title}</h3>
-              <p className="text-secondary" style={{ fontSize: 13, margin: 0 }}>
+              <p className="text-secondary" style={{ fontSize: 14, margin: 0 }}>
                 {t("Calificación:")} {c.score}%
                 <br />
                 {t("Duración:")} {c.durationMin} min
