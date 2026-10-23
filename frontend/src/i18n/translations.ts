@@ -415,6 +415,14 @@ export const translations: Record<string, string> = {
   "Le faltan": "还有",
   "No le quedan intentos disponibles. Comuníquese con el administrador del portal.": "您已没有剩余测评次数，请联系门户管理员。",
   "Pidió restablecer clave": "已申请重置密码",
+  "Cuenta bloqueada por 3 intentos fallidos. Intente de nuevo en 15 minutos o pida al administrador que la desbloquee.":
+    "账户因连续3次登录失败已被锁定。请15分钟后重试，或请管理员为您解锁。",
+  "Por seguridad, tras 3 intentos fallidos la cuenta se bloquea durante 15 minutos.":
+    "出于安全考虑，连续3次登录失败后，账户将被锁定15分钟。",
+  "Bloqueada por intentos fallidos": "因登录失败被锁定",
+  "Desbloquear": "解锁",
+  "Cuenta desbloqueada.": "账户已解锁。",
+  "Demasiados intentos. Intente nuevamente en unos minutos.": "尝试次数过多，请几分钟后再试。",
   "Por seguridad, su sesión se cerrará por inactividad en": "出于安全考虑，因长时间无操作，您的登录将在以下时间后退出：",
   "Pregunta sin responder": "此题尚未作答",
   "Reintentar evaluación": "重新测评",

@@ -1,10 +1,14 @@
 import rateLimit from "express-rate-limit";
 
-// Limita fuerza bruta en login: 10 intentos / 15 min por IP, independiente del
-// bloqueo de cuenta (failedLoginCount) que se aplica por usuario en el servicio de auth.
+// Segunda barrera contra fuerza bruta, por IP, independiente del bloqueo de
+// cuenta (3 fallos) del servicio de auth. Solo cuenta los intentos fallidos:
+// los trabajadores de un mismo campamento comparten IP pública y los ingresos
+// correctos de una cuadrilla no deben agotar el cupo. Frena a quien prueba
+// muchas cuentas distintas desde una misma IP (adivinar contraseñas comunes).
 export const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 10,
+  limit: 30,
+  skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Demasiados intentos. Intente nuevamente en unos minutos." },

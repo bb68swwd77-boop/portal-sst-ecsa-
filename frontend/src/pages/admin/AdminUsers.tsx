@@ -23,6 +23,8 @@ interface AdminUser {
   lastLoginAt: string | null;
   // Fecha en que el propio usuario pidió restablecer su clave (pantalla de recuperación).
   resetRequestedAt: string | null;
+  // Presente solo mientras la cuenta está bloqueada por intentos fallidos de ingreso.
+  lockedUntil: string | null;
 }
 
 const emptyForm = {
@@ -90,6 +92,12 @@ export function AdminUsersPage() {
   async function toggleActive(id: string) {
     await api.post(`/admin/users/${id}/toggle-active`);
     notify(t("Estado actualizado."), "success");
+    await load();
+  }
+
+  async function unlockUser(id: string) {
+    await api.post(`/admin/users/${id}/unlock`);
+    notify(t("Cuenta desbloqueada."), "success");
     await load();
   }
 
@@ -178,6 +186,15 @@ export function AdminUsersPage() {
                   <span className={`badge badge-status-${u.isActive ? "completed" : "overdue"}`}>
                     {u.isActive ? t("Activo") : t("Inactivo")}
                   </span>
+                  {u.lockedUntil && (
+                    <span
+                      className="badge badge-status-overdue"
+                      style={{ marginLeft: 6 }}
+                      title={new Date(u.lockedUntil).toLocaleString("es-EC")}
+                    >
+                      {t("Bloqueada por intentos fallidos")}
+                    </span>
+                  )}
                   {u.resetRequestedAt && (
                     <span
                       className="badge badge-status-in_progress"
@@ -196,6 +213,11 @@ export function AdminUsersPage() {
                   <button className="btn-link" onClick={() => toggleActive(u.id)}>
                     {u.isActive ? t("Desactivar") : t("Activar")}
                   </button>
+                  {u.lockedUntil && (
+                    <button className="btn-link" onClick={() => unlockUser(u.id)}>
+                      {t("Desbloquear")}
+                    </button>
+                  )}
                   <button className="btn-link" onClick={() => resetPassword(u.id)}>
                     {t("Restablecer clave")}
                   </button>

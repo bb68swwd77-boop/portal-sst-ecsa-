@@ -62,6 +62,7 @@ adminUsersRouter.get(
         createdAt: u.createdAt,
         lastLoginAt: u.lastLoginAt,
         resetRequestedAt: u.resetRequestedAt,
+        lockedUntil: u.lockedUntil && u.lockedUntil > new Date() ? u.lockedUntil : null,
       })),
     });
   })
@@ -152,6 +153,19 @@ adminUsersRouter.post(
 );
 
 adminUsersRouter.post(
+  "/:id/unlock",
+  requirePermission("users:edit"),
+  asyncHandler(async (req, res) => {
+    const user = await prisma.user.update({
+      where: { id: req.params.id },
+      data: { failedLoginCount: 0, lockedUntil: null, lastFailedLoginAt: null },
+    });
+    await audit({ userId: req.currentUser!.id, action: "user.unlock", resource: `User:${user.id}`, result: "success", req });
+    res.json({ ok: true });
+  })
+);
+
+adminUsersRouter.post(
   "/:id/reset-password",
   requirePermission("users:edit"),
   asyncHandler(async (req, res) => {
@@ -159,7 +173,7 @@ adminUsersRouter.post(
     const passwordHash = await hashPassword(tempPassword);
     const user = await prisma.user.update({
       where: { id: req.params.id },
-      data: { passwordHash, mustChangePassword: true, failedLoginCount: 0, lockedUntil: null, resetRequestedAt: null },
+      data: { passwordHash, mustChangePassword: true, failedLoginCount: 0, lockedUntil: null, lastFailedLoginAt: null, resetRequestedAt: null },
     });
     await prisma.session.updateMany({ where: { userId: user.id }, data: { revokedAt: new Date() } });
     await audit({ userId: req.currentUser!.id, action: "user.password_reset_by_admin", resource: `User:${user.id}`, result: "success", req });

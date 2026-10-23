@@ -51,7 +51,13 @@ authRouter.post(
         },
       });
     } catch (err) {
-      await audit({ action: "auth.login", result: "failure", req, metadata: { code } });
+      const locked = err instanceof HttpError && err.status === 423;
+      await audit({
+        action: locked ? "auth.lockout" : "auth.login",
+        result: "failure",
+        req,
+        metadata: { code },
+      });
       throw err;
     }
   })

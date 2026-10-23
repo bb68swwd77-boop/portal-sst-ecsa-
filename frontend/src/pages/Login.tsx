@@ -86,6 +86,9 @@ export function LoginPage() {
         <p className="field-hint mt-16">
           {t("Contraseña genérica: Demo#2026Sst")}
         </p>
+        <p className="field-hint">
+          {t("Por seguridad, tras 3 intentos fallidos la cuenta se bloquea durante 15 minutos.")}
+        </p>
 
         <div className="policy-links">
           <Link to="/politicas" className="btn-link">

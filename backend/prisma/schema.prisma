@@ -63,6 +63,7 @@ model User {
   isDemo            Boolean   @default(false)
   failedLoginCount  Int       @default(0)
   lockedUntil       DateTime?
+  lastFailedLoginAt DateTime?
   lastLoginAt       DateTime?
   // Tiempo acumulado con el portal abierto (segundos), alimentado por el
   // heartbeat del frontend — ver recordHeartbeat en lib/session.ts.

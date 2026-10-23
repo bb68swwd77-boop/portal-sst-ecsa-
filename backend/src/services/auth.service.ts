@@ -2,8 +2,12 @@ import { prisma } from "../lib/prisma";
 import { generateOpaqueToken, hashPassword, hashToken, verifyPassword } from "../lib/hash";
 import { HttpError } from "../middleware/errorHandler";
 
-const MAX_FAILED_ATTEMPTS = 5;
+const MAX_FAILED_ATTEMPTS = 3;
 const LOCK_MINUTES = 15;
+// Ventana en la que se acumulan los fallos: pasado este tiempo sin fallar, se perdonan.
+const FAILURE_WINDOW_MINUTES = 15;
+const LOCKED_ERROR =
+  "Cuenta bloqueada por 3 intentos fallidos. Intente de nuevo en 15 minutos o pida al administrador que la desbloquee.";
 const RESET_TOKEN_TTL_MIN = 30;
 
 // Mensaje idéntico para "usuario no existe" y "contraseña incorrecta": no revelar
@@ -19,27 +23,60 @@ export async function authenticate(code: string, password: string) {
     throw new HttpError(401, GENERIC_LOGIN_ERROR);
   }
 
-  if (user.lockedUntil && user.lockedUntil > new Date()) {
-    throw new HttpError(423, "Cuenta bloqueada temporalmente por múltiples intentos fallidos. Intente más tarde.");
+  const now = new Date();
+  if (user.lockedUntil && user.lockedUntil > now) {
+    throw new HttpError(423, LOCKED_ERROR);
+  }
+
+  // Los fallos viejos no se acumulan para siempre: si el bloqueo ya venció o el
+  // último fallo fue hace más de la ventana, el contador vuelve a cero. Es un
+  // updateMany condicional para que varias peticiones simultáneas lo hagan una sola vez.
+  const windowStart = new Date(now.getTime() - FAILURE_WINDOW_MINUTES * 60 * 1000);
+  await prisma.user.updateMany({
+    where: {
+      id: user.id,
+      failedLoginCount: { gt: 0 },
+      OR: [{ lockedUntil: { lte: now } }, { lastFailedLoginAt: { lt: windowStart } }, { lastFailedLoginAt: null }],
+    },
+    data: { failedLoginCount: 0, lockedUntil: null },
+  });
+
+  // Se reserva el intento ANTES de verificar la contraseña, con un incremento
+  // atómico. Así, una ráfaga de peticiones paralelas no puede probar más de
+  // MAX_FAILED_ATTEMPTS claves: solo las primeras llegan a verificarse.
+  const reserved = await prisma.user.update({
+    where: { id: user.id },
+    data: { failedLoginCount: { increment: 1 }, lastFailedLoginAt: now },
+    select: { failedLoginCount: true },
+  });
+
+  if (reserved.failedLoginCount > MAX_FAILED_ATTEMPTS) {
+    throw new HttpError(423, LOCKED_ERROR);
   }
 
   const valid = await verifyPassword(user.passwordHash, password);
 
   if (!valid) {
-    const failedLoginCount = user.failedLoginCount + 1;
-    const lockedUntil =
-      failedLoginCount >= MAX_FAILED_ATTEMPTS ? new Date(Date.now() + LOCK_MINUTES * 60 * 1000) : null;
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { failedLoginCount, lockedUntil },
-    });
+    if (reserved.failedLoginCount >= MAX_FAILED_ATTEMPTS) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lockedUntil: new Date(Date.now() + LOCK_MINUTES * 60 * 1000) },
+      });
+      throw new HttpError(423, LOCKED_ERROR);
+    }
     throw new HttpError(401, GENERIC_LOGIN_ERROR);
   }
 
   await prisma.user.update({
     where: { id: user.id },
     // Si la recordó e ingresó, ya no necesita que el administrador la restablezca.
-    data: { failedLoginCount: 0, lockedUntil: null, lastLoginAt: new Date(), resetRequestedAt: null },
+    data: {
+      failedLoginCount: 0,
+      lockedUntil: null,
+      lastFailedLoginAt: null,
+      lastLoginAt: new Date(),
+      resetRequestedAt: null,
+    },
   });
 
   return user;
