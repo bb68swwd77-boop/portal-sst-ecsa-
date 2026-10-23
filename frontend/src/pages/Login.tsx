@@ -84,7 +84,7 @@ export function LoginPage() {
         </div>
 
         <p className="field-hint mt-16">
-          {t("Contraseña genérica: Demo#2026Sst")}
+          {t("Su contraseña inicial se la entrega el administrador del portal.")}
         </p>
         <p className="field-hint">
           {t("Por seguridad, tras 3 intentos fallidos la cuenta se bloquea durante 15 minutos.")}

@@ -44,7 +44,7 @@ export const translations: Record<string, string> = {
   "Iniciar sesión": "登录",
   "¿Olvidó su contraseña?": "忘记密码？",
   "Verificar certificado": "验证证书",
-  "Contraseña genérica: Demo#2026Sst": "通用密码：Demo#2026Sst",
+  "Su contraseña inicial se la entrega el administrador del portal.": "您的初始密码由门户管理员提供。",
 
   // --- Auth: cambio de contraseña obligatorio (primer acceso) ---------
   "Cree su nueva contraseña": "创建您的新密码",
