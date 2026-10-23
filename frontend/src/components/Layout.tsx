@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { LanguageToggle } from "./LanguageToggle";
+import { LockedAccountsAlert } from "./LockedAccountsAlert";
 import logoEcsa from "../assets/logo-ecsa.png";
 
 const USER_LINKS = [
@@ -126,6 +127,7 @@ export function Layout() {
           <strong>{t("Capacitación SST")}</strong>
         </div>
         <main className="main-content" id="contenido-principal" tabIndex={-1}>
+          {isAdmin && hasPermission("users:edit") && <LockedAccountsAlert />}
           <Outlet />
         </main>
       </div>

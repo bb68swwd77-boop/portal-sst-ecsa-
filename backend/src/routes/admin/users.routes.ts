@@ -13,6 +13,21 @@ import { audit } from "../../lib/audit";
 export const adminUsersRouter = Router();
 adminUsersRouter.use(requireAuth, requirePermission("users:view"));
 
+// Cuentas bloqueadas ahora mismo por intentos fallidos de ingreso: alimenta la
+// alerta que ven los administradores al entrar para poder reactivarlas.
+adminUsersRouter.get(
+  "/locked",
+  asyncHandler(async (_req, res) => {
+    const users = await prisma.user.findMany({
+      where: { lockedUntil: { gt: new Date() }, isActive: true },
+      orderBy: { lockedUntil: "desc" },
+      take: 50,
+      select: { id: true, code: true, firstName: true, lastName: true, company: true, lockedUntil: true },
+    });
+    res.json({ users });
+  })
+);
+
 adminUsersRouter.get(
   "/",
   validateQuery(paginationSchema),

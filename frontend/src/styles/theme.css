@@ -1794,3 +1794,26 @@ h2.page-title {
 .result-next p {
   margin: 10px 0 0;
 }
+
+/* Aviso a administradores: cuentas bloqueadas por intentos fallidos de ingreso */
+.locked-alert {
+  margin-bottom: 16px;
+}
+.locked-alert-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.locked-alert-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.locked-alert .text-muted {
+  color: inherit;
+  opacity: 0.8;
+}
