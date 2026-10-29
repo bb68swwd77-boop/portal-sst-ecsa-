@@ -16,6 +16,7 @@ import { VerifyCertificatePage } from "./pages/VerifyCertificate";
 import { PoliciesPage } from "./pages/Policies";
 import { DashboardPage } from "./pages/Dashboard";
 import { CourseViewPage } from "./pages/CourseView";
+import { ModuleViewPage } from "./pages/ModuleView";
 import { EvaluationRunnerPage } from "./pages/EvaluationRunner";
 import { CertificatesPage } from "./pages/Certificates";
 import { ProfilePage } from "./pages/Profile";
@@ -54,6 +55,7 @@ export default function App() {
             >
               <Route path="/portal" element={<DashboardPage />} />
               <Route path="/curso/:courseId" element={<CourseViewPage />} />
+              <Route path="/curso/:courseId/modulo/:moduleId" element={<ModuleViewPage />} />
               <Route path="/curso/:courseId/evaluacion/:evaluationId" element={<EvaluationRunnerPage />} />
               <Route path="/certificados" element={<CertificatesPage />} />
               <Route path="/perfil" element={<ProfilePage />} />
