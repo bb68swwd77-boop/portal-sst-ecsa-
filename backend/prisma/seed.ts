@@ -132,6 +132,7 @@ async function main() {
 
   console.log("Sembrando usuarios piloto (código de trabajador)...");
   await seedPilotUsers(adminRole.id, userRole.id, demoPasswordHash);
+  await renameAreaToSso();
 
   console.log("Sembrando capacitaciones DEMO...");
 
@@ -538,7 +539,25 @@ const PILOT_USERS: PilotUserRow[] = [
 ];
 
 const PILOT_COMPANY = "ECSA";
-const PILOT_AREA = "GESTION DE SEGURIDAD INDUSTRIAL Y SALUD OCUPACIONAL";
+const PILOT_AREA = "SSO";
+// Nombre anterior del área: se renombra a "SSO" en usuarios existentes y en las
+// asignaciones por área (idempotente: si ya no queda nada con el nombre viejo, no hace nada).
+const OLD_PILOT_AREAS = ["GESTION DE SEGURIDAD INDUSTRIAL Y SALUD OCUPACIONAL", "GESTIÓN DE SEGURIDAD INDUSTRIAL Y SALUD OCUPACIONAL"];
+
+async function renameAreaToSso() {
+  const matchOld = OLD_PILOT_AREAS.map((name) => ({ equals: name, mode: "insensitive" as const }));
+  const users = await prisma.user.updateMany({
+    where: { OR: matchOld.map((area) => ({ area })) },
+    data: { area: PILOT_AREA },
+  });
+  const assignments = await prisma.courseAssignment.updateMany({
+    where: { targetType: "AREA", OR: matchOld.map((targetValue) => ({ targetValue })) },
+    data: { targetValue: PILOT_AREA },
+  });
+  if (users.count > 0 || assignments.count > 0) {
+    console.log(`Área renombrada a "${PILOT_AREA}": ${users.count} usuarios, ${assignments.count} asignaciones por área.`);
+  }
+}
 const PILOT_ADMIN_CODE = "1000001";
 // Cuenta administrativa personal de Randy Alvarez — antes se creaba a mano
 // desde el panel y no vivía en este seed, así que una base de datos nueva (ej.
