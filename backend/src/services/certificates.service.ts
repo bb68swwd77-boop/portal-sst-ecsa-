@@ -40,7 +40,7 @@ export async function maybeIssueModuleCertificate(userId: string, moduleId: stri
   const completion = await getModuleCompletion(userId, moduleId);
   if (!completion.complete) return null;
 
-  let certificate;
+  let certificate: Awaited<ReturnType<typeof prisma.certificate.create>>;
   try {
     certificate = await prisma.certificate.create({
       data: {
