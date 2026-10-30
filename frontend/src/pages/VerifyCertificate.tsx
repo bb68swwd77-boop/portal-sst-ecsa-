@@ -10,6 +10,7 @@ interface VerifyResult {
     code: string;
     courseTitle: string;
     courseCode: string;
+    moduleTitle: string | null;
     durationMin: number;
     score: number;
     issuedAt: string;
@@ -64,7 +65,7 @@ export function VerifyCertificatePage() {
         {result?.valid && result.certificate && (
           <div className="card mt-16">
             <div className="badge badge-status-completed mt-8">{t("Certificado válido")}</div>
-            <h3 className="mt-8">{result.certificate.courseTitle}</h3>
+            <h3 className="mt-8">{result.certificate.moduleTitle ?? result.certificate.courseTitle}</h3>
             <p className="text-secondary" style={{ fontSize: 14, lineHeight: 1.7 }}>
               <strong>{t("Titular:")}</strong> {result.certificate.holderName}
               <br />
@@ -74,10 +75,16 @@ export function VerifyCertificatePage() {
                   <br />
                 </>
               )}
+              <strong>{t("Capacitación:")}</strong> {result.certificate.courseTitle}
+              <br />
               <strong>{t("Código curso:")}</strong> {result.certificate.courseCode}
               <br />
-              <strong>{t("Duración:")}</strong> {result.certificate.durationMin} min
-              <br />
+              {result.certificate.durationMin > 0 && (
+                <>
+                  <strong>{t("Duración:")}</strong> {result.certificate.durationMin} min
+                  <br />
+                </>
+              )}
               <strong>{t("Calificación:")}</strong> {result.certificate.score}%
               <br />
               <strong>{t("Fecha de emisión:")}</strong> {new Date(result.certificate.issuedAt).toLocaleDateString("es-EC")}

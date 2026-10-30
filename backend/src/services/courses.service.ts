@@ -92,8 +92,10 @@ export async function getDashboardForUser(currentUser: AuthenticatedUser) {
     orderBy: { submittedAt: "desc" },
   });
 
-  const certificates = await prisma.certificate.findMany({ where: { userId } });
-  const certByCourse = new Map(certificates.map((c) => [c.courseId, c]));
+  // Un certificado por módulo aprobado (los del curso completo anteriores están revocados).
+  const certificates = await prisma.certificate.findMany({ where: { userId, revokedAt: null } });
+  const certCountByCourse = new Map<string, number>();
+  for (const c of certificates) certCountByCourse.set(c.courseId, (certCountByCourse.get(c.courseId) ?? 0) + 1);
 
   const items = await Promise.all(
     courses.map(async (course) => {
@@ -117,14 +119,12 @@ export async function getDashboardForUser(currentUser: AuthenticatedUser) {
       const totalUnits = totalLessons + evaluationIds.length;
       const completedUnits = completedLessons + passedEvaluations.length;
       const percent = totalUnits === 0 ? 0 : Math.round((completedUnits / totalUnits) * 100);
-      // El certificado solo cuenta cuando el avance de los módulos asignados
-      // llegó al 100 % (ver getCourseCompletion en certificates.service).
-      const certificate = percent === 100 ? certByCourse.get(course.id) : undefined;
-
+      // El curso está completo cuando todas las lecciones y evaluaciones de los
+      // módulos asignados están hechas (cada módulo aprobado emite su certificado).
       const assignment = assignments.find((a) => a.courseId === course.id);
 
       let status: "pending" | "in_progress" | "completed" | "overdue" = "pending";
-      if (certificate) status = "completed";
+      if (totalUnits > 0 && percent === 100) status = "completed";
       else if (completedUnits > 0) status = "in_progress";
       if (assignment?.dueAt && assignment.dueAt < new Date() && status !== "completed") status = "overdue";
 
@@ -139,7 +139,7 @@ export async function getDashboardForUser(currentUser: AuthenticatedUser) {
         percent,
         status,
         dueAt: assignment?.dueAt ?? null,
-        certificateCode: certificate?.code ?? null,
+        certificateCount: certCountByCourse.get(course.id) ?? 0,
       };
     })
   );
@@ -150,7 +150,7 @@ export async function getDashboardForUser(currentUser: AuthenticatedUser) {
     inProgress: items.filter((i) => i.status === "in_progress").length,
     pending: items.filter((i) => i.status === "pending").length,
     overdue: items.filter((i) => i.status === "overdue").length,
-    certificates: items.filter((i) => i.certificateCode).length,
+    certificates: items.reduce((acc, i) => acc + i.certificateCount, 0),
     overallPercent:
       items.length === 0 ? 0 : Math.round(items.reduce((acc, i) => acc + i.percent, 0) / items.length),
   };

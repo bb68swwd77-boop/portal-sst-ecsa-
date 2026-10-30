@@ -16,7 +16,7 @@ export function CertificatesPage() {
     <div>
       <div className="page-hero">
         <h2 className="page-title">{t("Mis certificados")}</h2>
-        <p className="page-subtitle">{t("Certificados emitidos al aprobar cada capacitación.")}</p>
+        <p className="page-subtitle">{t("Un certificado por cada módulo que aprueba.")}</p>
       </div>
 
       {certificates && certificates.length === 0 && (
@@ -34,12 +34,17 @@ export function CertificatesPage() {
               <div>
                 <span className="badge badge-status-completed">{t("Vigente")}</span>
               </div>
-              <h3 className="course-title">{c.course.title}</h3>
+              <h3 className="course-title">{c.moduleTitle ?? c.course.title}</h3>
+              {c.moduleTitle && <p className="text-muted" style={{ fontSize: 13, margin: 0 }}>{c.course.title}</p>}
               <p className="text-secondary" style={{ fontSize: 14, margin: 0 }}>
                 {t("Calificación:")} {c.score}%
                 <br />
-                {t("Duración:")} {c.durationMin} min
-                <br />
+                {c.durationMin > 0 && (
+                  <>
+                    {t("Duración:")} {c.durationMin} min
+                    <br />
+                  </>
+                )}
                 {t("Emitido:")} {new Date(c.issuedAt).toLocaleDateString("es-EC")}
                 <br />
                 {t("Código:")} <strong>{c.code}</strong>

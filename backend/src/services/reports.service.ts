@@ -63,11 +63,12 @@ export async function buildTrainingReport(filters: ReportFilters): Promise<Repor
       prisma.evaluationAttempt.findMany({
         where: { userId: user.id, status: "SUBMITTED", evaluation: { module: { courseId: { in: relevantCourses.map((c) => c.id) } } } },
       }),
-      prisma.certificate.findMany({ where: { userId: user.id, courseId: { in: relevantCourses.map((c) => c.id) } } }),
+      prisma.certificate.findMany({ where: { userId: user.id, revokedAt: null, courseId: { in: relevantCourses.map((c) => c.id) } } }),
       prisma.courseAssignment.findMany({ where: { courseId: { in: relevantCourses.map((c) => c.id) }, OR: [{ userId: user.id }, { userId: null }] } }),
     ]);
     const completedLessonIds = new Set(progressRows.filter((p) => p.completedAt).map((p) => p.lessonId));
-    const certByCourse = new Map(certificates.map((c) => [c.courseId, c]));
+    const certsByCourse = new Map<string, typeof certificates>();
+    for (const c of certificates) certsByCourse.set(c.courseId, [...(certsByCourse.get(c.courseId) ?? []), c]);
 
     for (const course of relevantCourses) {
       // Solo los módulos asignados al usuario (todos, o los de sus asignaciones
@@ -83,7 +84,7 @@ export async function buildTrainingReport(filters: ReportFilters): Promise<Repor
       const totalUnits = totalLessons + evaluationIds.length;
       const completedUnits = completedLessons + passedEvals.length;
       const percent = totalUnits === 0 ? 0 : Math.round((completedUnits / totalUnits) * 100);
-      const cert = percent === 100 ? certByCourse.get(course.id) : undefined;
+      const courseCerts = (certsByCourse.get(course.id) ?? []).sort((a, b) => a.issuedAt.getTime() - b.issuedAt.getTime());
       const approvedModules = visibleModules
         .filter((m) => m.evaluation && passedEvals.includes(m.evaluation.id))
         .map((m) => `Módulo ${m.order} · ${m.title}`);
@@ -91,7 +92,7 @@ export async function buildTrainingReport(filters: ReportFilters): Promise<Repor
       const bestScore = courseAttempts.length ? Math.max(...courseAttempts.map((a) => a.score ?? 0)) : null;
 
       let status: ReportRow["status"] = "pending";
-      if (cert) status = "completed";
+      if (totalUnits > 0 && percent === 100) status = "completed";
       else if (completedUnits > 0) status = "in_progress";
       if (assignment?.dueAt && assignment.dueAt < new Date() && status !== "completed") status = "overdue";
 
@@ -109,9 +110,9 @@ export async function buildTrainingReport(filters: ReportFilters): Promise<Repor
         percent,
         approvedModules,
         bestScore,
-        certificateCode: cert?.code ?? null,
+        certificateCode: courseCerts.length ? courseCerts.map((c) => c.code).join(" | ") : null,
         dueAt: assignment?.dueAt ?? null,
-        completedAt: cert?.issuedAt ?? null,
+        completedAt: percent === 100 && courseCerts.length ? courseCerts[courseCerts.length - 1].issuedAt : null,
         connectionSeconds: user.connectionSeconds,
       });
     }
@@ -132,7 +133,7 @@ export function reportRowsToCsv(rows: ReportRow[]): string {
     "Módulos aprobados",
     "Mejor puntaje",
     "Tiempo de conexión (min)",
-    "Código certificado",
+    "Códigos de certificados (uno por módulo)",
     "Fecha límite",
     "Fecha de aprobación",
   ];

@@ -16,11 +16,11 @@ adminDashboardRouter.get(
       prisma.course.count({ where: { status: "PUBLISHED" } }),
       prisma.evaluationAttempt.count({ where: { status: "SUBMITTED" } }),
       prisma.evaluationAttempt.count({ where: { status: "SUBMITTED", passed: true } }),
-      prisma.certificate.count(),
+      prisma.certificate.count({ where: { revokedAt: null } }),
       prisma.course.findMany({
         where: { status: "PUBLISHED" },
         include: {
-          _count: { select: { certificates: true } },
+          _count: { select: { certificates: { where: { revokedAt: null } } } },
           modules: { include: { evaluation: { include: { attempts: { where: { status: "SUBMITTED" } } } } } },
         },
       }),

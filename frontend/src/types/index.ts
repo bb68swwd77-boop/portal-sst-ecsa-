@@ -23,7 +23,7 @@ export interface DashboardCourse {
   percent: number;
   status: "pending" | "in_progress" | "completed" | "overdue";
   dueAt: string | null;
-  certificateCode: string | null;
+  certificateCount: number;
 }
 
 export interface DashboardStats {
@@ -134,6 +134,8 @@ export interface AttemptSession {
 export interface Certificate {
   id: string;
   code: string;
+  // Título del módulo certificado; nulo en los certificados antiguos del curso completo.
+  moduleTitle: string | null;
   score: number;
   issuedAt: string;
   durationMin: number;

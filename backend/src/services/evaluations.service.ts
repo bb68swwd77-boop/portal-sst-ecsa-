@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma";
 import { HttpError } from "../middleware/errorHandler";
-import { maybeIssueCertificate } from "./certificates.service";
+import { maybeIssueModuleCertificate } from "./certificates.service";
 import { audit } from "../lib/audit";
 import type { Request } from "express";
 
@@ -242,7 +242,7 @@ export async function submitAttempt(userId: string, attemptId: string, answers: 
 
   let certificate = null;
   if (passed) {
-    certificate = await maybeIssueCertificate(userId, attempt.evaluation.module.courseId, req);
+    certificate = await maybeIssueModuleCertificate(userId, attempt.evaluation.moduleId, req);
   }
 
   return {

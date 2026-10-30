@@ -195,6 +195,7 @@ model Module {
   lessons     Lesson[]
   evaluation  Evaluation?
   assignments CourseAssignment[]
+  certificates Certificate[]
 
   @@index([courseId])
   @@unique([courseId, order])
@@ -436,13 +437,20 @@ model Certificate {
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   courseId      String
   course        Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  // Desde 2026-10 se emite un certificado por módulo aprobado. Los anteriores,
+  // del curso completo, no tienen módulo (moduleId nulo) y quedaron revocados.
+  moduleId      String?
+  module        Module?  @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  moduleTitle   String? // título del módulo al emitirse (se conserva si luego se renombra o elimina)
   score         Int
   issuedAt      DateTime @default(now())
-  durationMin   Int
+  durationMin   Int      @default(0)
   revokedAt     DateTime?
 
+  @@unique([userId, moduleId])
   @@index([userId])
   @@index([courseId])
+  @@index([moduleId])
 }
 
 // ---------------------------------------------------------------------------

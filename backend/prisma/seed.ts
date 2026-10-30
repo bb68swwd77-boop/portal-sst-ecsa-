@@ -2,6 +2,7 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import argon2 from "argon2";
+import crypto from "node:crypto";
 
 const prisma = new PrismaClient();
 
@@ -133,6 +134,7 @@ async function main() {
   console.log("Sembrando usuarios piloto (código de trabajador)...");
   await seedPilotUsers(adminRole.id, userRole.id, demoPasswordHash);
   await renameAreaToSso();
+  await migrateToModuleCertificates();
 
   console.log("Sembrando capacitaciones DEMO...");
 
@@ -543,6 +545,61 @@ const PILOT_AREA = "SSO";
 // Nombre anterior del área: se renombra a "SSO" en usuarios existentes y en las
 // asignaciones por área (idempotente: si ya no queda nada con el nombre viejo, no hace nada).
 const OLD_PILOT_AREAS = ["GESTION DE SEGURIDAD INDUSTRIAL Y SALUD OCUPACIONAL", "GESTIÓN DE SEGURIDAD INDUSTRIAL Y SALUD OCUPACIONAL"];
+
+// Cambio de metodología (2026-10): el certificado ya no es por curso completo sino
+// por módulo aprobado. Idempotente:
+//  1) revoca los certificados antiguos del curso (los que no tienen módulo);
+//  2) emite el certificado de cada módulo cuya evaluación ya estaba aprobada y
+//     con todas las lecciones completas, con la nota y la fecha del aprobado original.
+async function migrateToModuleCertificates() {
+  const revoked = await prisma.certificate.updateMany({
+    where: { moduleId: null, revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
+
+  const passed = await prisma.evaluationAttempt.findMany({
+    where: { status: "SUBMITTED", passed: true },
+    include: { evaluation: { include: { module: { include: { lessons: { select: { id: true } } } } } } },
+    orderBy: { submittedAt: "asc" },
+  });
+
+  // Mejor nota y fecha del primer aprobado, por (usuario, evaluación).
+  const byKey = new Map<string, { userId: string; module: (typeof passed)[number]["evaluation"]["module"]; score: number; at: Date }>();
+  for (const a of passed) {
+    const key = `${a.userId}:${a.evaluationId}`;
+    const prev = byKey.get(key);
+    const score = a.score ?? 0;
+    if (!prev) byKey.set(key, { userId: a.userId, module: a.evaluation.module, score, at: a.submittedAt ?? new Date() });
+    else if (score > prev.score) prev.score = score;
+  }
+
+  let issued = 0;
+  for (const { userId, module: mod, score, at } of byKey.values()) {
+    const exists = await prisma.certificate.findFirst({ where: { userId, moduleId: mod.id } });
+    if (exists) continue;
+    const done = await prisma.lessonProgress.count({
+      where: { userId, lessonId: { in: mod.lessons.map((l) => l.id) }, completedAt: { not: null } },
+    });
+    if (done !== mod.lessons.length) continue;
+    await prisma.certificate.create({
+      data: {
+        code: `ECSA-SST-${crypto.randomBytes(6).toString("hex").toUpperCase()}`,
+        userId,
+        courseId: mod.courseId,
+        moduleId: mod.id,
+        moduleTitle: mod.title,
+        score,
+        durationMin: 0,
+        issuedAt: at,
+      },
+    });
+    issued++;
+  }
+
+  if (revoked.count > 0 || issued > 0) {
+    console.log(`Certificados por módulo: ${revoked.count} del curso revocados, ${issued} de módulo emitidos.`);
+  }
+}
 
 async function renameAreaToSso() {
   const matchOld = OLD_PILOT_AREAS.map((name) => ({ equals: name, mode: "insensitive" as const }));

@@ -295,7 +295,7 @@ export function EvaluationRunnerPage() {
           )}
           {result.certificateIssued && (
             <div className="alert alert-success mt-16">
-              {t("¡Felicidades! Completó todos los requisitos y se emitió su certificado")} ({result.certificateCode}).
+              {t("¡Felicidades! Aprobó este módulo y se emitió su certificado")} ({result.certificateCode}).
             </div>
           )}
           {!result.passed && (

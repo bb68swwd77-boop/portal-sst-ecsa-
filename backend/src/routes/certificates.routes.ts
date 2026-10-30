@@ -47,7 +47,9 @@ certificatesRouter.get(
         code: cert.code,
         courseTitle: cert.course.title,
         courseCode: cert.course.code,
-        durationMin: cert.course.durationMin,
+        // Certificado por módulo; los anteriores (curso completo) no tienen módulo.
+        moduleTitle: cert.moduleTitle,
+        durationMin: cert.durationMin,
         score: cert.score,
         issuedAt: cert.issuedAt,
         holderName: `${cert.user.firstName} ${cert.user.lastName}`,
