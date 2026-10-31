@@ -215,7 +215,10 @@ textarea {
   /* padding-top con margen extra: en escritorio no hay topbar que despeje
      el selector de idioma fijo (.app-lang-toggle) del borde superior. */
   padding: 60px 56px 40px;
-  max-width: 1100px;
+  /* Aprovecha el ancho de pantallas grandes (antes 1100px dejaba una franja vacía
+     a la derecha); en monitores muy anchos se centra para no estirar demasiado. */
+  max-width: 1680px;
+  margin-inline: auto;
   width: 100%;
 }
 
