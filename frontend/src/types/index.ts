@@ -43,6 +43,12 @@ export interface LessonFile {
   sizeBytes: number;
 }
 
+export interface LessonLink {
+  id: string;
+  title: string;
+  url: string;
+}
+
 export interface LessonDetail {
   id: string;
   title: string;
@@ -53,6 +59,8 @@ export interface LessonDetail {
   file: LessonFile | null;
   // Adjuntos adicionales más allá del archivo principal (`file`).
   files: LessonFile[];
+  // Enlaces de video que se muestran como tarjeta junto a los documentos.
+  links: LessonLink[];
   // Solo aplica a contentType "VIDEO" — null para el resto de tipos.
   percentWatched: number | null;
   normReference: string | null;

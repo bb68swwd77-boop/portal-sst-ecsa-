@@ -36,6 +36,7 @@ adminCoursesRouter.get(
               orderBy: { order: "asc" },
               include: {
                 files: { orderBy: { order: "asc" }, include: { file: { select: { id: true, filename: true, sizeBytes: true } } } },
+                links: { orderBy: { order: "asc" } },
               },
             },
             evaluation: { include: { questions: { include: { options: true }, orderBy: { order: "asc" } } } },
@@ -220,6 +221,62 @@ adminCoursesRouter.delete(
       userId: req.currentUser!.id,
       action: "lesson.file_detach",
       resource: `LessonFile:${req.params.lessonFileId}`,
+      result: "success",
+      req,
+    });
+    res.json({ ok: true });
+  })
+);
+
+// --- Enlaces de video de lección (tarjeta junto a los PDF) -------------------
+
+adminCoursesRouter.post(
+  "/lessons/:lessonId/links",
+  requirePermission("courses:edit"),
+  asyncHandler(async (req, res) => {
+    const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
+    const rawUrl = typeof req.body?.url === "string" ? req.body.url.trim() : "";
+    if (!title || title.length > 200) throw new HttpError(400, "Escriba un título para el enlace (máx. 200 caracteres).");
+    let parsed: URL;
+    try {
+      parsed = new URL(rawUrl);
+    } catch {
+      throw new HttpError(400, "El enlace no es válido. Debe empezar con https://");
+    }
+    // Solo http(s): evita esquemas como javascript: que se ejecutarían al hacer clic.
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+      throw new HttpError(400, "El enlace no es válido. Debe empezar con https://");
+    }
+    if (rawUrl.length > 2000) throw new HttpError(400, "El enlace es demasiado largo.");
+
+    const lesson = await prisma.lesson.findUnique({ where: { id: req.params.lessonId }, select: { id: true } });
+    if (!lesson) throw new HttpError(404, "Lección no encontrada.");
+
+    const maxOrder = await prisma.lessonLink.aggregate({ where: { lessonId: lesson.id }, _max: { order: true } });
+    const link = await prisma.lessonLink.create({
+      data: { lessonId: lesson.id, title, url: parsed.toString(), order: (maxOrder._max.order ?? 0) + 1 },
+    });
+    await audit({
+      userId: req.currentUser!.id,
+      action: "lesson.link_add",
+      resource: `Lesson:${lesson.id}`,
+      result: "success",
+      req,
+      metadata: { linkId: link.id },
+    });
+    res.status(201).json({ link });
+  })
+);
+
+adminCoursesRouter.delete(
+  "/lessons/links/:linkId",
+  requirePermission("courses:edit"),
+  asyncHandler(async (req, res) => {
+    await prisma.lessonLink.delete({ where: { id: req.params.linkId } });
+    await audit({
+      userId: req.currentUser!.id,
+      action: "lesson.link_remove",
+      resource: `LessonLink:${req.params.linkId}`,
       result: "success",
       req,
     });

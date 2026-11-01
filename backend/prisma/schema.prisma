@@ -234,9 +234,25 @@ model Lesson {
 
   progress    LessonProgress[]
   files       LessonFile[]
+  links       LessonLink[]
 
   @@index([moduleId])
   @@unique([moduleId, order])
+}
+
+// Enlaces de video (u otro recurso web) que se muestran como tarjeta junto a los
+// PDF de la lección. No reemplazan Lesson.externalUrl, que sigue siendo el video
+// con seguimiento automático para lecciones de tipo VIDEO.
+model LessonLink {
+  id        String   @id @default(cuid())
+  lessonId  String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  title     String
+  url       String
+  order     Int      @default(1)
+  createdAt DateTime @default(now())
+
+  @@index([lessonId])
 }
 
 // Adjuntos adicionales de una lección — el campo Lesson.fileId original

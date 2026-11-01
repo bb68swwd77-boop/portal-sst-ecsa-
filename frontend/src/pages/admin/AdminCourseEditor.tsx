@@ -32,6 +32,11 @@ interface LessonAttachment {
   id: string; // id de LessonFile (para desasociar)
   file: { id: string; filename: string; sizeBytes: number };
 }
+interface LessonLinkItem {
+  id: string;
+  title: string;
+  url: string;
+}
 interface Lesson {
   id: string;
   title: string;
@@ -41,6 +46,7 @@ interface Lesson {
   externalUrl: string | null;
   fileId: string | null;
   files: LessonAttachment[];
+  links: LessonLinkItem[];
   normReference: string | null;
   normCode: string | null;
   normArticle: string | null;
@@ -606,6 +612,10 @@ function EditLessonModal({ lesson, onClose, onSaved }: { lesson: Lesson; onClose
   const [attachments, setAttachments] = useState<LessonAttachment[]>(lesson.files);
   const [attachUploading, setAttachUploading] = useState(false);
   const [attachError, setAttachError] = useState<string | null>(null);
+  const [links, setLinks] = useState<LessonLinkItem[]>(lesson.links ?? []);
+  const [linkForm, setLinkForm] = useState({ title: "", url: "" });
+  const [linkSaving, setLinkSaving] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
 
   const needsFile = form.contentType === "PDF" || form.contentType === "DOCUMENT";
   const needsUrl = form.contentType === "VIDEO" || form.contentType === "LINK";
@@ -654,6 +664,36 @@ function EditLessonModal({ lesson, onClose, onSaved }: { lesson: Lesson; onClose
       onSaved();
     } catch (err) {
       setAttachError(err instanceof ApiError ? t(err.message) : t("No fue posible quitar el archivo."));
+    }
+  }
+
+  async function handleAddLink() {
+    setLinkError(null);
+    if (!linkForm.title.trim() || !linkForm.url.trim()) {
+      setLinkError(t("Escriba el título y el enlace del video."));
+      return;
+    }
+    setLinkSaving(true);
+    try {
+      const res = await api.post<{ link: LessonLinkItem }>(`/admin/courses/lessons/${lesson.id}/links`, linkForm);
+      setLinks((prev) => [...prev, res.link]);
+      setLinkForm({ title: "", url: "" });
+      onSaved();
+    } catch (err) {
+      setLinkError(err instanceof ApiError ? t(err.message) : t("No fue posible agregar el enlace."));
+    } finally {
+      setLinkSaving(false);
+    }
+  }
+
+  async function handleRemoveLink(linkId: string) {
+    if (!confirm(t("¿Quitar este enlace de la lección?"))) return;
+    try {
+      await api.delete(`/admin/courses/lessons/links/${linkId}`);
+      setLinks((prev) => prev.filter((l) => l.id !== linkId));
+      onSaved();
+    } catch (err) {
+      setLinkError(err instanceof ApiError ? t(err.message) : t("No fue posible quitar el enlace."));
     }
   }
 
@@ -761,6 +801,44 @@ function EditLessonModal({ lesson, onClose, onSaved }: { lesson: Lesson; onClose
             )}
           </div>
         )}
+
+        <div className="field">
+          <label>{t("Enlaces de video (tarjeta)")}</label>
+          {linkError && <div className="alert alert-danger" role="alert">{linkError}</div>}
+          {links.length > 0 && (
+            <ul style={{ margin: "0 0 8px", paddingLeft: 0, listStyle: "none", fontSize: 13 }}>
+              {links.map((l) => (
+                <li key={l.id} className="flex-between mt-8">
+                  <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    ▶ {l.title} <span className="text-muted">— {l.url}</span>
+                  </span>
+                  <button type="button" className="btn-link" onClick={() => handleRemoveLink(l.id)}>
+                    {t("Quitar")}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <input
+            value={linkForm.title}
+            onChange={(e) => setLinkForm({ ...linkForm, title: e.target.value })}
+            placeholder={t("Título de la tarjeta (ej. Video: Caída a distinto nivel)")}
+            maxLength={200}
+          />
+          <input
+            className="mt-8"
+            value={linkForm.url}
+            onChange={(e) => setLinkForm({ ...linkForm, url: e.target.value })}
+            placeholder="https://…"
+            inputMode="url"
+          />
+          <button type="button" className="btn btn-secondary btn-sm mt-8" onClick={handleAddLink} disabled={linkSaving}>
+            {linkSaving ? t("Guardando…") : t("+ Agregar enlace")}
+          </button>
+          <div className="field-hint">
+            {t("Se muestra como tarjeta junto a los PDF; al hacer clic abre el video en una pestaña nueva. No se exige verlo para completar la lección.")}
+          </div>
+        </div>
 
         <h4 className="mt-16">{t("Referencia normativa")}</h4>
         <div className="field">

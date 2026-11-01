@@ -11,6 +11,14 @@ import type { CourseDetail } from "../types";
 // la lección como completada (el servidor exige 10; aquí 15 para tener margen).
 const DOCUMENT_REVIEW_SECONDS = 15;
 
+function safeHost(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+
 // Página de un módulo: sus lecciones a la izquierda y el contenido de la lección
 // elegida a la derecha. Se llega desde la tarjeta del módulo en /curso/:courseId.
 export function ModuleViewPage() {
@@ -260,9 +268,15 @@ export function ModuleViewPage() {
                 <section className="content" dangerouslySetInnerHTML={{ __html: activeLesson.bodyHtml }} />
               )}
 
-              {(activeLesson.file || activeLesson.files.length > 0) && (
+              {(activeLesson.file || activeLesson.files.length > 0 || activeLesson.links.length > 0) && (
                 <div className="doc-section">
-                  <div className="doc-section-title">{t("Documentos para descargar")}</div>
+                  <div className="doc-section-title">
+                    {activeLesson.links.length === 0
+                      ? t("Documentos para descargar")
+                      : activeFiles.length === 0
+                        ? t("Videos de la lección")
+                        : t("Documentos y videos")}
+                  </div>
                   <div className="doc-grid">
                     {activeFiles.map((f) => (
                       <a
@@ -287,6 +301,22 @@ export function ModuleViewPage() {
                         <span className="doc-download">⬇ {t("Descargar")}</span>
                       </a>
                     ))}
+                    {activeLesson.links.map((lk) => {
+                      const ytId = extractYouTubeId(lk.url);
+                      return (
+                        <a key={lk.id} href={lk.url} target="_blank" rel="noopener noreferrer" className="doc-tile video-tile">
+                          <span className="video-thumb" aria-hidden="true">
+                            {ytId && <img src={`https://img.youtube.com/vi/${ytId}/mqdefault.jpg`} alt="" loading="lazy" />}
+                            <span className="video-play">▶</span>
+                          </span>
+                          <span className="doc-info">
+                            <span className="doc-name">{lk.title}</span>
+                            <span className="doc-size">{t("Video")} · {safeHost(lk.url)}</span>
+                          </span>
+                          <span className="doc-download video-open">▶ {t("Ver video")}</span>
+                        </a>
+                      );
+                    })}
                   </div>
                 </div>
               )}
