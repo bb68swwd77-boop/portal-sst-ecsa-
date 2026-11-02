@@ -7,7 +7,10 @@ import rateLimit from "express-rate-limit";
 // muchas cuentas distintas desde una misma IP (adivinar contraseñas comunes).
 export const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 30,
+  // 100: toda la cuadrilla comparte la IP pública del campamento y al arrancar un
+  // piloto varias personas se equivocan al escribir su contraseña; con 30 se
+  // bloqueaba el ingreso de todos. El bloqueo por cuenta (3 fallos) no cambia.
+  limit: 100,
   skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
