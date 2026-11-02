@@ -85,6 +85,7 @@ model User {
   uploadedFiles     FileAsset[]
   policyAcceptances PolicyAcceptance[]
   fileOpens         FileOpen[]
+  linkOpens         LessonLinkOpen[]
 
   @@index([roleId])
   @@index([company])
@@ -251,8 +252,24 @@ model LessonLink {
   url       String
   order     Int      @default(1)
   createdAt DateTime @default(now())
+  opens     LessonLinkOpen[]
 
   @@index([lessonId])
+}
+
+// Constancia de que un usuario hizo clic en la tarjeta de un enlace de video: el
+// servidor la exige para marcar la lección como completada (igual que FileOpen
+// con los PDF). openedAt es la PRIMERA vez que lo abrió.
+model LessonLinkOpen {
+  id       String     @id @default(cuid())
+  userId   String
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  linkId   String
+  link     LessonLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  openedAt DateTime   @default(now())
+
+  @@unique([userId, linkId])
+  @@index([linkId])
 }
 
 // Adjuntos adicionales de una lección — el campo Lesson.fileId original

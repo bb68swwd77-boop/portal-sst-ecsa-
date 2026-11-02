@@ -111,6 +111,18 @@ export function ModuleViewPage() {
     window.setTimeout(() => void load(true), 2500);
   }
 
+  // Clic en la tarjeta de un enlace de video: se avisa al servidor (que lo exige para
+  // completar la lección) y se marca el clic para la espera mínima.
+  function handleLinkOpened(lessonId: string, linkId: string) {
+    setOpenedAt((prev) => ({ ...prev, [linkId]: Date.now() }));
+    api
+      .post(`/courses/${courseId}/lessons/${lessonId}/links/${linkId}/open`)
+      .then(() => load(true))
+      .catch(() => {
+        // Si falla el registro, el botón sigue bloqueado y puede volver a hacer clic.
+      });
+  }
+
   // Heartbeat de video (cada ~10s y al terminar) — actualiza el estado local
   // sin recargar todo el curso, para no interrumpir la reproducción. El
   // servidor decide cuándo queda "completado" (nunca el cliente).
@@ -171,7 +183,11 @@ export function ModuleViewPage() {
   const prevLesson = activeIndex > 0 ? lessons[activeIndex - 1] : null;
   const nextLesson = activeIndex >= 0 && activeIndex < lessons.length - 1 ? lessons[activeIndex + 1] : null;
   const activeFiles = activeLesson ? [...(activeLesson.file ? [activeLesson.file] : []), ...activeLesson.files] : [];
-  const lastOpenedAt = Math.max(0, ...activeFiles.map((f) => openedAt[f.id] ?? 0));
+  const lastOpenedAt = Math.max(
+    0,
+    ...activeFiles.map((f) => openedAt[f.id] ?? 0),
+    ...(activeLesson?.links ?? []).map((lk) => openedAt[lk.id] ?? 0)
+  );
   const reviewSecondsLeft = lastOpenedAt
     ? Math.max(0, DOCUMENT_REVIEW_SECONDS - Math.floor((Date.now() - lastOpenedAt) / 1000))
     : 0;
@@ -304,14 +320,24 @@ export function ModuleViewPage() {
                     {activeLesson.links.map((lk) => {
                       const ytId = extractYouTubeId(lk.url);
                       return (
-                        <a key={lk.id} href={lk.url} target="_blank" rel="noopener noreferrer" className="doc-tile video-tile">
+                        <a
+                          key={lk.id}
+                          href={lk.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="doc-tile video-tile"
+                          onClick={() => handleLinkOpened(activeLesson.id, lk.id)}
+                        >
                           <span className="video-thumb" aria-hidden="true">
                             {ytId && <img src={`https://img.youtube.com/vi/${ytId}/mqdefault.jpg`} alt="" loading="lazy" />}
                             <span className="video-play">▶</span>
                           </span>
                           <span className="doc-info">
                             <span className="doc-name">{lk.title}</span>
-                            <span className="doc-size">{t("Video")} · {safeHost(lk.url)}</span>
+                            <span className="doc-size">
+                              {t("Video")} · {safeHost(lk.url)}
+                              {lk.opened && ` · ✓ ${t("Visto")}`}
+                            </span>
                           </span>
                           <span className="doc-download video-open">▶ {t("Ver video")}</span>
                         </a>
@@ -357,7 +383,10 @@ export function ModuleViewPage() {
                     </button>
                     {documentsPending > 0 && (
                       <p className="text-muted mt-8" style={{ fontSize: 14 }}>
-                        {t("Abra y revise los documentos de la lección para poder completarla.")} ({documentsPending}{" "}
+                        {activeLesson.links.length > 0
+                          ? t("Abra y revise los documentos y videos de la lección para poder completarla.")
+                          : t("Abra y revise los documentos de la lección para poder completarla.")}{" "}
+                        ({documentsPending}{" "}
                         {t("pendientes")})
                       </p>
                     )}

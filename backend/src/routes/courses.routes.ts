@@ -4,7 +4,13 @@ import { requireAuth } from "../middleware/auth";
 import { requirePermission } from "../middleware/rbac";
 import { asyncHandler } from "../middleware/errorHandler";
 import { validateBody } from "../middleware/validate";
-import { assertCourseAccess, getCourseDetailForUser, markLessonComplete, recordVideoProgress } from "../services/courses.service";
+import {
+  assertCourseAccess,
+  getCourseDetailForUser,
+  markLessonComplete,
+  recordLessonLinkOpen,
+  recordVideoProgress,
+} from "../services/courses.service";
 import { audit } from "../lib/audit";
 
 export const coursesRouter = Router();
@@ -17,6 +23,16 @@ coursesRouter.get(
     await assertCourseAccess(req.currentUser!, req.params.id);
     const course = await getCourseDetailForUser(req.currentUser!, req.params.id);
     res.json({ course });
+  })
+);
+
+// Constancia de que el usuario abrió la tarjeta de un enlace de video de la lección.
+coursesRouter.post(
+  "/:id/lessons/:lessonId/links/:linkId/open",
+  asyncHandler(async (req, res) => {
+    await assertCourseAccess(req.currentUser!, req.params.id);
+    await recordLessonLinkOpen(req.currentUser!, req.params.id, req.params.lessonId, req.params.linkId);
+    res.json({ ok: true });
   })
 );
 

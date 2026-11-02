@@ -836,7 +836,7 @@ function EditLessonModal({ lesson, onClose, onSaved }: { lesson: Lesson; onClose
             {linkSaving ? t("Guardando…") : t("+ Agregar enlace")}
           </button>
           <div className="field-hint">
-            {t("Se muestra como tarjeta junto a los PDF; al hacer clic abre el video en una pestaña nueva. No se exige verlo para completar la lección.")}
+            {t("Se muestra como tarjeta junto a los PDF; al hacer clic abre el video en una pestaña nueva. Para completar la lección, el capacitado debe abrirlo (igual que los PDF).")}
           </div>
         </div>
 

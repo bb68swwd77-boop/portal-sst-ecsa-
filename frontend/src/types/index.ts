@@ -47,6 +47,8 @@ export interface LessonLink {
   id: string;
   title: string;
   url: string;
+  // El usuario ya hizo clic en la tarjeta (se exige para completar la lección).
+  opened: boolean;
 }
 
 export interface LessonDetail {
@@ -132,6 +134,7 @@ export interface AttemptSession {
   serverNow: string;
   maxAttempts: number;
   title: string;
+  moduleId: string;
   description: string | null;
   passingScore: number;
   questions: AttemptQuestion[];

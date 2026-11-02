@@ -249,6 +249,9 @@ export function EvaluationRunnerPage() {
   }
   if (!session) return <div className="empty-state">{t("Cargando evaluación…")}</div>;
 
+  // Al terminar (o salir) se vuelve a la página del módulo, no a la lista de módulos.
+  const backTo = session.moduleId ? `/curso/${courseId}/modulo/${session.moduleId}` : `/curso/${courseId}`;
+
   if (result) {
     const attemptsLeft = Math.max(0, session.maxAttempts - session.attemptNumber);
     const canRetry = !result.passed && attemptsLeft > 0;
@@ -311,8 +314,8 @@ export function EvaluationRunnerPage() {
                 {t("Reintentar evaluación")}
               </button>
             )}
-            <Link to={`/curso/${courseId}`} className={`btn ${canRetry ? "btn-secondary" : "btn-primary"}`}>
-              {result.passed ? t("Continuar con la capacitación") : t("Volver a la capacitación")}
+            <Link to={backTo} className={`btn ${canRetry ? "btn-secondary" : "btn-primary"}`}>
+              {t("Volver al módulo")}
             </Link>
             {result.certificateIssued && (
               <Link to="/certificados" className="btn btn-secondary">
@@ -384,7 +387,7 @@ export function EvaluationRunnerPage() {
   return (
     <div>
       <div className="breadcrumbs">
-        <Link to={`/curso/${courseId}`}>{session.title}</Link> / {t("Evaluación")}
+        <Link to={backTo}>{session.title}</Link> / {t("Evaluación")}
       </div>
       <h2 className="page-title">{session.title}</h2>
       {session.description && <p className="page-subtitle">{session.description}</p>}

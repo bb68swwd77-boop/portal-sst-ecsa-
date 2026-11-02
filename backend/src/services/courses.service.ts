@@ -204,6 +204,9 @@ export async function getCourseDetailForUser(currentUser: AuthenticatedUser, cou
   // como completada hasta abrir todos los de la lección (ver markLessonComplete).
   const openedFiles = await prisma.fileOpen.findMany({ where: { userId }, select: { fileId: true } });
   const openedFileIds = new Set(openedFiles.map((o) => o.fileId));
+  // Ídem para las tarjetas de enlace de video (LessonLink).
+  const openedLinks = await prisma.lessonLinkOpen.findMany({ where: { userId }, select: { linkId: true } });
+  const openedLinkIds = new Set(openedLinks.map((o) => o.linkId));
 
   const attempts = await prisma.evaluationAttempt.findMany({
     where: { userId, evaluation: { module: { courseId } } },
@@ -228,7 +231,7 @@ export async function getCourseDetailForUser(currentUser: AuthenticatedUser, cou
         mimeType: lf.file.mimeType,
         sizeBytes: lf.file.sizeBytes,
       })),
-      links: l.links.map((lk) => ({ id: lk.id, title: lk.title, url: lk.url })),
+      links: l.links.map((lk) => ({ id: lk.id, title: lk.title, url: lk.url, opened: openedLinkIds.has(lk.id) })),
       normReference: l.normReference,
       normCode: l.normCode,
       normArticle: l.normArticle,
@@ -237,10 +240,14 @@ export async function getCourseDetailForUser(currentUser: AuthenticatedUser, cou
       normSource: l.normSource,
       normReviewedAt: l.normReviewedAt,
       completed: completedLessonIds.has(l.id),
-      // Documentos de la lección que el usuario todavía no ha abierto.
-      documentsPending: [...new Set([...(l.file ? [l.file.id] : []), ...l.files.map((lf) => lf.file.id)])].filter(
-        (fileId) => !openedFileIds.has(fileId)
-      ).length,
+      // Documentos (PDF) y enlaces de video de la lección que el usuario todavía no
+      // ha abierto. En las lecciones de tipo VIDEO el avance lo da el reproductor, así
+      // que ahí los enlaces adicionales no se exigen.
+      documentsPending:
+        [...new Set([...(l.file ? [l.file.id] : []), ...l.files.map((lf) => lf.file.id)])].filter(
+          (fileId) => !openedFileIds.has(fileId)
+        ).length +
+        (l.contentType === "VIDEO" ? 0 : l.links.filter((lk) => !openedLinkIds.has(lk.id)).length),
       // Solo relevante para contentType VIDEO — null para el resto de tipos.
       percentWatched: progressByLessonId.get(l.id)?.percentWatched ?? null,
     }));
@@ -297,12 +304,31 @@ const MIN_DOCUMENT_REVIEW_SECONDS = 10;
 export async function markLessonComplete(currentUser: AuthenticatedUser, lessonId: string) {
   const lesson = await prisma.lesson.findUnique({
     where: { id: lessonId },
-    include: { module: { select: { id: true, courseId: true } }, files: { select: { fileId: true } } },
+    include: {
+      module: { select: { id: true, courseId: true } },
+      files: { select: { fileId: true } },
+      links: { select: { id: true } },
+    },
   });
   if (!lesson) throw new HttpError(404, "Lección no encontrada.");
   await assertModuleAccess(currentUser, lesson.module.courseId, lesson.module.id);
 
   const userId = currentUser.id;
+
+  // Los enlaces de video de la lección también deben haberse abierto (misma espera
+  // mínima que los PDF). En lecciones de tipo VIDEO no se exigen: ahí manda el reproductor.
+  if (lesson.contentType !== "VIDEO" && lesson.links.length > 0) {
+    const linkOpens = await prisma.lessonLinkOpen.findMany({
+      where: { userId, linkId: { in: lesson.links.map((lk) => lk.id) } },
+    });
+    if (lesson.links.some((lk) => !linkOpens.some((o) => o.linkId === lk.id))) {
+      throw new HttpError(400, "Abra y revise los documentos de la lección antes de marcarla como completada.");
+    }
+    const linkCutoff = Date.now() - MIN_DOCUMENT_REVIEW_SECONDS * 1000;
+    if (linkOpens.some((o) => o.openedAt.getTime() > linkCutoff)) {
+      throw new HttpError(400, "Dedique unos segundos a revisar el documento antes de marcar la lección como completada.");
+    }
+  }
 
   // Si la lección tiene documentos, el usuario debe haberlos abierto (y haber
   // dejado pasar unos segundos) antes de marcarla como completada.
@@ -323,6 +349,24 @@ export async function markLessonComplete(currentUser: AuthenticatedUser, lessonI
     update: { completedAt: new Date() },
     create: { userId, lessonId, completedAt: new Date() },
   });
+}
+
+// Registra que el usuario abrió la tarjeta de un enlace de video. Valida que el
+// enlace pertenezca a esa lección y que el usuario tenga acceso al módulo; solo
+// guarda la primera apertura.
+export async function recordLessonLinkOpen(
+  currentUser: AuthenticatedUser,
+  courseId: string,
+  lessonId: string,
+  linkId: string
+) {
+  const link = await prisma.lessonLink.findFirst({
+    where: { id: linkId, lessonId },
+    include: { lesson: { select: { module: { select: { id: true, courseId: true } } } } },
+  });
+  if (!link || link.lesson.module.courseId !== courseId) throw new HttpError(404, "Enlace no encontrado.");
+  await assertModuleAccess(currentUser, courseId, link.lesson.module.id);
+  await prisma.lessonLinkOpen.createMany({ data: [{ userId: currentUser.id, linkId }], skipDuplicates: true });
 }
 
 // Umbral para considerar un video "visto" — tolera que no se reproduzcan

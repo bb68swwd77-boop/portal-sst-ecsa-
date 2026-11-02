@@ -133,8 +133,12 @@ export const translations: Record<string, string> = {
   "No fue posible agregar el enlace.": "无法添加链接。",
   "No fue posible quitar el enlace.": "无法移除链接。",
   "¿Quitar este enlace de la lección?": "要从课程中移除此链接吗？",
-  "Se muestra como tarjeta junto a los PDF; al hacer clic abre el video en una pestaña nueva. No se exige verlo para completar la lección.":
-    "以卡片形式显示在 PDF 旁边；点击后在新标签页打开视频。完成课程不要求观看。",
+  "Se muestra como tarjeta junto a los PDF; al hacer clic abre el video en una pestaña nueva. Para completar la lección, el capacitado debe abrirlo (igual que los PDF).":
+    "以卡片形式显示在 PDF 旁边；点击后在新标签页打开视频。学员必须打开它才能完成课程（与 PDF 相同）。",
+  "Abra y revise los documentos y videos de la lección para poder completarla.": "请打开并查看本课程的文档和视频后才能完成。",
+  "Visto": "已观看",
+  "Volver al módulo": "返回模块",
+  "Enlace no encontrado.": "未找到链接。",
   "Escriba un título para el enlace (máx. 200 caracteres).": "请填写链接标题（最多 200 个字符）。",
   "El enlace no es válido. Debe empezar con https://": "链接无效，必须以 https:// 开头。",
   "El enlace es demasiado largo.": "链接过长。",

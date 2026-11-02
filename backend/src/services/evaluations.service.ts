@@ -121,6 +121,8 @@ export async function startAttempt(userId: string, evaluationId: string) {
     serverNow: new Date().toISOString(),
     maxAttempts: evaluation.maxAttempts,
     title: evaluation.title,
+    // Para volver a la página del módulo al terminar.
+    moduleId: evaluation.moduleId,
     description: evaluation.description,
     passingScore: evaluation.passingScore,
     questions,
