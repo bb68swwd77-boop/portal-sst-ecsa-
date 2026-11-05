@@ -123,6 +123,21 @@ export const translations: Record<string, string> = {
   Lecciones: "课时",
   "Documentos para descargar": "可下载文档",
   "Videos de la lección": "课程视频",
+  "Dashboard Power BI": "Power BI 仪表板",
+  "Puede ver el dashboard de Power BI": "可查看 Power BI 仪表板",
+  "Enlace del dashboard": "仪表板链接",
+  "Guardar enlace": "保存链接",
+  "Probar enlace": "测试链接",
+  "Enlace del dashboard guardado.": "仪表板链接已保存。",
+  "Enlace del dashboard quitado.": "仪表板链接已移除。",
+  "No fue posible guardar el enlace.": "无法保存链接。",
+  "No fue posible cargar el enlace del dashboard.": "无法加载仪表板链接。",
+  "Pegue el enlace del reporte o de la app de Power BI. Aparece como botón en el menú solo a las personas que usted autorice (Editar usuario → Puede ver el dashboard).":
+    "粘贴 Power BI 报表或应用的链接。它只会作为菜单按钮显示给您授权的人员（编辑用户 → 可查看仪表板）。",
+  "Use el enlace de \"Compartir\". No use \"Publicar en la web\": es público. Quien entre necesita su cuenta de la organización y licencia de Power BI.":
+    "请使用“共享”链接。不要使用“发布到网络”：该链接是公开的。访问者需要使用组织账号并拥有 Power BI 许可证。",
+  "Ese enlace es de \"Publicar en la web\" y es público. Use el enlace de \"Compartir\" del reporte o de la app de Power BI.":
+    "该链接来自“发布到网络”，是公开的。请使用 Power BI 报表或应用的“共享”链接。",
   "Documentos y videos": "文档和视频",
   "Video": "视频",
   "Ver video": "观看视频",

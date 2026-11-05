@@ -74,6 +74,7 @@ adminUsersRouter.get(
         role: u.role.key,
         isActive: u.isActive,
         isDemo: u.isDemo,
+        canViewDashboard: u.canViewDashboard,
         createdAt: u.createdAt,
         lastLoginAt: u.lastLoginAt,
         resetRequestedAt: u.resetRequestedAt,
@@ -141,7 +142,15 @@ adminUsersRouter.put(
     }
 
     const user = await prisma.user.update({ where: { id: req.params.id }, data: updateData });
-    await audit({ userId: req.currentUser!.id, action: "user.update", resource: `User:${user.id}`, result: "success", req });
+    await audit({
+      userId: req.currentUser!.id,
+      action: "user.update",
+      resource: `User:${user.id}`,
+      result: "success",
+      req,
+      // Quién concede o retira el acceso al dashboard queda en la auditoría.
+      metadata: data.canViewDashboard !== undefined ? { canViewDashboard: data.canViewDashboard } : undefined,
+    });
     res.json({ ok: true });
   })
 );

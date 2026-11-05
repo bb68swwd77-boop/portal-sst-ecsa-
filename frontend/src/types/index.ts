@@ -7,6 +7,8 @@ export interface CurrentUser {
   roleKey: "admin" | "user";
   permissions: string[];
   mustChangePassword: boolean;
+  // Un administrador le concedió el botón "Dashboard Power BI".
+  canViewDashboard: boolean;
   // Aceptación de la versión vigente de las políticas de datos y cookies.
   policyAccepted: boolean;
   policyVersion: string;

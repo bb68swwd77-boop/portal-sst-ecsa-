@@ -13,6 +13,8 @@ export interface AuthenticatedUser {
   roleKey: string;
   permissions: Set<string>;
   mustChangePassword: boolean;
+  // Puede ver el botón del dashboard de Power BI (lo concede un administrador).
+  canViewDashboard: boolean;
   // ¿Ya aceptó la versión vigente de las políticas de datos y cookies?
   policyAccepted: boolean;
 }
@@ -61,6 +63,7 @@ export async function loadSession(req: Request, res: Response, next: NextFunctio
     roleKey: user.role.key,
     permissions: new Set(user.role.permissions.map((rp) => rp.permission.key)),
     mustChangePassword: user.mustChangePassword,
+    canViewDashboard: user.canViewDashboard,
     policyAccepted: user.policyAcceptances.length > 0,
   };
   next();

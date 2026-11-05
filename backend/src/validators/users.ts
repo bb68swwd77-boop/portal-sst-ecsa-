@@ -15,6 +15,7 @@ export const createUserSchema = z.object({
 
 export const updateUserSchema = createUserSchema.partial().extend({
   isActive: z.boolean().optional(),
+  canViewDashboard: z.boolean().optional(),
 });
 
 export const paginationSchema = z.object({

@@ -21,6 +21,7 @@ import { adminAuditRouter } from "./routes/admin/audit.routes";
 import { adminDashboardRouter } from "./routes/admin/dashboard.routes";
 import { adminFilesRouter } from "./routes/admin/files.routes";
 import { filesRouter } from "./routes/files.routes";
+import { adminDashboardLinkRouter, dashboardLinkRouter } from "./routes/dashboardLink.routes";
 
 export function createApp() {
   const app = express();
@@ -76,6 +77,8 @@ export function createApp() {
   app.use("/api/certificates", certificatesRouter);
   app.use("/api/me", meRouter);
   app.use("/api/files", filesRouter);
+  app.use("/api/dashboard-link", dashboardLinkRouter);
+  app.use("/api/admin/dashboard-link", adminDashboardLinkRouter);
   app.use("/api/admin/dashboard", adminDashboardRouter);
   app.use("/api/admin/files", adminFilesRouter);
   app.use("/api/admin/users", adminUsersRouter);

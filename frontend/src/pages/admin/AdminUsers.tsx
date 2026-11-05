@@ -5,6 +5,7 @@ import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
 import { useLanguage } from "../../context/LanguageContext";
 import { AREAS, CATEGORIES, COMPANIES, POSITIONS } from "../../constants/organization";
+import { DashboardLinkSettings } from "../../components/DashboardLinkSettings";
 
 interface AdminUser {
   id: string;
@@ -20,6 +21,8 @@ interface AdminUser {
   role: "admin" | "user";
   isActive: boolean;
   isDemo: boolean;
+  // Puede ver el botón "Dashboard Power BI" (lo concede un administrador).
+  canViewDashboard: boolean;
   lastLoginAt: string | null;
   // Fecha en que el propio usuario pidió restablecer su clave (pantalla de recuperación).
   resetRequestedAt: string | null;
@@ -38,6 +41,7 @@ const emptyForm = {
   position: "",
   category: "",
   roleKey: "user" as "admin" | "user",
+  canViewDashboard: false,
 };
 
 export function AdminUsersPage() {
@@ -54,7 +58,7 @@ export function AdminUsersPage() {
   const [editForm, setEditForm] = useState(emptyForm);
   const [editError, setEditError] = useState<string | null>(null);
   const { notify } = useToast();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, hasPermission } = useAuth();
   const pageSize = 20;
 
   async function load() {
@@ -120,6 +124,7 @@ export function AdminUsersPage() {
       position: u.position ?? "",
       category: u.category ?? "",
       roleKey: u.role,
+      canViewDashboard: u.canViewDashboard,
     });
   }
 
@@ -148,6 +153,8 @@ export function AdminUsersPage() {
           + {t("Nuevo usuario")}
         </button>
       </div>
+
+      {hasPermission("users:edit") && <DashboardLinkSettings />}
 
       <form onSubmit={handleSearch} className="flex gap-8 mt-16" style={{ maxWidth: 400 }}>
         <input placeholder={t("Buscar por nombre, código, correo o empresa")} value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -181,7 +188,14 @@ export function AdminUsersPage() {
                 <td>{u.company ?? "—"}</td>
                 <td>{u.area ?? "—"}</td>
                 <td>{u.category ?? "—"}</td>
-                <td>{u.role === "admin" ? t("Administrador") : t("Capacitado")}</td>
+                <td>
+                  {u.role === "admin" ? t("Administrador") : t("Capacitado")}
+                  {u.canViewDashboard && (
+                    <span className="badge badge-copper" style={{ marginLeft: 6 }}>
+                      {t("Dashboard Power BI")}
+                    </span>
+                  )}
+                </td>
                 <td>
                   <span className={`badge badge-status-${u.isActive ? "completed" : "overdue"}`}>
                     {u.isActive ? t("Activo") : t("Inactivo")}
@@ -435,6 +449,15 @@ export function AdminUsersPage() {
               </select>
               {editingUser.id === currentUser?.id && <div className="field-hint">{t("No puede cambiar su propio rol.")}</div>}
             </div>
+            <label className="field option-row" style={{ marginBottom: 16 }}>
+              <input
+                type="checkbox"
+                className="option-toggle"
+                checked={editForm.canViewDashboard}
+                onChange={(e) => setEditForm({ ...editForm, canViewDashboard: e.target.checked })}
+              />
+              {t("Puede ver el dashboard de Power BI")}
+            </label>
             <button className="btn btn-primary" type="submit">
               {t("Guardar cambios")}
             </button>

@@ -86,6 +86,9 @@ model User {
   policyAcceptances PolicyAcceptance[]
   fileOpens         FileOpen[]
   linkOpens         LessonLinkOpen[]
+  // Acceso al botón "Dashboard Power BI": lo concede un administrador persona por
+  // persona (admins, jefes o gerentes). Power BI sigue exigiendo su propia licencia.
+  canViewDashboard  Boolean  @default(false)
 
   @@index([roleId])
   @@index([company])
@@ -134,6 +137,15 @@ model FileOpen {
 
   @@unique([userId, fileId])
   @@index([fileId])
+}
+
+// Configuración clave-valor editable desde el portal (p. ej. enlace del dashboard
+// de Power BI), para no depender de variables de entorno ni de redespliegues.
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+  updatedBy String?
 }
 
 model PasswordReset {
