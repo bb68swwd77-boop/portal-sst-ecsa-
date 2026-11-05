@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { useDashboardLink } from "../hooks/useDashboardLink";
 import { useLanguage } from "../context/LanguageContext";
 import { LanguageToggle } from "./LanguageToggle";
 import { LockedAccountsAlert } from "./LockedAccountsAlert";
@@ -48,20 +48,8 @@ export function Layout() {
   const isAdmin = hasPermission("courses:view");
   const links = isAdmin ? ADMIN_LINKS : USER_LINKS;
 
-  // Enlace al dashboard de Power BI: el servidor solo lo entrega a quien un
-  // administrador autorizó; para el resto llega null y el ítem no aparece.
-  const [dashboardUrl, setDashboardUrl] = useState<string | null>(null);
-  const canViewDashboard = Boolean(user?.canViewDashboard);
-  useEffect(() => {
-    if (!canViewDashboard) {
-      setDashboardUrl(null);
-      return;
-    }
-    api
-      .get<{ url: string | null }>("/dashboard-link")
-      .then((res) => setDashboardUrl(res.url))
-      .catch(() => setDashboardUrl(null));
-  }, [canViewDashboard]);
+  // Enlace al dashboard de Power BI: null (y sin ítem) si el usuario no está autorizado.
+  const dashboardUrl = useDashboardLink();
 
   async function handleLogout() {
     await logout();

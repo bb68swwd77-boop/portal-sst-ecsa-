@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api/client";
 import { StatusBadge } from "../components/Badge";
+import { PowerBiCard } from "../components/PowerBiCard";
 import { ProgressBar } from "../components/ProgressBar";
 import { useLanguage } from "../context/LanguageContext";
 import type { DashboardCourse, DashboardStats } from "../types";
@@ -129,6 +130,7 @@ export function DashboardPage() {
             </div>
           </div>
         ))}
+        <PowerBiCard />
       </div>
     </div>
   );

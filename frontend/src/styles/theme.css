@@ -1341,6 +1341,25 @@ h2.page-title {
   border-radius: 999px;
 }
 
+/* Tarjeta del dashboard de Power BI en la pantalla principal */
+a.powerbi-card {
+  text-decoration: none;
+  color: inherit;
+}
+
+.powerbi-thumb {
+  flex-direction: column;
+  gap: 8px;
+  background: linear-gradient(135deg, #2b1b10, #4a2f1a);
+}
+
+.powerbi-wordmark {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
 /* Tarjeta de enlace de video (junto a los PDF) */
 .video-tile:hover {
   border-color: var(--color-copper-deep);
