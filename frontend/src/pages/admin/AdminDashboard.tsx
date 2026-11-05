@@ -53,9 +53,6 @@ export function AdminDashboardPage() {
           <div className="value">{data.certificatesIssued}</div>
           <div className="label">{t("Certificados emitidos")}</div>
         </div>
-      </div>
-
-      <div className="card-grid" style={{ marginBottom: 28 }}>
         <PowerBiCard />
       </div>
 

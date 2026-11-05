@@ -90,6 +90,7 @@ export function DashboardPage() {
             <div className="value">{stats.certificates}</div>
             <div className="label">{t("Certificados")}</div>
           </div>
+          <PowerBiCard />
         </div>
       )}
 
@@ -130,7 +131,6 @@ export function DashboardPage() {
             </div>
           </div>
         ))}
-        <PowerBiCard />
       </div>
     </div>
   );

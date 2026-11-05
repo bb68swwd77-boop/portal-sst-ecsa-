@@ -3,9 +3,9 @@ import { useLanguage } from "../context/LanguageContext";
 
 // Marca de Power BI (tres barras amarillas), dibujada en SVG para no depender de
 // un archivo externo. Si se prefiere el logo oficial, basta cambiar este componente.
-function PowerBiLogo() {
+function PowerBiLogo({ size }: { size: number }) {
   return (
-    <svg viewBox="0 0 64 64" width="84" height="84" aria-hidden="true">
+    <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true">
       <defs>
         <linearGradient id="pbi-a" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#FFE066" />
@@ -23,7 +23,8 @@ function PowerBiLogo() {
   );
 }
 
-// Tarjeta de la pantalla principal que lleva al dashboard de Power BI. Solo se
+// Tarjeta compacta para la fila de indicadores de la pantalla principal (junto a
+// "Certificados"), así no se confunde con una capacitación asignada. Solo se
 // muestra a las personas autorizadas por un administrador; Power BI exige además
 // su propio inicio de sesión de la organización y licencia.
 export function PowerBiCard() {
@@ -32,19 +33,12 @@ export function PowerBiCard() {
   if (!url) return null;
 
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer" className="card course-card powerbi-card">
-      <div className="course-thumb powerbi-thumb">
-        <PowerBiLogo />
-        <span className="powerbi-wordmark">Power BI</span>
-      </div>
-      <div className="course-card-body">
-        <span className="badge badge-copper" style={{ alignSelf: "flex-start" }}>
-          {t("Indicadores")}
-        </span>
-        <div className="course-title">{t("Dashboard Power BI")}</div>
-        <div className="course-desc">{t("Indicadores y avance de las capacitaciones de seguridad y salud en el trabajo.")}</div>
-        <span className="btn btn-primary mt-8">{t("Abrir dashboard")} ↗</span>
-      </div>
+    <a href={url} target="_blank" rel="noopener noreferrer" className="stat-card powerbi-stat">
+      <PowerBiLogo size={44} />
+      <span className="powerbi-stat-text">
+        <span className="powerbi-stat-title">{t("Dashboard Power BI")}</span>
+        <span className="powerbi-stat-open">{t("Abrir dashboard")} ↗</span>
+      </span>
     </a>
   );
 }

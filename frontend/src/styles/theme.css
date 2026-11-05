@@ -1341,23 +1341,43 @@ h2.page-title {
   border-radius: 999px;
 }
 
-/* Tarjeta del dashboard de Power BI en la pantalla principal */
-a.powerbi-card {
+/* Tarjeta del dashboard de Power BI en la fila de indicadores (junto a Certificados) */
+a.powerbi-stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   text-decoration: none;
   color: inherit;
+  border-top-color: #f2c811;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.powerbi-thumb {
+a.powerbi-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.powerbi-stat svg {
+  flex: 0 0 auto;
+}
+
+.powerbi-stat-text {
+  display: flex;
   flex-direction: column;
-  gap: 8px;
-  background: linear-gradient(135deg, #2b1b10, #4a2f1a);
+  gap: 2px;
+  min-width: 0;
 }
 
-.powerbi-wordmark {
-  color: #fff;
-  font-size: 18px;
+.powerbi-stat-title {
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  line-height: 1.25;
+}
+
+.powerbi-stat-open {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-copper-deep);
 }
 
 /* Tarjeta de enlace de video (junto a los PDF) */
