@@ -548,4 +548,9 @@ export const translations: Record<string, string> = {
   "puntos para aprobar.": "分才能通过。",
   "¡Aprobado!": "通过！",
   "¡Completó todos los módulos de esta capacitación!": "您已完成本培训的所有模块！",
+  "Progreso promedio": "平均进度",
+  "Expandir todo": "全部展开",
+  "Contraer todo": "全部收起",
+  completados: "已完成",
+  "Mostrar u ocultar detalle": "显示或隐藏详情",
 };
