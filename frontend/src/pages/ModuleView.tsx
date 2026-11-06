@@ -5,7 +5,7 @@ import { useToast } from "../context/ToastContext";
 import { useLanguage } from "../context/LanguageContext";
 import { extractYouTubeId, YouTubePlayer } from "../components/YouTubePlayer";
 import { ProgressBar } from "../components/ProgressBar";
-import type { CourseDetail } from "../types";
+import type { CourseDetail, LessonLink } from "../types";
 
 // Segundos que se pide dejar pasar tras abrir un documento antes de poder marcar
 // la lección como completada (el servidor exige 10; aquí 15 para tener margen).
@@ -49,6 +49,8 @@ export function ModuleViewPage() {
   const [openedAt, setOpenedAt] = useState<Record<string, number>>({});
   // Videos de Drive cuyo reproductor ya se cargó (se carga al pulsar "Ver aquí").
   const [playing, setPlaying] = useState<Record<string, boolean>>({});
+  // Capítulo elegido en la lista de reproducción de cada lección (lección → enlace).
+  const [videoPick, setVideoPick] = useState<Record<string, string>>({});
   const [, setClockTick] = useState(0);
   const lessonCardRef = useRef<HTMLDivElement>(null);
 
@@ -200,6 +202,61 @@ export function ModuleViewPage() {
   const prevLesson = activeIndex > 0 ? lessons[activeIndex - 1] : null;
   const nextLesson = activeIndex >= 0 && activeIndex < lessons.length - 1 ? lessons[activeIndex + 1] : null;
   const activeFiles = activeLesson ? [...(activeLesson.file ? [activeLesson.file] : []), ...activeLesson.files] : [];
+  // Videos de Drive de la lección. Con 2 o más se muestran como lista de reproducción
+  // (un reproductor y los capítulos al lado); con uno, un reproductor suelto.
+  const driveLinks = activeLesson ? activeLesson.links.filter((lk) => driveFileId(lk.url)) : [];
+  const drivePlaylist = driveLinks.length >= 2;
+  const currentDriveLink = drivePlaylist
+    ? (driveLinks.find((lk) => lk.id === videoPick[activeLessonId ?? ""]) ?? driveLinks.find((lk) => !lk.opened) ?? driveLinks[0])
+    : null;
+
+  // Reproductor de un video de Drive: el clic en "Ver aquí" carga el video y registra la
+  // apertura (se exige para completar la lección); debajo queda el enlace de respaldo.
+  function renderDriveEmbed(lk: LessonLink, driveId: string, lessonId: string) {
+    return (
+      <>
+        <div className="video-embed-head">
+          <span className="doc-name">{lk.title}</span>
+          <span className="doc-size">
+            {t("Video")}
+            {lk.opened && ` · ✓ ${t("Visto")}`}
+          </span>
+        </div>
+        <div className="video-embed-frame">
+          {playing[lk.id] ? (
+            <iframe
+              src={`https://drive.google.com/file/d/${encodeURIComponent(driveId)}/preview`}
+              title={lk.title}
+              allow="autoplay; fullscreen"
+              allowFullScreen
+            />
+          ) : (
+            <button
+              type="button"
+              className="video-embed-poster"
+              onClick={() => {
+                setPlaying((prev) => ({ ...prev, [lk.id]: true }));
+                handleLinkOpened(lessonId, lk.id);
+              }}
+            >
+              <span className="video-embed-play" aria-hidden="true">▶</span>
+              <span>{t("Ver aquí")}</span>
+            </button>
+          )}
+        </div>
+        <a
+          className="btn-link"
+          href={lk.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => handleLinkOpened(lessonId, lk.id)}
+        >
+          {t("¿No carga? Abrir en Drive")} ↗
+        </a>
+      </>
+    );
+  }
+
   const lastOpenedAt = Math.max(
     0,
     ...activeFiles.map((f) => openedAt[f.id] ?? 0),
@@ -334,51 +391,37 @@ export function ModuleViewPage() {
                         <span className="doc-download">⬇ {t("Descargar")}</span>
                       </a>
                     ))}
+                    {drivePlaylist && currentDriveLink && (
+                      <div className="video-playlist">
+                        <div className="video-embed">
+                          {renderDriveEmbed(currentDriveLink, driveFileId(currentDriveLink.url)!, activeLesson.id)}
+                        </div>
+                        <ol className="video-playlist-list" aria-label={t("Videos de la lección")}>
+                          {driveLinks.map((lk, i) => (
+                            <li key={lk.id}>
+                              <button
+                                type="button"
+                                className={`video-playlist-item ${lk.id === currentDriveLink.id ? "active" : ""}`}
+                                aria-current={lk.id === currentDriveLink.id ? "true" : undefined}
+                                onClick={() => setVideoPick((prev) => ({ ...prev, [activeLesson.id]: lk.id }))}
+                              >
+                                <span className={`video-playlist-num ${lk.opened ? "done" : ""}`}>{lk.opened ? "✓" : i + 1}</span>
+                                <span className="video-playlist-title">{lk.title}</span>
+                              </button>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
                     {activeLesson.links.map((lk) => {
                       const driveId = driveFileId(lk.url);
                       if (driveId) {
-                        // Video de Drive: se reproduce dentro de la lección. El clic en
-                        // "Ver aquí" registra la apertura (se exige para completar la lección).
+                        // Con 2 o más videos de Drive la lección usa la lista de reproducción
+                        // (arriba); con uno solo, un reproductor.
+                        if (drivePlaylist) return null;
                         return (
                           <div key={lk.id} className="video-embed">
-                            <div className="video-embed-head">
-                              <span className="doc-name">{lk.title}</span>
-                              <span className="doc-size">
-                                {t("Video")}
-                                {lk.opened && ` · ✓ ${t("Visto")}`}
-                              </span>
-                            </div>
-                            <div className="video-embed-frame">
-                              {playing[lk.id] ? (
-                                <iframe
-                                  src={`https://drive.google.com/file/d/${encodeURIComponent(driveId)}/preview`}
-                                  title={lk.title}
-                                  allow="autoplay; fullscreen"
-                                  allowFullScreen
-                                />
-                              ) : (
-                                <button
-                                  type="button"
-                                  className="video-embed-poster"
-                                  onClick={() => {
-                                    setPlaying((prev) => ({ ...prev, [lk.id]: true }));
-                                    handleLinkOpened(activeLesson.id, lk.id);
-                                  }}
-                                >
-                                  <span className="video-embed-play" aria-hidden="true">▶</span>
-                                  <span>{t("Ver aquí")}</span>
-                                </button>
-                              )}
-                            </div>
-                            <a
-                              className="btn-link"
-                              href={lk.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={() => handleLinkOpened(activeLesson.id, lk.id)}
-                            >
-                              {t("¿No carga? Abrir en Drive")} ↗
-                            </a>
+                            {renderDriveEmbed(lk, driveId, activeLesson.id)}
                           </div>
                         );
                       }

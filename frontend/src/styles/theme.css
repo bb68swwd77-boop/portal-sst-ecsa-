@@ -1450,6 +1450,86 @@ a.powerbi-stat:hover {
   align-self: flex-start;
 }
 
+/* Varios videos en una lección: reproductor a la izquierda y capítulos a la derecha */
+.video-playlist {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 16px;
+  align-items: start;
+}
+
+.video-playlist .video-embed {
+  grid-column: auto;
+}
+
+.video-playlist-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.video-playlist-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.video-playlist-item:hover {
+  border-color: var(--color-copper-light);
+}
+
+.video-playlist-item.active {
+  border-color: var(--color-copper-deep);
+  background: var(--color-bg-subtle);
+  box-shadow: var(--shadow-sm);
+}
+
+.video-playlist-num {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-subtle);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.video-playlist-item.active .video-playlist-num {
+  background: var(--gradient-copper);
+  color: #fff;
+}
+
+.video-playlist-num.done {
+  background: #1f9d55;
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .video-playlist {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Tarjeta de enlace de video (junto a los PDF) */
 .video-tile:hover {
   border-color: var(--color-copper-deep);
