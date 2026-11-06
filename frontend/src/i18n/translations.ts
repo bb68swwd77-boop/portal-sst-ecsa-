@@ -125,6 +125,10 @@ export const translations: Record<string, string> = {
   "Videos de la lección": "课程视频",
   "Dashboard Power BI": "Power BI 仪表板",
   "Abrir dashboard": "打开仪表板",
+  "Ver aquí": "在此观看",
+  "¿No carga? Abrir en Drive": "无法加载？在 Drive 中打开",
+  "Si el enlace es de un archivo de Google Drive, el video se reproduce dentro de la lección (compártalo como \"Cualquier persona con el enlace\").":
+    "如果是 Google Drive 文件链接，视频将在课程内播放（请共享为“知道链接的任何人”）。",
   "Puede ver el dashboard de Power BI": "可查看 Power BI 仪表板",
   "Enlace del dashboard": "仪表板链接",
   "Guardar enlace": "保存链接",

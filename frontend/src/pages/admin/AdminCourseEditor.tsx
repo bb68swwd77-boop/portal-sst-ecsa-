@@ -838,6 +838,9 @@ function EditLessonModal({ lesson, onClose, onSaved }: { lesson: Lesson; onClose
           <div className="field-hint">
             {t("Se muestra como tarjeta junto a los PDF; al hacer clic abre el video en una pestaña nueva. Para completar la lección, el capacitado debe abrirlo (igual que los PDF).")}
           </div>
+          <div className="field-hint">
+            {t("Si el enlace es de un archivo de Google Drive, el video se reproduce dentro de la lección (compártalo como \"Cualquier persona con el enlace\").")}
+          </div>
         </div>
 
         <h4 className="mt-16">{t("Referencia normativa")}</h4>

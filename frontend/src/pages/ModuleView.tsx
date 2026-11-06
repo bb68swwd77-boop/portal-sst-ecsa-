@@ -11,6 +11,21 @@ import type { CourseDetail } from "../types";
 // la lección como completada (el servidor exige 10; aquí 15 para tener margen).
 const DOCUMENT_REVIEW_SECONDS = 15;
 
+// Id de un archivo de Google Drive a partir de su enlace de compartir. Devuelve null
+// si no es un archivo de Drive (carpetas, otros sitios): esos enlaces siguen siendo
+// una tarjeta que abre el sitio en una pestaña nueva.
+function driveFileId(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (u.hostname !== "drive.google.com") return null;
+    const m = u.pathname.match(/^\/file\/(?:u\/\d+\/)?d\/([A-Za-z0-9_-]+)/);
+    const id = m ? m[1] : u.pathname === "/open" || u.pathname === "/uc" ? u.searchParams.get("id") : null;
+    return id && /^[A-Za-z0-9_-]+$/.test(id) ? id : null;
+  } catch {
+    return null;
+  }
+}
+
 function safeHost(url: string): string {
   try {
     return new URL(url).hostname.replace(/^www\./, "");
@@ -32,6 +47,8 @@ export function ModuleViewPage() {
   // Momento (ms) en que se hizo clic en cada documento durante esta visita: el
   // botón "Marcar como completada" espera unos segundos después de abrirlo.
   const [openedAt, setOpenedAt] = useState<Record<string, number>>({});
+  // Videos de Drive cuyo reproductor ya se cargó (se carga al pulsar "Ver aquí").
+  const [playing, setPlaying] = useState<Record<string, boolean>>({});
   const [, setClockTick] = useState(0);
   const lessonCardRef = useRef<HTMLDivElement>(null);
 
@@ -318,6 +335,53 @@ export function ModuleViewPage() {
                       </a>
                     ))}
                     {activeLesson.links.map((lk) => {
+                      const driveId = driveFileId(lk.url);
+                      if (driveId) {
+                        // Video de Drive: se reproduce dentro de la lección. El clic en
+                        // "Ver aquí" registra la apertura (se exige para completar la lección).
+                        return (
+                          <div key={lk.id} className="video-embed">
+                            <div className="video-embed-head">
+                              <span className="doc-name">{lk.title}</span>
+                              <span className="doc-size">
+                                {t("Video")}
+                                {lk.opened && ` · ✓ ${t("Visto")}`}
+                              </span>
+                            </div>
+                            <div className="video-embed-frame">
+                              {playing[lk.id] ? (
+                                <iframe
+                                  src={`https://drive.google.com/file/d/${encodeURIComponent(driveId)}/preview`}
+                                  title={lk.title}
+                                  allow="autoplay; fullscreen"
+                                  allowFullScreen
+                                />
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="video-embed-poster"
+                                  onClick={() => {
+                                    setPlaying((prev) => ({ ...prev, [lk.id]: true }));
+                                    handleLinkOpened(activeLesson.id, lk.id);
+                                  }}
+                                >
+                                  <span className="video-embed-play" aria-hidden="true">▶</span>
+                                  <span>{t("Ver aquí")}</span>
+                                </button>
+                              )}
+                            </div>
+                            <a
+                              className="btn-link"
+                              href={lk.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => handleLinkOpened(activeLesson.id, lk.id)}
+                            >
+                              {t("¿No carga? Abrir en Drive")} ↗
+                            </a>
+                          </div>
+                        );
+                      }
                       const ytId = extractYouTubeId(lk.url);
                       return (
                         <a

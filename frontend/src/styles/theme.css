@@ -1380,6 +1380,76 @@ a.powerbi-stat:hover {
   color: var(--color-copper-deep);
 }
 
+/* Video de Google Drive incrustado en la lección */
+.video-embed {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.video-embed-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.video-embed-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #1d130b;
+  border: 1px solid var(--color-border);
+}
+
+.video-embed-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.video-embed-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #2b1b10, #4a2f1a);
+  color: #fff;
+  border: 0;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.video-embed-play {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--gradient-copper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  padding-left: 5px;
+  transition: transform 0.15s ease;
+}
+
+.video-embed-poster:hover .video-embed-play {
+  transform: scale(1.06);
+}
+
+.video-embed .btn-link {
+  align-self: flex-start;
+}
+
 /* Tarjeta de enlace de video (junto a los PDF) */
 .video-tile:hover {
   border-color: var(--color-copper-deep);
