@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Manual del usuario - Portal de Capacitación SST ECSA</title>
+<style>
+  @page { size: A4; margin: 14mm 14mm 16mm 14mm; }
+  :root {
+    --espresso: #2a1810;
+    --copper: #b8602a;
+    --copper-deep: #8f4a1f;
+    --green: #1f7a45;
+    --sand: #f8f1e9;
+    --line: #e4d6c6;
+    --muted: #6d5d50;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.45;
+    color: #241a14;
+  }
+  h1, h2, h3 { color: var(--espresso); margin: 0; }
+  h2 {
+    font-size: 17pt;
+    padding: 8px 0 6px;
+    border-bottom: 3px solid var(--copper);
+    margin: 0 0 12px;
+    break-after: avoid;
+  }
+  h3 { font-size: 12.5pt; margin: 16px 0 6px; color: var(--copper-deep); break-after: avoid; }
+  p { margin: 6px 0; }
+  .zh { color: var(--muted); font-size: 9.5pt; display: block; margin-top: 1px; }
+  .section { break-before: page; }
+  .section:first-of-type { break-before: auto; }
+
+  /* Portada */
+  .cover {
+    height: 262mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: linear-gradient(160deg, #2a1810 0%, #4a2a18 60%, #7a4a2c 100%);
+    color: #fff;
+    padding: 0 18mm;
+    border-radius: 6px;
+  }
+  .cover .tag {
+    display: inline-block;
+    align-self: flex-start;
+    border: 1px solid #e0a77a;
+    color: #f1c9a5;
+    border-radius: 999px;
+    padding: 3px 14px;
+    font-size: 10pt;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .cover h1 { color: #fff; font-size: 34pt; line-height: 1.1; margin: 18px 0 10px; }
+  .cover .sub { font-size: 15pt; color: #f1ddc9; }
+  .cover .sub-zh { font-size: 12pt; color: #d9bfa5; margin-top: 6px; }
+  .cover .meta { margin-top: 40px; font-size: 10.5pt; color: #d9bfa5; line-height: 1.7; }
+  .cover .url { margin-top: 24px; font-size: 13pt; background: rgba(255,255,255,0.12); display: inline-block; padding: 8px 16px; border-radius: 8px; }
+
+  /* Capturas con marcadores */
+  .shot {
+    position: relative;
+    margin: 10px auto 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(60, 30, 10, 0.12);
+    break-inside: avoid;
+  }
+  .shot img { display: block; width: 100%; height: auto; }
+  .shot.narrow { width: 62%; }
+  .shot.mid { width: 80%; }
+  .pin {
+    position: absolute;
+    width: 22px; height: 22px;
+    margin: -11px 0 0 -11px;
+    border-radius: 50%;
+    background: #c0392b;
+    color: #fff;
+    font: 700 12px/22px "Segoe UI", Arial, sans-serif;
+    text-align: center;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.45);
+  }
+  .cap { text-align: center; font-size: 9pt; color: var(--muted); margin: 0 0 10px; }
+
+  ol.steps { list-style: none; counter-reset: s; padding: 0; margin: 8px 0; }
+  ol.steps > li {
+    counter-increment: s;
+    position: relative;
+    padding: 6px 0 6px 36px;
+    break-inside: avoid;
+  }
+  ol.steps > li::before {
+    content: counter(s);
+    position: absolute; left: 0; top: 7px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--copper); color: #fff;
+    text-align: center; font-weight: 700; line-height: 24px; font-size: 11pt;
+  }
+  ul { margin: 6px 0; padding-left: 22px; }
+  li { margin: 3px 0; }
+
+  .note, .tip, .warn {
+    border-left: 5px solid;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 10px 0;
+    break-inside: avoid;
+    font-size: 10.5pt;
+  }
+  .note { background: #fff7e8; border-color: #e0a038; }
+  .tip  { background: #eaf6ee; border-color: var(--green); }
+  .warn { background: #fdecea; border-color: #c0392b; }
+  .note b.t, .tip b.t, .warn b.t { display: block; margin-bottom: 2px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 10.5pt; }
+  th, td { border: 1px solid var(--line); padding: 6px 9px; text-align: left; vertical-align: top; }
+  th { background: var(--sand); color: var(--copper-deep); }
+  tr { break-inside: avoid; }
+
+  .resume {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .resume .card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: var(--sand);
+    break-inside: avoid;
+  }
+  .resume .n {
+    display: inline-block; width: 26px; height: 26px; line-height: 26px; text-align: center;
+    background: var(--copper); color: #fff; border-radius: 50%; font-weight: 700; margin-right: 6px;
+  }
+  .resume .card b { font-size: 11.5pt; }
+
+  .toc { columns: 2; column-gap: 28px; margin-top: 8px; }
+  .toc div { padding: 5px 0; border-bottom: 1px dotted var(--line); break-inside: avoid; }
+  .toc span { color: var(--copper-deep); font-weight: 700; margin-right: 8px; }
+
+  .support {
+    border: 2px dashed var(--copper);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin: 14px 0;
+    background: var(--sand);
+  }
+  .fill { display: inline-block; min-width: 240px; border-bottom: 1px solid #6d5d50; height: 1.1em; vertical-align: bottom; }
+  kbd, .btn {
+    display: inline-block;
+    background: var(--copper); color: #fff;
+    border-radius: 6px; padding: 1px 9px; font-size: 10pt; font-weight: 600;
+  }
+  .btn.gray { background: #cdb9a6; color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="cover">
+  <span class="tag">Prueba piloto · 试点测试</span>
+  <h1>Manual del usuario</h1>
+  <div class="sub">Portal de Capacitación en Seguridad y Salud en el Trabajo</div>
+  <div class="sub-zh">用户手册 · 职业安全与健康培训平台</div>
+  <div class="url">ecsa-sst-frontend.onrender.com</div>
+  <div class="meta">
+    ECSA · Mina Mirador<br>
+    Guía paso a paso para el trabajador capacitado<br>
+    Versión 1.0 · Noviembre 2026
+  </div>
+</div>
+
+<!-- RESUMEN -->
+<div class="section">
+  <h2>En resumen: 6 pasos para capacitarse
+    <span class="zh">一页速览：6 个步骤完成培训</span></h2>
+
+  <div class="resume">
+    <div class="card"><span class="n">1</span><b>Ingrese</b><br>Con su código de trabajador y su contraseña.<span class="zh">用工号和密码登录。</span></div>
+    <div class="card"><span class="n">2</span><b>Elija su capacitación</b><br>En la pantalla principal, pulse «Continuar» o «Comenzar».<span class="zh">在首页点击“继续”或“开始”。</span></div>
+    <div class="card"><span class="n">3</span><b>Abra cada módulo y lección</b><br>Lea los documentos y mire los videos.<span class="zh">打开模块和课程，阅读文件、观看视频。</span></div>
+    <div class="card"><span class="n">4</span><b>Marque la lección como completada</b><br>Solo se habilita después de abrir todo el material.<span class="zh">打开全部资料后，才能标记课程完成。</span></div>
+    <div class="card"><span class="n">5</span><b>Rinda la evaluación del módulo</b><br>Se habilita cuando termina todas las lecciones.<span class="zh">完成所有课程后可参加模块测评。</span></div>
+    <div class="card"><span class="n">6</span><b>Descargue su certificado</b><br>Un certificado por cada módulo aprobado.<span class="zh">每通过一个模块即可获得一份证书。</span></div>
+  </div>
+
+  <div class="tip"><b class="t">Antes de empezar / 开始之前</b>
+    Use un computador o celular con internet. Tenga a mano su <b>código de trabajador</b> y la <b>contraseña inicial</b> que le entregó el administrador del portal.
+    <span class="zh">请准备好可上网的电脑或手机、工号，以及管理员给您的初始密码。</span>
+  </div>
+
+  <h3>Contenido</h3>
+  <div class="toc">
+    <div><span>1</span>Ingresar al portal</div>
+    <div><span>2</span>Su pantalla principal</div>
+    <div><span>3</span>Tomar una capacitación</div>
+    <div><span>4</span>Documentos y videos de la lección</div>
+    <div><span>5</span>Rendir la evaluación</div>
+    <div><span>6</span>Sus certificados</div>
+    <div><span>7</span>Historial y perfil</div>
+    <div><span>8</span>Idioma y uso en el celular</div>
+    <div><span>9</span>Problemas frecuentes</div>
+    <div><span>10</span>Ayúdenos a mejorar el portal</div>
+  </div>
+</div>
+
+<!-- 1. INGRESAR -->
+<div class="section">
+  <h2>1. Ingresar al portal <span class="zh">1. 登录平台</span></h2>
+
+  <ol class="steps">
+    <li>Abra el navegador (Chrome, Edge o Safari) y escriba la dirección <b>ecsa-sst-frontend.onrender.com</b>.
+      <span class="zh">在浏览器中输入网址 ecsa-sst-frontend.onrender.com。</span></li>
+    <li>En la pantalla de inicio, pulse <span class="btn">Portal de Capacitaciones en SST</span>.
+      <span class="zh">在首页点击“Portal de Capacitaciones en SST”（培训平台）。</span></li>
+  </ol>
+
+  <div class="shot mid">
+    <img src="img/01-inicio.jpg" alt="Pantalla de inicio">
+    <span class="pin" style="left:93%;top:61%">1</span>
+  </div>
+  <p class="cap">① Botón para entrar al portal de capacitaciones. La opción «Inducción a Visitantes» es solo para visitas.</p>
+
+  <ol class="steps" start="3">
+    <li>Escriba su <b>Código de trabajador</b> y su <b>Contraseña</b>, y pulse <span class="btn">Iniciar sesión</span>.
+      <span class="zh">输入工号和密码，点击“Iniciar sesión”（登录）。</span></li>
+  </ol>
+
+  <div class="shot mid">
+    <img src="img/02-login.jpg" alt="Pantalla de ingreso">
+    <span class="pin" style="left:63%;top:43%">1</span>
+    <span class="pin" style="left:63%;top:54%">2</span>
+    <span class="pin" style="left:63%;top:61.5%">3</span>
+    <span class="pin" style="left:90.5%;top:4.2%">4</span>
+  </div>
+  <p class="cap">① Código de trabajador · ② Contraseña (el ojo permite ver lo que escribe) · ③ Iniciar sesión · ④ Idioma</p>
+
+  <div class="warn"><b class="t">Cuidado con los intentos / 注意尝试次数</b>
+    Si se equivoca <b>3 veces</b>, la cuenta se bloquea por <b>15 minutos</b>. Espere o pida ayuda al administrador.
+    <span class="zh">连续输错 3 次，账号将被锁定 15 分钟。</span></div>
+
+  <h3>Primer ingreso: dos pantallas obligatorias <span class="zh">首次登录：两个必经步骤</span></h3>
+  <p>La primera vez que entre, el portal le pedirá, en este orden (verá «Paso 1 de 2» y «Paso 2 de 2»):</p>
+  <ol class="steps">
+    <li><b>Aceptar las políticas.</b> Lea la Política de Protección de Datos Personales y la de Uso de Cookies, marque la casilla «He leído y acepto…» y pulse <span class="btn">Aceptar y continuar</span>. Solo se le pedirá una vez.
+      <span class="zh">阅读并勾选同意个人数据保护和 Cookie 政策，仅需一次。</span></li>
+    <li><b>Crear su propia contraseña</b> (si la que recibió es temporal). Escriba la contraseña temporal y luego la nueva. Debe tener <b>al menos 10 caracteres</b>, una <b>minúscula</b>, una <b>mayúscula</b> y un <b>número</b>. Cada requisito se marca con ✓ cuando lo cumple. Pulse <span class="btn">Guardar y continuar</span>.
+      <span class="zh">输入临时密码，再设置新密码：至少 10 位，含小写字母、大写字母和数字。</span></li>
+  </ol>
+  <div class="tip"><b class="t">Consejo / 提示</b>
+    Elija una contraseña que recuerde y no la comparta con nadie. Todo lo que haga en el portal queda registrado a su nombre.
+    <span class="zh">请牢记密码，不要告诉他人。</span></div>
+
+  <h3>Si olvidó su contraseña <span class="zh">忘记密码</span></h3>
+  <p>En la pantalla de ingreso pulse <b>«¿Olvidó su contraseña?»</b>, escriba su código de trabajador y pulse <span class="btn">Solicitar clave temporal</span>. El administrador recibirá la solicitud y le entregará una clave temporal; con ella ingresa y el portal le pedirá crear una contraseña nueva.</p>
+  <div class="shot narrow">
+    <img src="img/03-recuperar.jpg" alt="Recuperar contraseña">
+  </div>
+</div>
+
+<!-- 2. PANTALLA PRINCIPAL -->
+<div class="section">
+  <h2>2. Su pantalla principal <span class="zh">2. 您的首页</span></h2>
+  <p>Al ingresar llega a <b>Mi capacitación</b>. Desde aquí ve el estado de todo lo que tiene asignado.
+    <span class="zh">登录后进入“Mi capacitación”（我的培训），可查看所有已分配课程的状态。</span></p>
+
+  <div class="shot">
+    <img src="img/05-portal.jpg" alt="Pantalla principal">
+    <span class="pin" style="left:23%;top:28%">1</span>
+    <span class="pin" style="left:88%;top:4.5%">2</span>
+    <span class="pin" style="left:93.5%;top:46%">3</span>
+    <span class="pin" style="left:46%;top:59%">4</span>
+    <span class="pin" style="left:61%;top:75%">5</span>
+    <span class="pin" style="left:24%;top:94%">6</span>
+  </div>
+  <p class="cap">Pantalla principal en computador</p>
+
+  <table>
+    <tr><th style="width:32px">#</th><th>Qué es</th></tr>
+    <tr><td>1</td><td><b>Menú lateral:</b> Mi capacitación, Mis certificados, Mi historial y Mi perfil.</td></tr>
+    <tr><td>2</td><td><b>Idioma:</b> cambie entre ES (español) y 中文 (chino) en cualquier momento.</td></tr>
+    <tr><td>3</td><td><b>Continuar →:</b> lo lleva directo a donde se quedó la última vez.</td></tr>
+    <tr><td>4</td><td><b>Indicadores:</b> avance general, capacitaciones completadas, en progreso, vencidas y certificados.</td></tr>
+    <tr><td>5</td><td><b>Dashboard Power BI:</b> solo aparece si el administrador le dio autorización. Abre el tablero en otra pestaña; necesita su cuenta Microsoft de la organización.</td></tr>
+    <tr><td>6</td><td><b>Cerrar sesión:</b> al terminar, salga siempre con este botón (más abajo en el menú).</td></tr>
+  </table>
+
+  <div class="note"><b class="t">Importante: sesión por inactividad / 重要：闲置自动退出</b>
+    Si pasa <b>10 minutos</b> sin usar el portal, se cierra la sesión por seguridad. Un minuto antes aparece un aviso con cuenta regresiva: pulse para continuar. Su avance queda guardado.
+    <span class="zh">闲置 10 分钟将自动退出，退出前 1 分钟会有提示，已完成的进度会保留。</span></div>
+
+  <h3>Sus capacitaciones <span class="zh">您的培训课程</span></h3>
+  <p>Más abajo están las tarjetas de cada capacitación, con su estado (<b>Pendiente</b>, <b>En progreso</b>, <b>Completado</b> o <b>Vencido</b>), el número de módulos, la duración y el porcentaje completado.</p>
+  <div class="shot">
+    <img src="img/06-capacitaciones.jpg" alt="Tarjetas de capacitaciones">
+    <span class="pin" style="left:31.5%;top:57.5%">1</span>
+    <span class="pin" style="left:61.6%;top:57.5%">2</span>
+    <span class="pin" style="left:60%;top:80.3%">3</span>
+    <span class="pin" style="left:60.5%;top:90.7%">4</span>
+  </div>
+  <p class="cap">① Estado · ② Número de módulos · ③ Barra de avance · ④ Botón: «Comenzar» si no ha empezado, «Continuar» si ya inició</p>
+</div>
+
+<!-- 3. TOMAR UNA CAPACITACIÓN -->
+<div class="section">
+  <h2>3. Tomar una capacitación <span class="zh">3. 参加培训</span></h2>
+
+  <h3>3.1 Elegir el módulo <span class="zh">选择模块</span></h3>
+  <p>Cada capacitación se divide en <b>módulos</b>. Al abrir una capacitación verá una tarjeta por módulo, con sus lecciones completadas y los intentos de evaluación usados.</p>
+  <div class="shot">
+    <img src="img/07-modulos.jpg" alt="Módulos de una capacitación">
+    <span class="pin" style="left:51%;top:52.5%">1</span>
+    <span class="pin" style="left:61.5%;top:91.5%">2</span>
+    <span class="pin" style="left:50%;top:91.5%">3</span>
+    <span class="pin" style="left:94%;top:43%">4</span>
+  </div>
+  <p class="cap">① Continuar donde quedaste · ② Abrir módulo · ③ Intentos de evaluación usados · ④ Progreso total de la capacitación</p>
+  <ol class="steps">
+    <li>Pulse <span class="btn">Abrir módulo →</span> en el módulo que desea estudiar (o <span class="btn">Continuar donde quedaste →</span>).
+      <span class="zh">点击“Abrir módulo →”进入要学习的模块。</span></li>
+  </ol>
+
+  <h3>3.2 La pantalla de la lección <span class="zh">课程页面</span></h3>
+  <p>Dentro del módulo, a la izquierda está la lista de <b>lecciones</b> y, debajo, la <b>evaluación del módulo</b>. A la derecha se muestra la lección que está estudiando.</p>
+  <div class="shot">
+    <img src="img/08-leccion.jpg" alt="Pantalla de una lección">
+    <span class="pin" style="left:61%;top:52%">1</span>
+    <span class="pin" style="left:51%;top:69%">2</span>
+    <span class="pin" style="left:92%;top:73%">3</span>
+    <span class="pin" style="left:49%;top:35.5%">4</span>
+  </div>
+  <p class="cap">① Lecciones del módulo (el círculo se marca cuando la completa) · ② Evaluación: aparece en gris hasta terminar todas las lecciones · ③ Documento para descargar · ④ Volver a los módulos</p>
+
+  <div class="note"><b class="t">Nota normativa / 法规依据</b>
+    Algunas lecciones indican la <b>«Base normativa»</b> (por ejemplo el estándar SG-SST-EST-003). Es el documento en que se sustenta el contenido.
+    <span class="zh">部分课程会标明法规依据。</span></div>
+</div>
+
+<!-- 4. DOCUMENTOS Y VIDEOS -->
+<div class="section">
+  <h2>4. Documentos y videos de la lección <span class="zh">4. 课程文件与视频</span></h2>
+  <p>Cada lección puede incluir <b>documentos PDF</b> y <b>videos</b>. Para poder completar la lección debe <b>abrir todos</b> sus documentos y videos.
+    <span class="zh">要完成课程，必须打开该课程的所有 PDF 文件和视频。</span></p>
+
+  <div class="shot">
+    <img src="img/09-videos.jpg" alt="Documentos y videos de la lección">
+    <span class="pin" style="left:90%;top:13%">1</span>
+    <span class="pin" style="left:92%;top:37%">2</span>
+    <span class="pin" style="left:93%;top:62%">3</span>
+    <span class="pin" style="left:85%;top:54%">4</span>
+    <span class="pin" style="left:86%;top:80%">5</span>
+    <span class="pin" style="left:94%;top:92%">6</span>
+  </div>
+  <p class="cap">Lección con un PDF y dos videos</p>
+
+  <ol class="steps">
+    <li><b>Documento PDF:</b> pulse <span class="btn">Descargar</span> y léalo.
+      <span class="zh">点击“Descargar”（下载）并阅读 PDF。</span></li>
+    <li><b>Video dentro del portal:</b> pulse el botón de reproducir (<b>▶ Ver aquí</b>) y el video se reproduce en la misma pantalla.
+      <span class="zh">点击“▶ Ver aquí”，视频在本页播放。</span></li>
+    <li><b>Si la lección tiene varios videos</b> verá una lista de capítulos: elija uno y se reproduce arriba. Cada capítulo ya visto se marca con ✓.
+      <span class="zh">如有多个视频，从列表中选择章节；看过的章节标有 ✓。</span></li>
+    <li><b>Si el video no carga</b>, pulse <b>«¿No carga? Abrir en Drive ↗»</b>: se abre en otra pestaña. Con eso también queda registrado como visto.
+      <span class="zh">视频无法加载时，点击“¿No carga? Abrir en Drive ↗”在新标签页中打开。</span></li>
+    <li>Cuando haya abierto todo el material, pulse <span class="btn">Marcar como completada</span>. Si aún no puede, el portal le avisa qué falta o cuántos <b>segundos</b> debe esperar.
+      <span class="zh">打开全部资料后点击“Marcar como completada”（标记为已完成）；若未完成，系统会提示还缺什么或需等待几秒。</span></li>
+    <li>Use <b>← Anterior</b> y <b>Siguiente →</b> para pasar a otra lección.
+      <span class="zh">用“← Anterior / Siguiente →”切换课程。</span></li>
+  </ol>
+
+  <div class="warn"><b class="t">No se salte el material / 请勿跳过资料</b>
+    El botón <b>«Marcar como completada»</b> no funciona hasta que abra cada PDF y cada video, y espere unos segundos. El portal registra qué material abrió.
+    <span class="zh">未打开每个 PDF 和视频之前，无法标记完成，系统会记录您打开的资料。</span></div>
+
+  <div class="tip"><b class="t">Videos de YouTube / YouTube 视频</b>
+    Si el video es de YouTube, la lección se marca como completada sola cuando lo termina de ver. Debe verlo completo.
+    <span class="zh">如果是 YouTube 视频，看完后课程会自动标记完成。</span></div>
+
+  <p>Al terminar todas las lecciones del módulo aparece el mensaje <b>«¡Terminó las lecciones de este módulo!»</b> y se habilita el botón <span class="btn">Iniciar evaluación</span>. Mientras tanto se ve así: <span class="btn gray">🔒 Iniciar evaluación</span></p>
+</div>
+
+<!-- 5. EVALUACIÓN -->
+<div class="section">
+  <h2>5. Rendir la evaluación <span class="zh">5. 参加测评</span></h2>
+  <p>Cada módulo termina con una evaluación. Antes de empezar, la pantalla muestra la <b>nota mínima para aprobar</b>, el <b>número de intento</b> (por ejemplo «Intento 1/3») y, si existe, el <b>tiempo límite</b>.
+    <span class="zh">每个模块都有测评。开始前会显示及格分数、当前次数和时间限制（如有）。</span></p>
+
+  <ol class="steps">
+    <li>Pulse <span class="btn">Iniciar evaluación</span>. Con eso empieza el intento y <b>cuenta como usado</b>.
+      <span class="zh">点击“Iniciar evaluación”后即开始，并计入一次使用次数。</span></li>
+    <li>Lea cada pregunta y elija su respuesta. La mayoría son de opción única. Algunas pueden pedir que escriba la respuesta.
+      <span class="zh">阅读题目并选择答案，个别题目需要手动填写。</span></li>
+    <li>Sus respuestas se <b>guardan solas</b>; verá «✓ Respuestas guardadas». También verá cuántas lleva: «Respondidas 7/20».
+      <span class="zh">答案会自动保存，并显示已答题数。</span></li>
+    <li>Cuando termine, pulse <span class="btn">Enviar respuestas</span>. Si deja preguntas sin responder, el portal se lo advierte: <b>cuentan como incorrectas</b>. Puede elegir «Seguir respondiendo» o «Enviar de todos modos».
+      <span class="zh">完成后点击“Enviar respuestas”；未答题目按错误计算。</span></li>
+    <li>Verá su resultado y su puntaje.
+      <span class="zh">提交后会立即看到成绩。</span></li>
+  </ol>
+
+  <table>
+    <tr><th>Si…</th><th>Entonces…</th></tr>
+    <tr><td><b>Aprobó</b></td><td>Aparece «¡Aprobado!», se emite su certificado del módulo y puede pulsar <b>Ver mi certificado</b> o <b>Volver al módulo</b>. También se le indica cuál es el siguiente paso.</td></tr>
+    <tr><td><b>No alcanzó la nota</b></td><td>Se le indica cuántos puntos le faltaron y cuántos <b>intentos restantes</b> le quedan. Repase las lecciones del módulo y pulse <b>Reintentar evaluación</b>.</td></tr>
+    <tr><td><b>Se le acabaron los intentos</b></td><td>Comuníquese con el administrador del portal.</td></tr>
+  </table>
+
+  <div class="tip"><b class="t">Consejos para la evaluación / 测评建议</b>
+    <ul>
+      <li>Estudie primero todas las lecciones y repase los documentos antes de empezar.</li>
+      <li>Haga la evaluación en un lugar tranquilo y con buena señal de internet.</li>
+      <li>No cierre la página ni deje de usarla por más de 10 minutos: la sesión se cierra por inactividad.</li>
+      <li>Lea con calma: tiene un número limitado de intentos.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 6. CERTIFICADOS -->
+<div class="section">
+  <h2>6. Sus certificados <span class="zh">6. 您的证书</span></h2>
+  <p>Por <b>cada módulo que apruebe</b> recibe un certificado. Los encuentra en el menú <b>Mis certificados</b>.
+    <span class="zh">每通过一个模块即获得一份证书，可在“Mis certificados”中查看。</span></p>
+
+  <div class="shot mid">
+    <img src="img/10-certificados.jpg" alt="Mis certificados">
+    <span class="pin" style="left:43.7%;top:62.6%">1</span>
+    <span class="pin" style="left:56%;top:81%">2</span>
+    <span class="pin" style="left:59.5%;top:85.5%">3</span>
+  </div>
+  <p class="cap">① Estado (Vigente) · ② Calificación y fecha de emisión · ③ Código del certificado</p>
+
+  <p>Cada certificado tiene un <b>código único</b> (por ejemplo ECSA-SST-XXXXXXXXXXXX). Cualquier persona puede comprobar que es auténtico en la pantalla <b>«Verificar certificado»</b>, a la que se llega desde la página de ingreso: escriba el código y pulse <span class="btn">Verificar</span>.
+    <span class="zh">每份证书有唯一编码，可在登录页的“Verificar certificado”中输入编码核验真伪。</span></p>
+  <div class="shot narrow">
+    <img src="img/04-verificar.jpg" alt="Verificar certificado">
+  </div>
+</div>
+
+<!-- 7. HISTORIAL Y PERFIL -->
+<div class="section">
+  <h2>7. Historial y perfil <span class="zh">7. 学习记录与个人资料</span></h2>
+
+  <h3>Mi historial <span class="zh">我的记录</span></h3>
+  <p>Resume su actividad: <b>lecciones completadas</b>, <b>evaluaciones aprobadas</b>, <b>intentos realizados</b> y <b>tiempo en el portal</b>. Más abajo hay dos tablas: una con sus evaluaciones (fecha, módulo, intento, puntaje y resultado) y otra con las lecciones completadas.</p>
+  <div class="shot mid">
+    <img src="img/11-historial.jpg" alt="Mi historial">
+  </div>
+
+  <h3>Mi perfil <span class="zh">我的资料</span></h3>
+  <p>Muestra sus datos (código de trabajador, empresa, área, cargo) y la fecha de su último acceso. Si algún dato está mal, avise al administrador.</p>
+  <p>Aquí también puede <b>cambiar su contraseña</b>: escriba la actual, la nueva (con los 4 requisitos marcados en ✓) y pulse <span class="btn">Actualizar contraseña</span>. Abajo puede volver a leer las políticas que aceptó.</p>
+  <div class="shot narrow">
+    <img src="img/12-perfil.jpg" alt="Mi perfil">
+  </div>
+</div>
+
+<!-- 8. IDIOMA Y CELULAR -->
+<div class="section">
+  <h2>8. Idioma y uso en el celular <span class="zh">8. 语言与手机使用</span></h2>
+
+  <h3>Cambiar de idioma <span class="zh">切换语言</span></h3>
+  <p>En la esquina superior derecha pulse <b>ES</b> para español o <b>中文</b> para chino. El menú, los botones y los mensajes cambian al instante. Los textos propios de cada lección y los videos están en el idioma en que fueron preparados.
+    <span class="zh">点击右上角的 ES / 中文 即可切换，菜单、按钮和提示会立即切换语言。</span></p>
+  <div class="shot">
+    <img src="img/13-chino.jpg" alt="Portal en chino">
+  </div>
+  <p class="cap">La pantalla principal con el idioma 中文 activado</p>
+
+  <h3>En el celular <span class="zh">在手机上使用</span></h3>
+  <p>El portal se adapta a la pantalla del teléfono. El menú lateral se abre con el botón <b>☰</b> (arriba a la izquierda). El contenido se muestra en una sola columna y los botones son más grandes.
+    <span class="zh">手机上点击左上角 ☰ 打开菜单，内容为单列显示。</span></p>
+  <div class="shot narrow">
+    <img src="img/14-celular.jpg" alt="Portal en el celular">
+  </div>
+  <div class="tip"><b class="t">Para videos y evaluaciones / 观看视频和测评时</b>
+    En el celular, gire el teléfono en horizontal para ver mejor los videos, y conéctese a una red wifi estable para las evaluaciones.
+    <span class="zh">手机观看视频建议横屏；参加测评请使用稳定的网络。</span></div>
+</div>
+
+<!-- 9. PROBLEMAS -->
+<div class="section">
+  <h2>9. Problemas frecuentes <span class="zh">9. 常见问题</span></h2>
+  <table>
+    <tr><th style="width:36%">Qué pasa</th><th>Qué hacer</th></tr>
+    <tr><td><b>No puedo ingresar</b><span class="zh">无法登录</span></td>
+      <td>Revise que su código de trabajador esté bien escrito y que la contraseña respete mayúsculas y minúsculas (use el ojo para verla). Tras 3 errores se bloquea 15 minutos: espere o pida ayuda al administrador.</td></tr>
+    <tr><td><b>Olvidé mi contraseña</b><span class="zh">忘记密码</span></td>
+      <td>Pulse «¿Olvidó su contraseña?», escriba su código y solicite una clave temporal al administrador.</td></tr>
+    <tr><td><b>El botón «Marcar como completada» no me deja</b><span class="zh">无法标记课程完成</span></td>
+      <td>Falta abrir algún PDF o video de la lección, o debe esperar unos segundos. Revise cuáles aparecen sin «Visto» y ábralos.</td></tr>
+    <tr><td><b>«Iniciar evaluación» está en gris</b><span class="zh">测评按钮是灰色</span></td>
+      <td>Aún le faltan lecciones por completar en ese módulo. El mensaje le indica cuántas están pendientes.</td></tr>
+    <tr><td><b>El video no se ve o se queda cargando</b><span class="zh">视频无法播放</span></td>
+      <td>Pulse «¿No carga? Abrir en Drive ↗». Verifique su internet. Pruebe con otro navegador. Si sigue igual, avise cuál es el video.</td></tr>
+    <tr><td><b>No me aparecen mis capacitaciones</b><span class="zh">看不到课程</span></td>
+      <td>Recargue la página. Si no están, pida al administrador que verifique su asignación.</td></tr>
+    <tr><td><b>Se cerró mi sesión sola</b><span class="zh">会话自动退出</span></td>
+      <td>Es por inactividad (10 minutos). Ingrese de nuevo: su avance sigue guardado.</td></tr>
+    <tr><td><b>Me quedé sin intentos de evaluación</b><span class="zh">测评次数用完</span></td>
+      <td>Comuníquese con el administrador del portal.</td></tr>
+    <tr><td><b>No veo el botón de Power BI</b><span class="zh">看不到 Power BI</span></td>
+      <td>Solo lo ven las personas autorizadas por el administrador. Si debería tenerlo, solicítelo.</td></tr>
+    <tr><td><b>Algo no se ve o no funciona bien</b><span class="zh">页面显示异常</span></td>
+      <td>Recargue la página (F5, o deslice hacia abajo en el celular). Si sigue, tome una captura de pantalla y envíela como se explica en la última sección.</td></tr>
+  </table>
+
+  <div class="support">
+    <b>¿Necesita ayuda durante la prueba piloto? / 试点期间需要帮助？</b><br>
+    Contacto: <span class="fill"></span><br>
+    Teléfono / WhatsApp: <span class="fill"></span> &nbsp; Horario: <span class="fill" style="min-width:140px"></span>
+  </div>
+</div>
+
+<!-- 10. MEJORAR -->
+<div class="section">
+  <h2>10. Ayúdenos a mejorar el portal <span class="zh">10. 帮助我们改进平台</span></h2>
+  <p>Usted forma parte de la <b>prueba piloto</b>. Su experiencia nos ayuda a corregir errores y mejorar antes de usar el portal con todo el personal.
+    <span class="zh">您参与的是试点测试，您的反馈将帮助我们在全面使用前改进平台。</span></p>
+
+  <h3>Si encuentra un error o algo confuso, indique: <span class="zh">如遇问题，请说明：</span></h3>
+  <ol class="steps">
+    <li><b>Qué quería hacer</b> (por ejemplo: «completar la lección 2 del módulo 1»).</li>
+    <li><b>Qué pasó</b> (el mensaje que apareció, o qué no funcionó).</li>
+    <li><b>Con qué lo usó:</b> computador o celular, y el navegador (Chrome, Edge, Safari…).</li>
+    <li>Una <b>captura de pantalla</b>, si puede. En el celular: pulse a la vez los botones de encender y bajar volumen. En Windows: tecla Windows + Mayús + S.</li>
+    <li>Su <b>código de trabajador</b> (nunca envíe su contraseña).</li>
+  </ol>
+
+  <div class="warn"><b class="t">Nunca comparta su contraseña / 切勿泄露密码</b>
+    Nadie del equipo del portal se la pedirá, ni por llamada, ni por mensaje.
+    <span class="zh">平台团队不会向您索要密码。</span></div>
+
+  <h3>Preguntas para pensar después de usar el portal <span class="zh">使用后的反馈问题</span></h3>
+  <ul>
+    <li>¿Pudo ingresar sin ayuda? ¿Qué tan fácil fue?</li>
+    <li>¿Las lecciones, los PDF y los videos se entienden y se ven bien?</li>
+    <li>¿La evaluación fue clara? ¿Hubo preguntas confusas?</li>
+    <li>¿Qué le gustaría que el portal tuviera o hiciera diferente?</li>
+  </ul>
+
+  <p style="margin-top:22px; text-align:center; color:var(--muted)">¡Gracias por participar en la prueba piloto! <span class="zh">感谢您参与试点测试！</span></p>
+</div>
+
+</body>
+</html>

@@ -189,6 +189,7 @@ textarea {
 
 .main-area {
   flex: 1;
+  min-width: 0;
   margin-left: var(--sidebar-width);
   min-height: 100vh;
   display: flex;
