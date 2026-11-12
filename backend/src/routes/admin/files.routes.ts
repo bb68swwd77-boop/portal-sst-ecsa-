@@ -8,6 +8,14 @@ import { uploadPdf, uploadImage } from "../../middleware/upload";
 import { prisma } from "../../lib/prisma";
 import { audit } from "../../lib/audit";
 
+// multer (busboy) entrega el nombre original leído como latin1, así que "Choque eléctrico.pdf"
+// llega como "Choque elÃ©ctrico.pdf". Se vuelve a interpretar como UTF-8; si el resultado no es
+// UTF-8 válido, el nombre ya venía bien y se deja tal cual.
+function decodeUploadName(name: string): string {
+  const decoded = Buffer.from(name, "latin1").toString("utf8");
+  return decoded.includes("�") ? name : decoded;
+}
+
 export const adminFilesRouter = Router();
 adminFilesRouter.use(requireAuth, requirePermission("courses:edit"));
 
@@ -38,7 +46,7 @@ async function handleUpload(
 
   const file = await prisma.fileAsset.create({
     data: {
-      filename: req.file.originalname.slice(0, 200),
+      filename: decodeUploadName(req.file.originalname).slice(0, 200),
       mimeType: req.file.mimetype,
       sizeBytes: req.file.size,
       data: req.file.buffer,

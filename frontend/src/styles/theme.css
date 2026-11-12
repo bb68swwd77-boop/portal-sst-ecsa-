@@ -1450,17 +1450,20 @@ a.powerbi-stat:hover {
   align-self: flex-start;
 }
 
-/* Varios videos en una lección: reproductor a la izquierda y capítulos a la derecha */
+/* Varios videos en una lección: reproductor y capítulos lado a lado cuando hay espacio;
+   si la columna es angosta, la lista pasa debajo del reproductor (sin depender del ancho de pantalla). */
 .video-playlist {
   grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  display: flex;
+  flex-wrap: wrap;
   gap: 16px;
-  align-items: start;
+  align-items: flex-start;
 }
 
 .video-playlist .video-embed {
   grid-column: auto;
+  flex: 3 1 360px;
+  min-width: 0;
 }
 
 .video-playlist-list {
@@ -1472,6 +1475,8 @@ a.powerbi-stat:hover {
   gap: 8px;
   max-height: 480px;
   overflow-y: auto;
+  flex: 1 1 260px;
+  min-width: 0;
 }
 
 .video-playlist-item {
@@ -1522,12 +1527,6 @@ a.powerbi-stat:hover {
 .video-playlist-num.done {
   background: #1f9d55;
   color: #fff;
-}
-
-@media (max-width: 900px) {
-  .video-playlist {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* Tarjeta de enlace de video (junto a los PDF) */
